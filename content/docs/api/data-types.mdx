@@ -114,7 +114,7 @@ Builder 的可用方法（声明速查）：
 
 ## 邮件状态（AxsMailState）
 
-`UNREAD` 为未读，`READ` 为已读，`CLAIMED` 为已领取，`DELETED` 为已删除，`EXPIRED` 为已过期。按查询和展示需要选择状态。
+`UNREAD` 为未读，`READ` 为已读，`CLAIM_PENDING` 表示可从已保存的进度继续领取，`CLAIM_REVIEW` 表示发放结果待核对，`CLAIMED` 为已领取，`DELETED` 为已删除，`EXPIRED` 为已过期。按查询和展示需要选择状态。
 
 完整类型：`xuanmo.arcartxsuite.api.mail.AxsMailState`。
 
@@ -125,6 +125,8 @@ public enum AxsMailState {
 
     READ,
 
+    CLAIM_PENDING,
+    CLAIM_REVIEW,
     CLAIMED,
 
     DELETED,
