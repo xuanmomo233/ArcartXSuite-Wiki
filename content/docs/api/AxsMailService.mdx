@@ -28,6 +28,8 @@ if (api == null) {
 ```java
 public interface AxsMailService {
 
+    boolean usesSharedHostStorage();
+
     @NotNull CompletableFuture<AxsDeliveryReceipt> send(@NotNull AxsMailRequest request);
 
     @NotNull CompletableFuture<AxsDeliveryReceipt> sendDurable(@NotNull AxsMailRequest request);
@@ -50,8 +52,9 @@ public interface AxsMailService {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
+| `usesSharedHostStorage` | 检查邮件是否写入 Suite 宿主共享 MySQL。跨服持久奖励需要此检查通过。 | 无 | `boolean` |
 | `send` | 发送一封系统邮件。 收件人无需在线，邮件存入收件箱，玩家上线后查看领取附件。 使用 `AxsMailRequest#idempotencyKey()` 作为去重标识。 | `request`：邮件发送请求 | 异步回执，`AxsDeliveryReceipt#isNoOp()` 为 true 表示模块未就绪 |
-| `sendDurable` | 恢复持久化的邮件发送意图。 语义与 `#send` 相同，区别在于允许更早的 `deliverAt` （用于调用方从自己的持久化记录恢复发送）。 AXS mail 模块当前实现中与 `#send` 行为一致。 | `request`：邮件发送请求 | 异步回执 |
+| `sendDurable` | 根据持久化的待发记录重试发送，使用与 `send` 相同的事务和去重语义。 | `request`：邮件发送请求 | 异步回执 |
 | `getMail` | 查询玩家自己的单封邮件。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步邮件视图，不存在时返回 `null` |
 | `getInbox` | 查询玩家收件箱。 | `playerId`：玩家 UUID；`query`：查询条件 | 异步邮件视图列表 |
 | `getUnreadCount` | 查询玩家未读邮件数量。 | `playerId`：玩家 UUID | 异步未读数量 |
@@ -62,3 +65,13 @@ public interface AxsMailService {
 ## 调用注意事项
 
 返回 `CompletableFuture` 的方法使用回调处理结果，不要在 Bukkit 主线程调用 `join()` 或 `get()`。回调中如需操作 Bukkit 玩家、世界或物品，将相应操作切回主线程。
+
+## 幂等发送与重试
+
+同一份奖励保持 `sourcePlugin`、`idempotencyKey` 和收件人 UUID 不变。每位收件人的邮件、附件和发送回执在同一事务中保存；重复发送返回原邮件 ID，`duplicate()` 为 `true`。邮件被领取或清理后，相同标识也不会重新发放。
+
+多人请求按收件人分别提交。如果请求异常结束，已有部分收件人收到邮件，可以用原请求重试，服务只补发尚未成功的收件人。`recipientCount()` 是本次新建邮件的收件人数，`mailId()` 是请求中首位收件人的邮件 ID，不能用它查询其他收件人的邮件。
+
+发送回执确认邮件已入库，玩家是否领取需另行查询。保留自己的待发记录，直到收到有效回执；`isNoOp()` 为 `true` 或发生异常时，继续保留并安排重试。`send` 和 `sendDurable` 都直接尝试入库，`deliverAt` 不会延迟调用，定时发放需由调用方安排触发时间。
+
+跨服奖励需让 EventPacket、Abyss 和 Mail 使用同一个 Suite 宿主共享 MySQL。Mail 单独配置数据库时，`usesSharedHostStorage()` 返回 `false`，即使该数据库也是 MySQL。

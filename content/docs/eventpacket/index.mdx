@@ -1,47 +1,21 @@
 ---
 title: "事件与动作"
-description: "把进服、任务和自定义信号组合成公告、奖励等动作。"
+description: "接收 Suite 事件或自定义信号，执行提示、任务联动、定时命令及邮件发放。"
 ---
-
-| 项目 | 说明 |
-| --- | --- |
-| 模块 ID | `eventpacket` |
-| 主配置 | `plugins/ArcartX-Suite/data/eventpacket/config.yml` |
-| 主要调整内容 | rules/ 中的触发条件与动作列表 |
-| 重载 | `/axs reload eventpacket` |
-
-## 开始前
-
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。可选插件只在使用对应功能时安装，具体要求见功能配置页。
 
 ## 第一次使用
 
-1. 按[最小信号规则](/docs/eventpacket/configuration#从一条无外部奖励的信号规则开始)将完整示例保存到 `plugins/ArcartX-Suite/data/eventpacket/rules/trial.yml`。
-2. 使用管理员执行 `/axs reload eventpacket`，再执行 `/axs eventpacket fire trial_open WikiTester`。将 `WikiTester` 换成在线测试玩家名。
-3. 测试玩家应收到「试炼入口已触发」。在 3 秒内再次执行，确认冷却期间只收到一次。
+1. 在 `plugins/ArcartX-Suite/data/eventpacket/config.yml` 的 `rules` 段加入[测试信号规则](/docs/eventpacket/configuration#测试一条信号规则)。
+2. 执行 `/axs reload eventpacket`，再执行 `/axs eventpacket fire trial_open WikiTester`。把 `WikiTester` 换成已通过准入的在线测试玩家。
 
 ## 检查是否配置成功
 
-确认规则仅在预期事件发生时执行一次。
-
-信号执行后没收到测试消息时，先确认命令用的是信号名 `trial_open`，目标玩家在线，规则已启用且 3 秒冷却已经结束。若测试消息可达、正式奖励未达，再单独检查动作所引用的邮件预设或其他目标。
-
-## 可以配置的功能
-
-| 特性 | 说明 |
-|---|---|
-| 18 种触发器 | 覆盖进退服、变量变化、击杀计数、信号、客户端操作、任务变化和脚本条件。各英文标识与中文用途见[触发器详解](/docs/eventpacket/triggers) |
-| 条件过滤 | 支持 PAPI 条件和上下文变量条件（`%placeholder% operator value`，支持 `==`/`!=`/`>=`/`<=`/`>`/`<`/`contains`/`regex`），详见 [条件系统](/docs/guide/conditions) |
-| 重复与冷却 | 默认每玩家只触发一次，`repeatable: true` 可重复触发，支持 `cooldown`（如 `5s`/`1m`/`2h`/`1d`） |
-| 变量替换 | 动作参数支持 `{player_name}`、`{player_uuid}`、`{world}`、`{trigger}`、`{placeholder}`、`{old_value}`、`{new_value}`、`{signal}` 等上下文变量 |
-| 实体清理 | 内置 ClearLag 功能，定时清理掉落物/怪物/动物，支持警告倒计时和白名单 |
-| 定时命令 | 可定义多个定时任务，支持日历触发（hourly/daily/weekly）和固定间隔两种模式 |
-| 数据持久化 | 击杀进度和规则触发状态持久化到数据库，支持共享模式和自建模式 |
+玩家应收到“试炼入口已触发”。可用 `/axs eventpacket topics` 核对规则是否注册，用 `/axs eventpacket status` 查看队列和动作失败计数。
 
 ## 继续配置
 
-- [功能配置](/docs/eventpacket/configuration)：字段含义与配置示例。
-- [命令与权限](/docs/eventpacket/commands)：玩家操作、管理命令和权限。
-- [动作详解](/docs/eventpacket/actions)：将提示、命令、称号、邮件等动作组合成事件发生后的执行步骤。
-- [定时服务](/docs/eventpacket/services)：配置定时命令、实体清理和占位符监听等周期功能。
-- [触发器详解](/docs/eventpacket/triggers)：选择进服、任务、击杀或自定义信号等触发条件来启动规则。
+- [规则配置](/docs/eventpacket/configuration)提供完整的信号示例和处理上限。
+- [触发器](/docs/eventpacket/triggers)说明如何接入钓鱼、任务、准入、副本和拍卖。
+- [动作配置](/docs/eventpacket/actions)提供实时动作和副本奖励邮件的用法。
+- [定时命令](/docs/eventpacket/services)提供按时或按间隔执行控制台命令的示例。
+- [命令与权限](/docs/eventpacket/commands)说明如何触发测试信号并排查规则。

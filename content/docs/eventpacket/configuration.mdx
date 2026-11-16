@@ -1,183 +1,44 @@
 ---
-title: "事件与动作配置"
-description: "调整rules/ 中的触发条件与动作列表；附字段解释、修改示例与重载步骤。"
+title: "事件规则配置"
+description: "在主配置中创建一条信号规则，并了解规则字段和每 tick 的处理限制。"
 ---
 
-## 先改哪些内容
+编辑 `plugins/ArcartX-Suite/data/eventpacket/config.yml`，在 `rules` 中为每条规则设置一个独立的 ID。
 
-rules/ 中的触发条件与动作列表。先使用默认示例完成一次测试，再按本页逐项调整。
+## 测试一条信号规则
 
-配置位置：`plugins/ArcartX-Suite/data/eventpacket/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload eventpacket`；涉及插件安装或全局设置的变更请重启后验证。
-
-## 配置文件概览
-
-配置文件的 `config-version` 当前为 `2`，使用自动生成的值。
-
-### 基础设置（settings）
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `settings.refresh-interval-ticks` | long | `20` | PAPI 占位符轮询刷新间隔（tick，20 = 1 秒），最小为 1 |
-| `settings.debug` | boolean | `false` | 是否输出 EventPacket 模块调试日志（规则匹配、动作执行、条件失败等） |
-
-### 实体清理（entity-cleanup）
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `entity-cleanup.enabled` | boolean | `false` | 是否启用实体清理（ClearLag）功能 |
-| `entity-cleanup.interval-seconds` | int | `300` | 清理间隔（秒） |
-| `entity-cleanup.warning-seconds` | int | `30` | 清理前警告倒计时（秒），0 = 不警告 |
-| `entity-cleanup.warning-message` | String | `&c[清理] 将在 {seconds} 秒后清理掉落物！` | 警告消息，支持 `{seconds}` 变量和 `&` 颜色码 |
-| `entity-cleanup.cleanup-message` | String | `&a[清理] 已清除 {count} 个实体。` | 清理完成消息，支持 `{count}` 变量 |
-| `entity-cleanup.clear-dropped-items` | boolean | `true` | 是否清理掉落物 |
-| `entity-cleanup.clear-monsters` | boolean | `false` | 是否清理怪物（Monster 接口） |
-| `entity-cleanup.clear-animals` | boolean | `false` | 是否清理动物（Animals 接口） |
-| `entity-cleanup.skip-named` | boolean | `true` | 是否跳过有自定义名称的实体 |
-| `entity-cleanup.clear-entity-types` | list | `[]` | 额外要清理的实体类型（`EntityType` 枚举名） |
-| `entity-cleanup.entity-whitelist` | list | `[VILLAGER, ARMOR_STAND]` | 不清理的实体类型白名单 |
-| `entity-cleanup.worlds` | list | `[]` | 限定生效世界，空 = 所有世界 |
-
-### 定时命令（scheduled-commands）
-
-`scheduled-commands` 为动态节，键名即任务 ID，可定义多个定时任务。
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `scheduled-commands.<id>.enabled` | boolean | `true` | 是否启用该任务 |
-| `scheduled-commands.<id>.as-console` | boolean | `true` | 是否以控制台身份执行（false 则以玩家身份执行） |
-| `scheduled-commands.<id>.permission` | String | （空） | 玩家执行模式下的权限过滤，空 = 所有在线玩家 |
-| `scheduled-commands.<id>.commands` | list | `[]` | 要执行的命令列表，支持 `{player}` 和 `{online}` 变量 |
-| `scheduled-commands.<id>.schedule` | section | （空） | 调度配置，选择所需周期和时间 |
-
-#### schedule 子节（日历触发）
-
-| 配置项 | 类型 | 说明 |
-|---|---|---|
-| `schedule.mode` | String | 调度模式：`hourly`（每小时整点）、`daily`（每天指定时刻）、`weekly`（每周指定时刻）、`interval`（固定间隔） |
-| `schedule.time` | String | `daily`/`weekly` 模式的触发时刻，格式 `HH:mm`（如 `02:30`） |
-| `schedule.day` | String | `weekly` 模式的星期几（如 `monday`、`friday`） |
-| `schedule.interval-ticks` | long | `interval` 模式的间隔（tick） |
-| `schedule.interval-seconds` | int | `interval` 模式的间隔（秒） |
-| `schedule.interval-minutes` | int | `interval` 模式的间隔（分钟） |
-
-> `interval` 模式按优先级读取 `interval-ticks` > `interval-seconds` > `interval-minutes`。
-
-## 规则配置
-
-### 从一条无外部奖励的信号规则开始
-
-在 `rules/trial.yml` 保存下方内容。先用测试消息确认信号链，再换成邮件、称号或其他正式动作。
+将 `trial-open-message` 合并到现有的 `rules` 段。
 
 ```yaml
-trial_signal:
-  enabled: true
-  trigger: command-signal
-  signal: trial_open
-  repeatable: true
-  cooldown: "3s"
-  actions:
-    - type: command.dispatch
-      executor: console
-      command: "tell {player} 试炼入口已触发"
+rules:
+  trial-open-message:
+    enabled: true
+    trigger: signal
+    signal: trial_open
+    actions:
+      - type: message
+        text: "试炼入口已触发。"
 ```
 
-重载 EventPacket 后，通过[信号命令](/docs/eventpacket/commands)向在线测试玩家发送 `trial_open`。规则根键 `trial_signal`、信号名 `trial_open` 和目标玩家是三个不同参数。没出现消息时，先核对信号名、规则开关、冷却和玩家，再检查动作。
+保存并执行 `/axs reload eventpacket`。执行 `/axs eventpacket fire trial_open WikiTester`，检查对应玩家是否收到消息。
 
-若下一步改成 `mail.send`，先在 Mail 中建立并重载预设，再把真实预设 ID 填进动作。只改动作类型而不填它的必要字段不会得到完整联动。
+## 规则字段
 
-规则文件位于 `data/eventpacket/rules/` 目录，每个 `.yml` 文件的根键即为规则 ID。目录文件按文件名排序加载，同名规则以最后加载的文件为准。
+| 字段 | 用途 |
+| --- | --- |
+| `enabled` | 是否启用规则，默认 `true`。 |
+| `trigger` | 何时执行，见[触发器](/docs/eventpacket/triggers)。 |
+| `when` | 按事件字段精确匹配，填写的条件须全部满足。值可以填字符串、数字或布尔值。 |
+| `actions` | 按顺序执行的动作列表，每条规则可填写 1 至 8 个动作。 |
 
-### 规则字段表
+规则 ID 和信号名使用小写字母、数字、连字符或下划线，以字母或数字开头，最多 64 个字符。主配置最多可填写 256 条规则。
 
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `enabled` | boolean | `true` | 是否启用该规则 |
-| `trigger` | String | 必填 | 显式填写触发器类型，例如 `admitted`。无法识别的值会使规则被跳过 |
-| `signal` | String | （空） | 信号标识，用于信号过滤（command-signal / quest-* / objective-* / chemdah-level-change） |
-| `placeholder` | String | （空） | PAPI 占位符表达式（PAPI 触发器使用），如 `%player_level%` |
-| `threshold` | number | （空） | 数值阈值（placeholder-threshold 触发器使用） |
-| `require-non-empty` | boolean | `false` | 是否要求占位符值非空才触发 |
-| `count` | int | `1` | 击杀计数触发器所需的目标击杀数 |
-| `worlds` | list | `[]` | 限制生效的世界名集合，空 = 不限制 |
-| `entity-types` | list | `[]` | 限制生效的实体类型集合（`EntityType` 枚举名） |
-| `mythic-mob-ids` | list | `[]` | 限制生效的 MythicMob ID 集合 |
-| `repeatable` | boolean | `false` | 是否可重复触发 |
-| `cooldown` | string/number | `0` | 冷却时间，支持 `10s`/`5m`/`2h`/`1d` 或数字（秒） |
-| `conditions` | list | `[]` | 脚本条件列表，全部满足才触发，详见 [条件系统](/docs/guide/conditions) |
-| `actions` | list | （必填） | 触发后执行的动作列表，至少一个 |
-| `script` | string | （空） | 脚本内容（script-js / script-aria 触发器必填） |
+## 实时规则处理上限
 
-### 触发器枚举
+| 字段 | 默认 | 用途 |
+| --- | --- | --- |
+| `runtime.queue-capacity` | `1024` | 待处理事件队列容量，取值 16 至 8192。 |
+| `runtime.work-per-tick` | `64` | 每 tick 的处理量上限，取值 1 至 512。 |
+| `runtime.budget-micros` | `750` | 每 tick 处理预算，单位为微秒，取值 100 至 5000。 |
 
-| 触发器 | 配置值 | 说明 |
-|---|---|---|
-| 玩家准入 | `admitted` | 玩家通过身份验证并满足全部准入要求时触发 |
-| 首次准入 | `first-admitted` | 宿主报告玩家档案首次准入时触发 |
-| 玩家退出 | `quit` | 玩家退出服务器时触发 |
-| PAPI 增加 | `papi-increase` / `placeholder-increase` | 指定 PAPI 数值增加时触发 |
-| PAPI 减少 | `papi-decrease` / `placeholder-decrease` | 指定 PAPI 数值减少时触发 |
-| PAPI 阈值 | `placeholder-threshold` | 指定 PAPI 数值达到阈值时触发 |
-| 击杀计数 | `mob-kill-count` | 玩家击杀指定怪物累计到条件时触发 |
-| 命令信号 | `command-signal` | 管理命令手动发送信号时触发 |
-| 任务接受 | `quest-accept` | Chemdah 任务接受后触发 |
-| 任务完成 | `quest-complete` | Chemdah 任务完成后触发 |
-| 任务失败 | `quest-fail` | Chemdah 任务失败后触发 |
-| 目标完成 | `objective-complete` | Chemdah 目标完成后触发 |
-| 目标继续 | `objective-continue` | Chemdah 目标继续时触发 |
-| 目标重启 | `objective-restart` | Chemdah 目标重启时触发 |
-| 等级变化 | `chemdah-level-change` | Chemdah 等级变化时触发 |
-| JS 脚本 | `script-js` | JavaScript 表达式返回 true 时触发 |
-| Aria 脚本 | `script-aria` | Aria 表达式返回 true 时触发 |
-
-### 动作类型枚举
-
-| 动作类型 | 说明 | 必填参数 | 可选参数 |
-|---|---|---|---|
-| `questgps.offer` | 推送任务到 QuestGPS | `quest-id` | `open-menu`（默认 true） |
-| `questgps.accept` | 接受指定任务 | `quest-id` | — |
-| `questgps.open` | 打开 QuestGPS 菜单，例如 `type: questgps.open` | 无额外字段 | 可直接作为 actions 的一个列表项 |
-| `questgps.track` | 追踪任务或阶段 | `quest-id` | `task-id` |
-| `subtitle.play` | 播放字幕组 | `group-id` | `subtitle-id` / `id`（别名） |
-| `chat.card` | 发送聊天卡片 | `card-id` | `data`（卡片自定义数据） |
-| `title.give` | 发放称号 | `title-id` | `duration`（默认 `permanent`，如 `7d`） |
-| `command.dispatch` | 派发命令 | `command` | `executor`（`console`/`player`/`op`，默认 console） |
-| `mail.send` | 发送邮件 | `preset-id` | — |
-| `announcer.play` | 播放公告字幕组 | `group-id` | `id`（别名） |
-
-### 定时命令日历触发示例
-
-```yaml
-scheduled-commands:
-  # 每天凌晨 3 点执行自动保存
-  daily-save:
-    enabled: true
-    as-console: true
-    commands:
-      - 'save-all'
-    schedule:
-      mode: daily
-      time: "03:00"
-
-  # 每周一凌晨 4 点重置周常
-  weekly-reset:
-    enabled: true
-    as-console: true
-    commands:
-      - 'say 周常任务已重置！'
-    schedule:
-      mode: weekly
-      day: monday
-      time: "04:00"
-
-  # 每 30 分钟执行一次在线奖励检查
-  interval-reward:
-    enabled: true
-    as-console: true
-    commands:
-      - 'onlinerewards check-all'
-    schedule:
-      mode: interval
-      interval-minutes: 30
-```
+可以用 `/axs eventpacket status` 查看实时队列与丢弃计数。

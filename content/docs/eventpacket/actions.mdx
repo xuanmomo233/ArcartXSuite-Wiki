@@ -1,288 +1,38 @@
 ---
-title: "动作详解"
-description: "将提示、命令、称号、邮件等动作组合成事件发生后的执行步骤。"
+title: "事件动作配置"
+description: "设置字幕、任务、消息、命令和持久邮件的参数。"
 ---
 
-## 概述
+## 实时动作
 
-每种动作下面都有中文用途、参数表和 YAML 示例。顶部表格用于定位动作，复制配置时使用对应小节的完整示例。例如发邮件需要 `type: mail.send` 和 `preset-id` 两项，具体预设 ID 要换成服务器已加载的值。
-
-EventPacket 模块的动作（Action）是规则触发后执行的具体操作。每条规则可定义一个**动作链**（`actions` 列表），动作按顺序执行，单个动作失败不会中断后续动作。
-
-每个动作包含 `type`（类型标识）和参数键值表，参数值支持上下文变量替换（`{变量名}` 语法），在执行前渲染。
-
-## 动作类型总览
-
-| 动作类型 | 中文用途 | 所需模块与示例 |
+| 动作类型 | 用途 | 参数示例 |
 | --- | --- | --- |
-| `questgps.offer` | 推送指定任务，可同时打开任务菜单 | QuestGPS 任务导航，见 [YAML 写法与示例](#questgpsoffer--推送任务) |
-| `questgps.accept` | 为触发玩家接受任务 | QuestGPS 任务导航，见 [YAML 写法与示例](#questgpsaccept--接受任务) |
-| `questgps.open` | 打开任务菜单 | QuestGPS 任务导航，见 [YAML 写法与示例](#questgpsopen--打开菜单) |
-| `questgps.track` | 追踪任务或其中一个阶段 | QuestGPS 任务导航，见 [YAML 写法与示例](#questgpstrack--追踪任务) |
-| `subtitle.play` | 为触发玩家播放字幕组 | Announcer 公告与字幕，见 [YAML 写法与示例](#subtitleplay--播放字幕组) |
-| `chat.card` | 发送指定聊天卡片 | Chat 聊天频道，见 [YAML 写法与示例](#chatcard--发送聊天卡片) |
-| `title.give` | 发放永久或限时称号 | Title 称号，见 [YAML 写法与示例](#titlegive--发放称号) |
-| `command.dispatch` | 按配置身份执行命令 | 命令所属插件需可用，见 [YAML 写法与示例](#commanddispatch--派发命令) |
-| `mail.send` | 给触发玩家派发邮件预设 | Mail 邮箱，见 [YAML 写法与示例](#mailsend--发送邮件) |
-| `announcer.play` | 为触发玩家播放公告字幕组 | Announcer 公告与字幕，见 [YAML 写法与示例](#announcerplay--播放公告字幕组) |
-| `qq-broadcast` | 将指定消息发送到 QQ 群 | QQBot 群服互联，见 [YAML 写法与示例](#qq-广播动作) |
-| `combateffect.play` | 向触发玩家展示配置的战斗效果界面 | ArcartX 与对应效果界面，见 [YAML 写法与示例](#combateffectplay--播放战斗特效) |
-| `ui-packet` | 更新已有自定义界面的内容 | ArcartX 与匹配的自定义界面配置，见 [YAML 写法与示例](#ui-packet--更新自定义界面) |
+| `subtitle` | 播放 Announcer 字幕组。 | `group: welcome_demo` |
+| `quest.offer` | 通过 QuestGPS 向玩家展示可接取任务。 | `quest: chapter_two`、`open-menu: true` |
+| `quest.track` | 通过 QuestGPS 追踪已接取任务。 | `quest: chapter_two` |
+| `message` | 向玩家发送聊天栏提示。 | `text: "已解锁下一阶段"` |
+| `command` | 以控制台或玩家身份执行固定命令。 | `executor: console`、`command: save-all` |
 
-> 依赖模块不可用、需要的在线玩家不存在或参数为空时，相关动作可能没有效果；未知类型和执行异常会记录日志。验证动作时同时检查日志和玩家实际结果。
+字幕和任务动作分别需要 Announcer 和 QuestGPS。消息、字幕组和任务 ID 支持引用事件字段，例如 `{quest_id}`。命令使用固定参数，`executor` 可选 `console` 或 `player`。执行玩家动作时，目标玩家须在线且已通过准入。
 
-## QuestGPS 动作
-
-QuestGPS 系列动作用于与 QuestGPS 模块联动，实现任务推送、接受、打开菜单和追踪功能。
-
-### questgps.offer — 推送任务
-
-向玩家推送指定任务，可选择是否自动打开任务菜单。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `quest-id` | String | 是 | — | 任务 ID，支持 `questId` 别名 |
-| `open-menu` | boolean | 否 | `true` | 是否自动打开任务菜单 |
+## 副本通关邮件
 
 ```yaml
-actions:
-  - type: questgps.offer
-    quest-id: "example_mainline_quest"
-    open-menu: true
+rules:
+  abyss-clear:
+    enabled: false
+    trigger: abyss-result
+    when:
+      dungeon: example_dungeon
+      difficulty: hard
+      outcome: COMPLETED
+    actions:
+      - type: mail
+        id: clear-reward
+        title: "副本通关奖励"
+        content: "你已通关 {dungeon}，难度 {difficulty}。"
+        currency: money
+        amount: 100
 ```
 
-### questgps.accept — 接受任务
-
-直接为玩家接受指定任务。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `quest-id` | String | 是 | — | 任务 ID，支持 `questId` 别名 |
-
-```yaml
-actions:
-  - type: questgps.accept
-    quest-id: "{quest-id}"
-```
-
-### questgps.open — 打开菜单
-
-为玩家打开 QuestGPS 主菜单，无需参数。
-
-```yaml
-actions:
-  - type: questgps.open
-```
-
-### questgps.track — 追踪任务
-
-追踪指定任务或任务下的特定阶段。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `quest-id` | String | 是 | — | 任务 ID，支持 `questId` 别名 |
-| `task-id` | String | 否 | （空） | 阶段 ID，不填则追踪整个任务；支持 `taskId` 别名 |
-
-```yaml
-actions:
-  - type: questgps.track
-    quest-id: "example_mainline_quest"
-    task-id: "stage_1"
-```
-
-### subtitle.play — 播放字幕组
-
-播放指定的字幕组。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `group-id` | String | 是 | — | 字幕组 ID |
-| `subtitle-id` | String | 否 | — | 别名，等效于 `group-id` |
-| `id` | String | 否 | — | 别名，等效于 `group-id` |
-
-> 参数查找优先级：`group-id` → `subtitle-id` → `id`，取第一个非空值。
-
-```yaml
-actions:
-  - type: subtitle.play
-    group-id: "welcome_cinematic"
-```
-
-### announcer.play — 播放公告字幕组
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `group-id` | String | 是 | — | 公告字幕组 ID |
-| `id` | String | 否 | — | 别名，等效于 `group-id` |
-
-```yaml
-actions:
-  - type: announcer.play
-    group-id: "server_announcement"
-```
-
-### chat.card — 发送聊天卡片
-
-向玩家发送指定的聊天卡片，可附带自定义数据。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `card-id` | String | 是 | — | 卡片模板 ID，支持 `id` 别名 |
-| `data` | map | 否 | （空） | 卡片自定义数据，键值对 |
-
-```yaml
-actions:
-  - type: chat.card
-    card-id: "quest_offer"
-    data:
-      quest: "example_mainline_quest"
-      title: "初入岛屿"
-      level: "{new_number}"
-```
-
-> `data` 参数值会被递归渲染，支持 Map 和 List 结构。
-
-### title.give — 发放称号
-
-为玩家发放指定称号，支持永久和限时称号。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `title-id` | String | 是 | — | 称号 ID，支持 `id` 别名 |
-| `duration` | String | 否 | `permanent` | 持续时间：`permanent`（永久）或如 `7d`（7 天） |
-
-```yaml
-actions:
-  - type: title.give
-    title-id: "newcomer"
-    duration: "permanent"
-```
-
-```yaml
-actions:
-  - type: title.give
-    title-id: "boss_slayer"
-    duration: "7d"
-```
-
-> 称号发放的来源标记为 `EventPacket`。
-
-### command.dispatch — 派发命令
-
-以指定身份执行命令，支持控制台、玩家和 OP 三种执行模式。命令中的 `{player}` 默认取触发玩家的名称，`{uuid}` 默认取该玩家的 UUID。若上下文已经传入同名变量，沿用传入值。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `command` | String | 是 | — | 要执行的命令（不含 `/` 前缀） |
-| `executor` | String | 否 | `console` | 执行者：`console`（控制台）、`player`（玩家）、`op`（临时 OP） |
-
-```yaml
-actions:
-  - type: command.dispatch
-    executor: console
-    command: "say {player} 加入了服务器"
-```
-
-### 执行者模式
-
-| 执行者 | 说明 |
-|---|---|
-| `console` | 以控制台身份执行 |
-| `player` | 以触发玩家身份执行 |
-| `op` | 临时赋予玩家 OP 权限执行，执行后立即恢复 |
-
-### mail.send — 发送邮件
-
-向触发玩家发送指定预设的邮件。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `preset-id` | String | 是 | — | 邮件预设 ID，支持 `presetId` 别名 |
-
-```yaml
-actions:
-  - type: mail.send
-    preset-id: "boss_reward_{boss_id}"
-```
-
-> 邮件来源模块标记为 `eventpacket`，收件人为触发玩家名。
-
-## QQ 广播动作
-
-向 QQ 群发送广播消息，可指定群号或发送到所有群。
-
-使用 `type: qq-broadcast`，消息填在 `message`。不指定群号会广播到所有已配置群；首次测试应填写明确的测试群号。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `message` | String | 是 | — | 广播消息内容 |
-| `group-id` | number/string | 否 | `0` | 目标群号，不填或 0 则发送到所有群 |
-
-> `group-id` 支持数字和字符串两种类型，无法解析时发送到所有群。
-
-### combateffect.play — 播放战斗特效
-
-使用 `type: combateffect.play`，配合已有的效果界面和其接受的内容格式，不会自动生成模型、音效或贴图资源。
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `pack` | any | 是 | — | 特效包数据 |
-| `ui-id` | String | 否 | 模块默认 | 战斗特效 UI ID |
-
-> `ui-id` 不填时使用模块默认。`pack` 数据渲染后仅发送给触发玩家。
-
-### ui-packet — 更新自定义界面
-
-用于已有自定义界面的进阶配置，需要界面本身具备匹配的接收与更新逻辑。普通公告、邮件或称号操作优先使用各自专用动作。
-
-| 参数 | 用途 |
-| --- | --- |
-| `ui-id` | 目标界面 ID，必须为实际存在的界面 |
-| `packet-handler` | 界面已经定义的处理名称，也可用 `handler` |
-| `pack` | 该界面所需的内容，字段按界面定义填写 |
-| `recipients` | 目标接收范围，不填时为触发玩家 |
-
-该动作没有通用的 `pack` 模板，不能把别的模块界面内容直接复制到任意 UI。多个界面 ID 的配置规则另见[多界面配置](/docs/guide/multi-ui)。
-
-## 动作参数渲染
-
-所有动作参数值在执行前渲染上下文变量，支持递归处理 String、List 和 Map 三种节点类型：
-
-| 节点类型 | 渲染行为 |
-|---|---|
-| String | 将所有 `{变量名}` 替换为对应值，`\n` 转换为换行符 |
-| List | 递归渲染每个元素 |
-| Map | 递归渲染键和值 |
-
-> 未匹配的 `{变量名}` 原样保留，不会报错。渲染时以触发者自身作为接收者，`ui-packet` 动作除外——它按每个接收者独立渲染。上下文变量详见 [命令与权限](/docs/eventpacket/commands#上下文变量)。
-
-### 首次准入欢迎流程
-
-```yaml
-first_admitted_welcome:
-  enabled: true
-  trigger: first-admitted
-  repeatable: false
-  actions:
-    - type: subtitle.play
-      group-id: "quest_intro"
-    - type: chat.card
-      card-id: "quest_offer"
-      data:
-        quest: "example_mainline_quest"
-        title: "初入岛屿"
-    - type: questgps.offer
-      quest-id: "example_mainline_quest"
-      open-menu: true
-    - type: mail.send
-      preset-id: "new_player"
-    - type: command.dispatch
-      executor: console
-      command: "say 欢迎新玩家 {player} 加入服务器！"
-```
-
-## 相关页面
-
-- [触发器详解](/docs/eventpacket/triggers) — 18 种触发器类型的工作机制
-- [定时服务](/docs/eventpacket/services) — 实体清理、定时命令与 PAPI 监听服务
-- [配置](/docs/eventpacket/configuration) — 规则字段表与动作类型枚举
+将副本、难度和货币 ID 换成实际配置，确认 Abyss 和 Mail 已加载后启用规则。发放奖励后保持规则 ID 和邮件动作 `id` 稳定，便于防止同一结果重复发放。只发通知时可省略 `currency` 和 `amount`。省略 `start-sequence` 时，规则从启用时的副本结果游标开始处理。需要多服发放时，EventPacket、Abyss 和 Mail 使用同一个 Suite 共享 MySQL。

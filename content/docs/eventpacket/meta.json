@@ -4,8 +4,8 @@
     "index",
     "configuration",
     "commands",
+    "triggers",
     "actions",
-    "services",
-    "triggers"
+    "services"
   ]
 }

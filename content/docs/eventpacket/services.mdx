@@ -1,155 +1,28 @@
 ---
-title: "定时服务"
-description: "配置定时命令、实体清理和占位符监听等周期功能。"
+title: "定时命令"
+description: "按整点、指定时间或固定间隔运行游戏服控制台命令。"
 ---
 
-## 概述
-
-EventPacket 模块除规则触发与动作链外，还内置三个自动化服务：
-
-| 服务 | 功能 | 启用条件 |
-|---|---|---|
-| 实体清理 | 定时清理掉落物、怪物等实体（ClearLag） | `entity-cleanup.enabled: true` |
-| 定时命令 | 定时执行控制台或玩家命令 | 存在 `enabled: true` 的定时任务 |
-| PAPI 监听 | 轮询 PAPI 占位符变化、击杀计数和脚本触发器 | 存在对应类型的规则 |
-
-## 实体清理
-
-定时清理服务器中的掉落物、怪物、动物等实体，支持警告倒计时和白名单过滤。
-
-### 配置字段
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `entity-cleanup.enabled` | boolean | `false` | 是否启用实体清理 |
-| `entity-cleanup.interval-seconds` | int | `300` | 清理间隔（秒） |
-| `entity-cleanup.warning-seconds` | int | `30` | 清理前警告倒计时（秒），0 = 不警告 |
-| `entity-cleanup.warning-message` | String | `&c[清理] 将在 {seconds} 秒后清理掉落物！` | 警告消息，支持 `{seconds}` 变量和 `&` 颜色码 |
-| `entity-cleanup.cleanup-message` | String | `&a[清理] 已清除 {count} 个实体。` | 清理完成消息，支持 `{count}` 变量 |
-| `entity-cleanup.clear-dropped-items` | boolean | `true` | 是否清理掉落物 |
-| `entity-cleanup.clear-monsters` | boolean | `false` | 是否清理怪物 |
-| `entity-cleanup.clear-animals` | boolean | `false` | 是否清理动物 |
-| `entity-cleanup.skip-named` | boolean | `true` | 是否跳过有自定义名称的实体 |
-| `entity-cleanup.clear-entity-types` | list | `[]` | 额外要清理的实体类型（`EntityType` 枚举名） |
-| `entity-cleanup.entity-whitelist` | list | `[VILLAGER, ARMOR_STAND]` | 不清理的实体类型白名单 |
-| `entity-cleanup.worlds` | list | `[]` | 限定生效世界，空 = 所有世界 |
-
-### 清理规则
-
-实体按以下优先级判定是否清理（匹配即定结果）：
-
-1. 玩家永不清理
-2. `skip-named: true` 且实体有自定义名称 → 不清理
-3. 实体类型在 `entity-whitelist` 中 → 不清理
-4. 对应开关开启且类型匹配（掉落物/怪物/动物/`clear-entity-types` 指定类型）→ 清理
-5. 以上均不匹配 → 不清理
-
-### 警告机制
-
-当 `warning-seconds > 0` 且小于 `interval-seconds` 时，在清理前对应秒数广播警告消息。
-
-### 手动清理
-
-```bash
-/axs eventpacket clearlag
-```
-
-> 手动清理不受 `enabled` 配置限制，返回被清除的实体数量。
-
-### 配置示例
+定时规则在配置了该规则的游戏服执行。把下例加入 `config.yml` 的 `rules` 段，执行 `/axs reload eventpacket`。
 
 ```yaml
-entity-cleanup:
-  enabled: true
-  interval-seconds: 600
-  warning-seconds: 60
-  warning-message: '&e[清理] 将在 {seconds} 秒后清理地面掉落物！'
-  cleanup-message: '&a[清理] 已清除 {count} 个实体。'
-  clear-dropped-items: true
-  clear-monsters: false
-  clear-animals: false
-  skip-named: true
-  clear-entity-types:
-    - ARROW
-    - EXPERIENCE_ORB
-  entity-whitelist:
-    - VILLAGER
-    - ARMOR_STAND
-    - ITEM_FRAME
-  worlds:
-    - world
-    - world_nether
-```
-
-## 定时命令
-
-定时执行命令，在 `schedule` 中选择 hourly、daily、weekly 或 interval 调度方式。
-
-### 日历触发模式
-
-| 模式 | 触发时机 | 必填参数 |
-|---|---|---|
-| `hourly` | 每小时整点 | — |
-| `daily` | 每天指定时刻 | `time`（`HH:mm`） |
-| `weekly` | 每周指定星期和时刻 | `day`（星期名）、`time` |
-| `interval` | 按固定间隔 | `interval-ticks` / `interval-seconds` / `interval-minutes` |
-
-```yaml
-scheduled-commands:
-  daily-save:
-    enabled: true
-    as-console: true
-    commands:
-      - 'save-all'
-    schedule:
-      mode: daily
-      time: "03:00"
-
-  weekly-reset:
-    enabled: true
-    as-console: true
-    commands:
-      - 'say 周常任务已重置！'
-    schedule:
-      mode: weekly
-      day: monday
-      time: "04:00"
-
-  interval-reward:
-    enabled: true
-    as-console: true
-    commands:
-      - 'onlinerewards check-all'
+rules:
+  save-every-ten-minutes:
+    trigger: schedule
     schedule:
       mode: interval
-      interval-minutes: 30
+      interval-minutes: 10
+    actions:
+      - type: command
+        executor: console
+        command: save-all
 ```
 
-### 命令执行
+| `schedule.mode` | 用途 | 字段示例 |
+| --- | --- | --- |
+| `hourly` | 每个整点触发。 | `mode: hourly` |
+| `daily` | 每天指定时间触发。 | `time: "08:00"` |
+| `weekly` | 每周指定日期和时间触发。 | `day: monday`、`time: "08:00"` |
+| `interval` | 按固定间隔触发。 | 在 `interval-minutes`、`interval-seconds`、`interval-ticks` 中填写一项。 |
 
-| 执行模式 | 配置 | 说明 |
-|---|---|---|
-| 控制台执行 | `as-console: true` | 以控制台身份执行 |
-| 玩家执行 | `as-console: false` | 对每个在线玩家执行 |
-
-- 控制台模式下命令包含 `{player}` 占位符时，对每个在线玩家执行一次（玩家名经安全校验）
-- 玩家模式可通过 `permission` 字段过滤目标玩家
-
-### 任务字段表
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `enabled` | boolean | `true` | 是否启用该任务 |
-| `as-console` | boolean | `true` | 是否以控制台身份执行 |
-| `permission` | String | （空） | 玩家执行模式下的权限过滤，空 = 所有在线玩家 |
-| `commands` | list | `[]` | 要执行的命令列表，支持 `{player}` 变量 |
-| `schedule` | section | （空） | 调度配置，指定周期、时间及其他所需参数 |
-
-> `scheduled-commands` 的键名即任务 ID，可定义多个定时任务。
-
-## 相关页面
-
-- [触发器详解](/docs/eventpacket/triggers) — 18 种触发器的用法
-- [动作详解](/docs/eventpacket/actions) — 13 种动作类型的参数与使用
-- [配置](/docs/eventpacket/configuration) — 实体清理与定时命令配置字段
-- [命令与权限](/docs/eventpacket/commands) — clearlag 命令与管理操作。
+日历时间使用游戏服所在时区，`time` 用 24 小时制。定时规则只能执行控制台命令，无需填写 `when`。排查时先在控制台运行配置里的命令，再核对触发时间。

@@ -1,229 +1,29 @@
 ---
-title: "触发器详解"
-description: "选择进服、任务、击杀或自定义信号等触发条件来启动规则。"
+title: "事件触发器"
+description: "按实时消息、信号、定时或确认的业务结果选择触发规则。"
 ---
 
-## 概述
+| `trigger` | 要填写的字段 | 用途 |
+| --- | --- | --- |
+| `event-bus` | `topic` | 接收 Suite 事件。例如 `axs.fishing.success` 或 `axs.questgps.quest_completed`。 |
+| `signal` | `signal` | 接收管理员命令、菜单或其他模块发送的同名信号。 |
+| `schedule` | `schedule` | 按周期运行控制台命令，见[定时命令](/docs/eventpacket/services)。 |
+| `abyss-result` | `when.dungeon` | 用已结算的副本结果发邮件。可用 `when.difficulty` 限定难度，`owner` 默认 `abyss`。 |
+| `first-admitted` | — | 玩家第一次通过准入时发邮件。 |
+| `auction-purchased` | — | 拍卖到期成交后向买家发邮件。 |
 
-所有触发器配置值均通过 `EventPacketTrigger.parse()` 解析，支持大小写不敏感和下划线/连字符互换。部分触发器还支持别名兼容（如 `placeholder-increase` 映射到 `papi-increase`）。
-
-## 触发器分类总览
-
-| 分类 | 触发器 | 配置值 | 信号过滤 | 依赖 |
-|---|---|---|---|---|
-| 玩家生命周期 | 玩家准入 | `admitted` | 否 | 无 |
-| 玩家生命周期 | 首次准入 | `first-admitted` | 否 | 无 |
-| 玩家生命周期 | 玩家退出 | `quit` | 否 | 无 |
-| PAPI 占位符 | PAPI 增加 | `papi-increase` | 否 | PlaceholderAPI |
-| PAPI 占位符 | PAPI 减少 | `papi-decrease` | 否 | PlaceholderAPI |
-| PAPI 占位符 | PAPI 阈值 | `placeholder-threshold` | 否 | PlaceholderAPI |
-| 击杀计数 | 击杀计数 | `mob-kill-count` | 否 | 无 |
-| 命令信号 | 命令信号 | `command-signal` | 是 | 无 |
-| Chemdah 任务 | 任务接受 | `quest-accept` | 是 | Chemdah |
-| Chemdah 任务 | 任务完成 | `quest-complete` | 是 | Chemdah |
-| Chemdah 任务 | 任务失败 | `quest-fail` | 是 | Chemdah |
-| Chemdah 任务 | 目标完成 | `objective-complete` | 是 | Chemdah |
-| Chemdah 任务 | 目标继续 | `objective-continue` | 是 | Chemdah |
-| Chemdah 任务 | 目标重启 | `objective-restart` | 是 | Chemdah |
-| Chemdah 任务 | 等级变化 | `chemdah-level-change` | 是 | Chemdah |
-| 脚本表达式 | JS 脚本 | `script-js` | 否 | 无 |
-| 脚本表达式 | Aria 脚本 | `script-aria` | 否 | 无 |
-
-> `signalFilterable()` 方法返回 `true` 的触发器支持按 `signal` 字段过滤。`command-signal` 和所有 Chemdah 触发器属于此类。
-
-## 击杀计数触发器
-
-玩家击杀实体时，模块按 `worlds` / `entity-types` / `mythic-mob-ids` 过滤后累计该玩家的击杀数，达到 `count` 时触发规则。`repeatable: true` 的规则触发后计数归零重新累计。
-
-### 配置示例
+## 钓到传奇鱼时提示
 
 ```yaml
-kill_zombie_trigger_encounter:
-  enabled: true
-  trigger: mob-kill-count
-  count: 10
-  repeatable: false
-  worlds:
-    - "world"
-  entity-types:
-    - "ZOMBIE"
-  mythic-mob-ids: []
-  actions:
-    - type: questgps.offer
-      quest-id: "encounter/example_rare"
-      open-menu: true
-    - type: subtitle.play
-      group-id: "encounter_trigger"
+rules:
+  legendary-fishing:
+    trigger: event-bus
+    topic: axs.fishing.success
+    when:
+      fish_rarity: LEGENDARY
+    actions:
+      - type: message
+        text: "你钓到了一条传奇鱼！"
 ```
 
-### 过滤字段
-
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `count` | int | 目标击杀数，默认 1，最小 1 |
-| `worlds` | list | 限制生效的世界名集合（小写），空 = 不限制 |
-| `entity-types` | list | 限制生效的实体类型集合（`EntityType` 枚举名，如 `ZOMBIE`） |
-| `mythic-mob-ids` | list | 限制生效的 MythicMob ID 集合（小写），空 = 不匹配 MM |
-
-> 击杀进度持久化到数据库，跨会话保留。`repeatable: true` 规则在达到目标后重置计数为 0，可再次累计触发。
-
-### 击杀计数可用变量
-
-| 变量 | 说明 |
-|---|---|
-| `{rule_id}` | 触发的规则 ID |
-| `{kill_count}` | 当前累计击杀数 |
-| `{required_count}` | 目标击杀数 |
-| `{mob_world}` | 击杀所在世界名 |
-| `{mob_entity_type}` | 实体类型 |
-| `{mythic_mob_id}` | MythicMob ID（非 MM 怪物为空） |
-
-### command-signal — 命令信号
-
-```yaml
-command_signal_accept_mainline:
-  enabled: true
-  trigger: command-signal
-  signal: "accept_mainline"
-  repeatable: true
-  cooldown: "5s"
-  actions:
-    - type: questgps.accept
-      quest-id: "{quest-id}"
-    - type: command.dispatch
-      executor: console
-      command: "say {player} accepted {quest-id}"
-```
-
-`signal` 字段必须与发送方指定的信号名一致。发送信号时可附带变量（`key=value` 格式），在动作中通过 `{key}` 引用。
-
-> 详见 [命令与权限](/docs/eventpacket/commands#fire-子命令) 和 [事件与动作使用说明](/docs/eventpacket)。
-
-| 机制 | 说明 |
-|---|---|
-| 权限门槛 | `permission` 字段，校验玩家权限 |
-| 冷却控制 | `cooldown` 字段，支持 `5s`/`1m`/`1h`/`1d` |
-| 参数校验 | `allow-args: true` 时按 `args-pattern` 正则校验每个参数 |
-| 命令黑名单 | 拦截 `op`/`deop`/`stop`/`luckperms` 等致命命令 |
-
-| 变量 | 说明 |
-|---|---|
-| `{preset_id}` | 触发的预设 ID |
-| `{arg1}` / `{arg2}` ... | 客户端透传的参数（按 data 顺序） |
-
-## Chemdah 任务触发器
-
-安装 Chemdah 插件且配置了对应触发器规则时，以下任务事件可用。
-
-### 目标事件触发器
-
-| 触发器 | 发生时机 | 信号过滤 | 可用变量 |
-| --- | --- | --- | --- |
-| `objective-complete` | 任务目标完成后 | `quest_id` 或 `objective_name` | `{quest_id}`、`{task_id}`、`{objective_type}`、`{objective_name}` |
-| `objective-continue` | 任务目标继续时 | `quest_id` 或 `objective_name` | 同上 |
-| `objective-restart` | 任务目标重新开始时 | `quest_id` 或 `objective_name` | 同上 |
-
-```yaml
-# 仅当 "player kill" 类型的目标完成时触发
-chemdah_kill_objective_done:
-  enabled: true
-  trigger: objective-complete
-  signal: "player kill"
-  repeatable: true
-  cooldown: "3s"
-  actions:
-    - type: subtitle.play
-      group-id: "kill_objective_done"
-```
-
-> Objective 触发器的 `signal` 字段同时支持 `quest_id` 和 `objective_name` 过滤。分发时先匹配 `{signal}`，不匹配时再尝试匹配 `{objective_name}`。
-
-### 等级变化触发器
-
-| 触发器 | 发生时机 | 信号过滤 | 可用变量 |
-| --- | --- | --- | --- |
-| `chemdah-level-change` | Chemdah 等级变化时 | 等级选项 ID | `{level_option}`、`{old_level}`、`{new_level}`、`{old_experience}`、`{new_experience}`、`{level_delta}` |
-
-```yaml
-# Chemdah 等级提升时庆祝
-chemdah_level_up_celebrate:
-  enabled: true
-  trigger: chemdah-level-change
-  # signal 可指定等级选项 ID，如 "adventure" 仅匹配冒险等级
-  # signal: "adventure"
-  repeatable: true
-  cooldown: "5s"
-  conditions:
-    - "{new_level} > {old_level}"
-  actions:
-    - type: subtitle.play
-      group-id: "level_up"
-    - type: command.dispatch
-      executor: console
-      command: "say {player} 的 {level_option} 等级提升到了 {new_level} 级！"
-```
-
-> 等级变化触发器的 `conditions` 支持 EventPacket 上下文变量（`{..}` 语法），可在条件中比较上下文变量。`{level_delta}` 为 `new_level - old_level`，降级时为负值。条件系统详见 [条件系统](/docs/guide/conditions)。
-
-## 脚本触发器
-
-脚本触发器按轮询周期评估脚本表达式。脚本返回 `true` 时触发规则，仅在从 `false` 变为 `true` 的**上升沿**触发，持续返回 `true` 不会重复触发。
-
-### script-js — JavaScript 脚本
-
-```yaml
-js_low_health_alert:
-  enabled: true
-  trigger: script-js
-  repeatable: true
-  cooldown: "30s"
-  script: |
-    player.getHealth() / player.getMaxHealth() < 0.25
-  actions:
-    - type: subtitle.play
-      group-id: "low_health_warning"
-```
-
-### script-aria — Aria 脚本
-
-```yaml
-aria_high_altitude:
-  enabled: true
-  trigger: script-aria
-  repeatable: true
-  cooldown: "1m"
-  script: |
-    playerY = global.player.getLocation().getY()
-    playerY > 200
-  actions:
-    - type: subtitle.play
-      group-id: "high_altitude"
-    - type: command.dispatch
-      executor: console
-      command: "say {player} 飞到了 Y={script_result} 的高空！"
-```
-
-### 脚本触发器可用变量
-
-| 变量 | 说明 |
-|---|---|
-| `{rule_id}` | 触发的规则 ID |
-| `{script_result}` | 脚本结果（固定为 `true`） |
-
-> 脚本评估异常时跳过该玩家本轮评估。详见 [条件系统](/docs/guide/conditions)。
-
-## 触发器启用条件
-
-| 触发器类型 | 启用条件 |
-|---|---|
-| PAPI / 击杀计数 / 脚本触发器 | 存在对应规则且（PAPI 触发器需）PlaceholderAPI 已安装 |
-| Chemdah 触发器 | 存在对应规则且 Chemdah 插件已安装 |
-
-> 缺少依赖时对应触发器不生效，启动时输出警告日志但不影响其他触发器正常运行。
-
-## 相关页面
-
-- [动作详解](/docs/eventpacket/actions) — 13 种动作类型的参数与使用方式
-- [定时服务](/docs/eventpacket/services) — 实体清理、定时命令与 PAPI 监听服务
-- [配置](/docs/eventpacket/configuration) — 规则字段表与完整配置示例
-- [命令与权限](/docs/eventpacket/commands) — 管理命令、权限与上下文变量。
+把规则加入 `rules` 并重载。用具备对应钓鱼条件的玩家完成一次传奇鱼捕获，核对提示。
