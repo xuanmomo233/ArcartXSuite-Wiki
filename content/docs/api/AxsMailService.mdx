@@ -34,6 +34,9 @@ public interface AxsMailService {
 
     @NotNull CompletableFuture<AxsDeliveryReceipt> sendDurable(@NotNull AxsMailRequest request);
 
+    @NotNull CompletableFuture<AxsDeliveryReceipt> sendPresetDurable(@NotNull UUID recipient, @NotNull String presetId,
+        @NotNull String sourcePlugin, @NotNull String idempotencyKey);
+
     @NotNull CompletableFuture<AxsMailView> getMail(@NotNull UUID playerId, long mailId);
 
     @NotNull CompletableFuture<List<AxsMailView>> getInbox(@NotNull UUID playerId, @NotNull AxsMailQuery query);
@@ -55,6 +58,7 @@ public interface AxsMailService {
 | `usesSharedHostStorage` | 检查邮件是否写入 Suite 宿主共享 MySQL。跨服持久奖励需要此检查通过。 | 无 | `boolean` |
 | `send` | 发送一封系统邮件。 收件人无需在线，邮件存入收件箱，玩家上线后查看领取附件。 使用 `AxsMailRequest#idempotencyKey()` 作为去重标识。 | `request`：邮件发送请求 | 异步回执，`AxsDeliveryReceipt#isNoOp()` 为 true 表示模块未就绪 |
 | `sendDurable` | 根据持久化的待发记录重试发送，使用与 `send` 相同的事务和去重语义。 | `request`：邮件发送请求 | 异步回执 |
+| `sendPresetDurable` | 按业务凭证发送指定的邮件预设。 | 收件人 UUID、预设 ID、来源模块及操作键 | 异步回执 |
 | `getMail` | 查询玩家自己的单封邮件。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步邮件视图，不存在时返回 `null` |
 | `getInbox` | 查询玩家收件箱。 | `playerId`：玩家 UUID；`query`：查询条件 | 异步邮件视图列表 |
 | `getUnreadCount` | 查询玩家未读邮件数量。 | `playerId`：玩家 UUID | 异步未读数量 |
@@ -69,6 +73,8 @@ public interface AxsMailService {
 ## 幂等发送与重试
 
 同一份奖励保持 `sourcePlugin`、`idempotencyKey` 和收件人 UUID 不变。每位收件人的邮件、附件和发送回执在同一事务中保存；重复发送返回原邮件 ID，`duplicate()` 为 `true`。邮件被领取或清理后，相同标识也不会重新发放。
+
+一个订单含多个邮件预设时，每项使用各自的操作键，例如订单编号加预设序号。收到正数邮件 ID 表示该项已入库。用同一个键核对已经入库的预设，即使该预设后来停用或删除，也能取得原邮件 ID。
 
 多人请求按收件人分别提交。如果请求异常结束，已有部分收件人收到邮件，可以用原请求重试，服务只补发尚未成功的收件人。`recipientCount()` 是本次新建邮件的收件人数，`mailId()` 是请求中首位收件人的邮件 ID，不能用它查询其他收件人的邮件。
 

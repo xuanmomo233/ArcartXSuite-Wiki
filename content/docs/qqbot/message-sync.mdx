@@ -16,7 +16,7 @@ none 可保留群指令和通知。普通玩家的面板、send、at 仅发往�
 
 ## 游戏消息
 
-有 Chat 模块时，QQBot 接收经过 Chat 校验的公开全服消息。私聊、管理频道、范围频道以及限制接收者的消息不会外发。不要用 QQ 同步替代频道访问控制。
+有 Chat 模块时，每个 QQ 群用 `groups[].chat-channel` 指定频道，默认是 `normal`。QQBot 接收对应频道经过 Chat 校验的公开消息。私聊、小队、管理、范围频道和限制接收者的频道不会外发。
 
 无 Chat 时默认不监听原版聊天。需要时设置：
 
@@ -41,7 +41,9 @@ delivery:
 
 ## 群消息到游戏
 
-机器人账号需加入配置群，OneBot 适配器需为 Universal。普通文字按 qq-to-game 模板展示，CQ/非文字段不会当作 Minecraft 指令执行。黑名单及功能开关影响处理。
+机器人账号需加入配置群，OneBot 适配器需为 Universal。普通文字按 qq-to-game 模板展示，CQ/非文字段不会当作 Minecraft 指令执行。启用 Chat 时，QQ 消息在接收机器人消息的子服进入所选公开频道，并应用内容审核、频道偏好和已绑定玩家的禁言、屏蔽关系。
+
+自定义聊天连接器调用 `ChatExternalRelay.receive(...)` 时会收到 `CompletionStage<Boolean>`。在服务器线程提交，等待异步回调后处理投递结果。返回 `true` 表示 Chat 已完成审核和本地投递流程，可能没有符合资格的接收者。队列满、Chat 停用或校验失败会返回 `false`。
 
 ~~~yaml
 groups:

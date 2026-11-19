@@ -28,23 +28,23 @@ if (api == null) {
 ```java
 public interface OnlineRewardsQueryable {
 
-    boolean hasSignedToday(@NotNull UUID playerUuid);
+    @NotNull CompletionStage<Boolean> hasSignedToday(@NotNull UUID playerUuid);
 
-    int todayOnlineMinutes(@NotNull UUID playerUuid);
+    @NotNull CompletionStage<Integer> todayOnlineMinutes(@NotNull UUID playerUuid);
 
-    int weeklyOnlineMinutes(@NotNull UUID playerUuid);
+    @NotNull CompletionStage<Integer> weeklyOnlineMinutes(@NotNull UUID playerUuid);
 
-    int monthlyOnlineMinutes(@NotNull UUID playerUuid);
+    @NotNull CompletionStage<Integer> monthlyOnlineMinutes(@NotNull UUID playerUuid);
 
-    boolean signIn(@NotNull Player player);
+    @NotNull CompletionStage<Boolean> signIn(@NotNull Player player);
 
-    boolean makeupSignIn(@NotNull Player player, @NotNull String date);
+    @NotNull CompletionStage<Boolean> makeupSignIn(@NotNull Player player, @NotNull String date);
 
-    boolean addMakeupCards(@NotNull Player player, int amount);
+    @NotNull CompletionStage<Boolean> addMakeupCards(@NotNull Player player, int amount);
 
-    void grantDailyRewards(@NotNull Player player);
+    @NotNull CompletionStage<Boolean> grantDailyRewards(@NotNull Player player);
 
-    boolean addOnlineMinutes(@NotNull Player player, int minutes);
+    @NotNull CompletionStage<Boolean> addOnlineMinutes(@NotNull Player player, int minutes);
 }
 ```
 
@@ -52,16 +52,22 @@ public interface OnlineRewardsQueryable {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
-| `hasSignedToday` | 查询玩家今日是否已签到。 | `playerUuid`：玩家 UUID（`UUID`） | `true` 表示玩家今天已签到 |
-| `todayOnlineMinutes` | 查询玩家今日已在线分钟数。 | `playerUuid`：玩家 UUID（`UUID`） | `int` 查询玩家今日已在线分钟数。 |
-| `weeklyOnlineMinutes` | 查询玩家本周已在线分钟数。 | `playerUuid`：玩家 UUID（`UUID`） | `int` 查询玩家本周已在线分钟数。 |
-| `monthlyOnlineMinutes` | 查询玩家本月已在线分钟数。 | `playerUuid`：玩家 UUID（`UUID`） | `int` 查询玩家本月已在线分钟数。 |
-| `signIn` | 为玩家执行签到（如果当天未签到）。 | `player`：目标玩家（`Player`） | 是否成功签到（已签到返回 false） |
-| `makeupSignIn` | 为玩家执行补签（指定日期必须是本月今天之前）。 | `player`：目标玩家（`Player`）；`date` 补签日期，格式为 yyyy-MM-dd（`String`） | 是否成功补签 |
-| `addMakeupCards` | 为玩家增加补签卡数量。 | `player`：目标玩家（`Player`）；`amount`：数量或数值（`int`） | `true` 表示补签卡数量已更新 |
-| `grantDailyRewards` | 为玩家发放今日在线阶段奖励（如果已达到阶段）。 | `player`：目标玩家（`Player`） | 无返回值 |
-| `addOnlineMinutes` | 给玩家增加在线时长（可用于联动活动或 GM 补偿）。 | `player`：目标玩家（`Player`）；`minutes` 增加的在线分钟数（`int`） | `true` 表示在线时长已更新 |
+| `hasSignedToday` | 查询玩家今日是否已签到。 | `playerUuid`：玩家 UUID（`UUID`） | `CompletionStage<Boolean>`，签到记录存在时返回 `true` |
+| `todayOnlineMinutes` | 查询玩家今日已在线分钟数。 | `playerUuid`：玩家 UUID（`UUID`） | `CompletionStage<Integer>`，今日已保存的分钟数 |
+| `weeklyOnlineMinutes` | 查询玩家本周已在线分钟数。 | `playerUuid`：玩家 UUID（`UUID`） | `CompletionStage<Integer>`，本周已保存的分钟数 |
+| `monthlyOnlineMinutes` | 查询玩家本月已在线分钟数。 | `playerUuid`：玩家 UUID（`UUID`） | `CompletionStage<Integer>`，本月已保存的分钟数 |
+| `signIn` | 为玩家执行签到。 | `player`：目标玩家（`Player`） | `CompletionStage<Boolean>`，签到和待发奖励已提交时返回 `true` |
+| `makeupSignIn` | 为玩家执行补签（指定日期必须是本月今天之前）。 | `player`：目标玩家（`Player`）；`date` 补签日期，格式为 yyyy-MM-dd（`String`） | `CompletionStage<Boolean>`，补签、扣卡和待发奖励已提交时返回 `true` |
+| `addMakeupCards` | 为玩家增加补签卡数量。 | `player`：目标玩家（`Player`）；`amount`：数量或数值（`int`） | `CompletionStage<Boolean>`，补签卡数量已提交时返回 `true` |
+| `grantDailyRewards` | 为玩家发放今日在线阶段奖励。 | `player`：目标玩家（`Player`） | `CompletionStage<Boolean>`，阶段进度和待发计划确认后返回 `true`，无可领取阶段时返回 `false` |
+| `addOnlineMinutes` | 给玩家增加在线时长（可用于联动活动或 GM 补偿）。 | `player`：目标玩家（`Player`）；`minutes` 增加的在线分钟数（`int`） | `CompletionStage<Boolean>`，时长和待发奖励提交后返回 `true` |
 
 ## 调用注意事项
 
 涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+
+在 Bukkit 主线程提交异步写入。通过回调读取提交结果，回调中如需操作玩家或界面，先切回主线程。
+
+可在 Bukkit 主线程提交查询，再通过回调接收后台读取的已提交数据。模块停用、读取队列已满或数据库读取失败时，查询结果异常完成。PAPI 展示值使用缓存，首次查到数据前可能显示默认值。
+
+调整在线时长或补发阶段奖励时，存储结果不明会使异步结果异常完成。先核对玩家当前时长和奖励记录，再决定是否重试。

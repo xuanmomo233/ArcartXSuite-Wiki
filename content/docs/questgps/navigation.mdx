@@ -18,6 +18,8 @@ addon:
 
 NPC 动态目标可写 `center: "adyeshach guide_demo"`。放在任务还是具体目标中，按 Chemdah 的追踪逻辑选择；完整任务见[Chemdah 任务配置](/docs/questgps/chemdah-mapping)。
 
+任务级导航先读该任务的原生目的地，无法解析时按优先顺序查找尚未完成的目标。追踪单个目标时读取该目标的原生目的地。QuestGPS 直接读取这些配置，Chemdah 自带的追踪会话由 Chemdah 管理。
+
 如果需要 QuestGPS 专用目的地，在同一任务或目标的 `addon.axs-view.navigation` 中直接填写 `world`、`x`、`y`、`z`，也可填写有效 NPC。明确填写的展示目的地优先，未填写时使用原生追踪。
 
 ## 全局表现设置
@@ -119,7 +121,6 @@ NPC 动态目标可写 `center: "adyeshach guide_demo"`。放在任务还是具�
 | `trackedCount` | 追踪中的目标总数 |
 | `quests` | 追踪卡片字典（最多 3 张，字段见下） |
 | `questCount` | 卡片条数 |
-| `questName` / `hasNav` / `navWorld` / `navX` / `navY` / `navZ` | 主目标名称与导航点（兼容字段） |
 
 `quests` 单卡片字段：`questId` / `taskId` / `mode`（`QUEST`/`TASK`）/ `name` / `label` / `progressText` / `taskText` / `taskDesc` / `hasNav` / `navWorld` / `navText`。
 

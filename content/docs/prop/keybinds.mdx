@@ -7,7 +7,31 @@ Prop 的按键用于触发道具槽位中的物品。先确认 Prop 已启用、
 
 ## 配置按键与槽位
 
-文件位于 `plugins/ArcartX-Suite/data/prop/key.yml`：
+先确认额外槽位的 ID。下面以 ArcartX 的 `Slot1` 和 `Slot2` 为例，可以在 `plugins/ArcartX/extra_slot/` 中定义这两个槽位。已有同名槽位时沿用原定义。
+
+```yaml
+# plugins/ArcartX/extra_slot/prop_slots.yml
+Slot1:
+  attribute: "none"
+Slot2:
+  attribute: "none"
+```
+
+若要让玩家在界面中放入物品，在已有的可交互 ArcartX 界面的 `controls` 中加入对应的 `Slot` 控件。再给第二个槽位增加一个控件，并将 `id` 改为 `~Slot2`。 [ArcartX Slot 控件](https://wiki.arcartx.com/docs/arcartx_v2/8_ui/8_controls_type)
+
+```yaml
+controls:
+  prop_slot_1:
+    type: Slot
+    attribute:
+      slotType: ~Extra
+      id: ~Slot1
+      width: 18
+      height: 18
+      normal: ~40,40,40,180
+```
+
+在 `plugins/ArcartX-Suite/data/prop/key.yml` 中将按键绑定到这些槽位：
 
 ```yaml
 category: "我的服务器 - 快捷道具"
@@ -26,27 +50,131 @@ keys:
 | `keys` 下的条目名称 | 按键名称，使用清楚且不重复的文字 |
 | `defaultKey` | 默认键位，例如 `Z`、`X`、`C` |
 | `slot` | 对应道具槽位，例如 `Slot1`，需与实际槽位一致 |
+| `mode` | 默认 `prop` 使用已绑定的道具。可选 `vanilla-potion` 使用槽位里的药水，或 `mmoitems` 执行受支持的 MMOItems 右键动作 |
 
-修改后执行 `/axs reload prop`，重新进入服务器，在客户端按键设置中检查分类、实际按键与冲突。玩家可以自行改键，服务端配置的默认值不是每个玩家当前使用的值。
+修改额外槽位或界面后执行 `/arcartx reload`。修改 `key.yml` 后执行 `/axs reload prop`，在客户端按键设置中查看分类、当前按键与冲突。玩家已自行改键时，以客户端设置为准。
 
-## 第一次测试
+## 第一次按键使用
 
-1. 在[道具配置](/docs/prop/configuration)中选择一个可用道具，确认允许按键使用。
-2. 将该道具放入绑定的槽位，例如 `Slot1`。
-3. 检查玩家拥有使用权限，满足条件，且该道具不在冷却中。
-4. 按绑定键，确认效果发生；若配置消耗物品，同时核对槽位数量变化。
-5. 再次按键，检查冷却提示和结束后的可用状态。
+1. 用 `/axs prop set <道具ID>` 绑定物品，定义中设置 `key: true`。
+2. 通过已配置的界面把绑定物品放入 `Slot1`，再按分配给该槽位的键。
+3. 等待冷却结束后即可再次使用。若设置了 `remove: true`，每次成功使用消耗该槽位中的一个物品。
 
-只配置 `key.yml` 不会自动把道具放进槽位，也不会让未配置按键使用方式的物品变成技能。
+## 原版药水与 MMOItems 快捷槽
 
-## 按键模式与手持模式
+先在 ArcartX 中定义 `PotionSlot_1` 和 `MmoItemSlot_1`，并在界面中提供对应的额外槽位。把下面的条目合并到 Prop 的 `key.yml`，再执行 `/axs reload prop`。
+
+```yaml
+keys:
+  快捷药水:
+    defaultKey: "V"
+    slot: PotionSlot_1
+    mode: vanilla-potion
+  MMOItems 快捷使用:
+    defaultKey: "B"
+    slot: MmoItemSlot_1
+    mode: mmoitems
+```
+
+这两个模式直接读取槽位里实际放入的物品。将药水或 MMOItems 物品放入对应槽位即可使用。主手可以继续持有原来的物品。
+
+### 饮用和投掷药水
+
+普通药水等待 32 tick，约 1.6 秒，再完成饮用。完成时会核对玩家状态和原槽位物品，读取瓶内原有的药水效果。饮用事件被取消时归还药水。生存模式饮用后的空瓶先放入玩家背包，背包满时掉落在脚边。
+
+喷溅和滞留药水按当前视线投出。药水类型、瓶内效果和命中后的范围结算由投掷物处理。投掷被取消时归还药水。创造模式使用原版药水时保留药水。
+
+### MMOItems 右键动作
+
+启用 MMOItems 和对应版本的 MythicLib。MMOItems 6.9.5 的物品右键命令和即时消耗效果走 MMOItems 的物品入口。物品上的右键技能走 MythicLib，普通按键触发 `RIGHT_CLICK`，潜行时触发 `SHIFT_RIGHT_CLICK`。物品使用要求、冷却和消耗结果沿用 MMOItems 的规则。
+
+| 物品行为 | 快捷槽写法 |
+|----------|------------|
+| 物品的右键命令、右键技能或即时单次消耗 | 使用 `mode: mmoitems` |
+| MMOItems 基于普通药水、在原版饮用结束时处理的单次消耗 | 使用 `mode: vanilla-potion`，饮用完成时会发送包含该药水的消耗事件 |
+| 有剩余使用次数的消耗品 | MMOItems 会直接更新真实手槽，使用其手持入口 |
+| 命中实体、射箭、破坏方块、丢弃或交换物品触发的动作 | 继续使用对应的原版操作触发 |
+
+部分武器的右键还会执行专门的武器攻击。快捷槽支持该物品明确配置的右键技能和命令。武器发射、持续蓄力和需要实际手槽的行为请用该武器的原操作入口。
+
+### 同一个按键触发两种技能
+
+沿用上面的 `mode: mmoitems` 绑定，用 `B` 操作 `MmoItemSlot_1`。把以下物品定义加入 `plugins/MMOItems/item/sword.yml`。`ability` 下的两项分别配置普通右键和潜行右键技能。
+
+```yaml
+HEALING_SWORD:
+  base:
+    material: STONE_SWORD
+    name: "治愈之剑"
+    ability:
+      heal-normal:
+        type: HEAL
+        mode: RIGHT_CLICK
+        heal: 3.0
+        cooldown: 0.0
+      heal-sneaking:
+        type: HEAL
+        mode: SHIFT_RIGHT_CLICK
+        heal: 7.0
+        cooldown: 0.0
+```
+
+执行 `/mi reload`，用 `/mi give SWORD HEALING_SWORD <玩家名> 1` 发放物品，再把剑放入 `MmoItemSlot_1`。
+
+| 玩家操作 | MMOItems 技能模式 | 效果 |
+| --- | --- | --- |
+| 站立时按 `B` | `RIGHT_CLICK` | 恢复 3 点生命 |
+| 保持潜行时按 `B` | `SHIFT_RIGHT_CLICK` | 恢复 7 点生命 |
+
+`key.yml` 只需配置一个键位。Prop 根据玩家按键时的潜行状态选择技能。玩家改过潜行键或 Prop 快捷键时，以客户端当前绑定为准。
+
+## 三种使用方式
 
 | 模式 | 操作对象 | 使用入口 |
 | --- | --- | --- |
-| 按键使用 | 配置所指的道具槽位 | 按槽位绑定键 |
-| 手持使用 | 玩家主手物品 | 按道具允许的手持交互方式 |
+| 按键使用 | `key.yml` 指向的 ArcartX 额外槽位 | 道具的 `key: true` |
+| 手持使用 | 玩家主手物品 | 道具的 `hand: true`，右键空气或方块 |
+| 自动触发 | `key.yml` 指向的 ArcartX 额外槽位 | 全局 `auto-trigger.enabled: true`，且道具的 `auto.enabled: true` |
 
-同一道具是否支持两种方式由定义决定。测试时不要把主手持有与额外槽位放入视为同一种状态。
+对已绑定的 Prop 道具，每种方式都检查冷却、道具使用权限与 `conditions`。自动触发还会检查 `auto.conditions`。自动触发由服务端轮询 `mode: prop` 指向的槽位，即使道具同时设置 `hand: false` 和 `key: false` 也可以启用。
+
+## 自动触发
+
+先在 Prop 主配置 `data/prop/config.yml` 中开启轮询：
+
+```yaml
+auto-trigger:
+  enabled: true
+  interval: 20
+  mode: first
+```
+
+下面的急救包只在当前生命值不高于 8 点时自动使用，恢复 8 点生命并消耗一个。这里的 8 点生命等于 4 颗心。
+
+```yaml
+# data/prop/props/first_aid.yml
+name: "急救包"
+coolDownGroup: "急救"
+coolDownTime: 30
+remove: true
+hand: false
+key: false
+auto:
+  enabled: true
+  interval: 40
+  notify: true
+  conditions:
+    - "aria: global.player.getHealth() <= 8"
+effects:
+  health:
+    points: 8
+```
+
+执行 `/axs reload prop`，将绑定为 `first_aid` 的物品放入映射的额外槽位。全局每 20 tick 扫描一次，示例道具每 40 tick 检查一次。相同道具 ID 放在多个槽位时，共用该玩家的检查间隔。道具省略 `auto.conditions` 或填写空列表时，满足其他限制即可自动使用。
+
+- `mode: first` 按 `key.yml` 的绑定顺序扫描，当前玩家有一次使用成功后结束本轮。
+- `mode: all` 继续检查其他槽位。同组道具仍受共享冷却限制。
+- 自动触发失败会静默跳过。要查权限、冷却或条件提示，可以在排查时开启该道具的手持或按键入口。
 
 ## 共享冷却
 
@@ -57,7 +185,7 @@ coolDownGroup: "药水冷却组"
 coolDownTime: 30
 ```
 
-使用其中一个后，另一个也会受到同组冷却影响。想让两个道具独立使用，应使用不同的冷却组名称。未填写分组时可能回退默认组，出现多个道具一起冷却时，先检查这一项。
+任一使用方式成功后，服务端按本次道具的 `coolDownTime` 设置该玩家的组冷却。换到另一个同组道具或改用手持、按键，也要等同一个冷却结束。要独立冷却请填写不同组名。省略组名或留空会使用 `默认冷却组`。
 
 冷却提示在模块 `language.yml` 中配置，例如：
 
@@ -76,6 +204,6 @@ COOL_DOWN: "&c{item} 仍在冷却，还需等待 {remaining_seconds} 秒"
 | 提示无法按键使用 | 道具是否允许此使用方式 |
 | 提示无权限或条件不满足 | 对应道具的权限与条件，而不只是管理权限 |
 | 多个道具同时冷却 | 是否使用相同 `coolDownGroup` 或都回退默认组 |
-| 只有提示文字变化 | 是否只编辑了语言文件，尚未修改效果或冷却配置 |
+| 自动使用一直没触发 | 两级开关、额外槽位、两个条件列表和检查间隔 |
 
 未知效果、属性未注册和按键异常的处理见[日志与报错提示](/docs/guide/config-management)。

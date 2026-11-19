@@ -8,16 +8,15 @@ export interface ModuleInfo {
 }
 
 export const modules: ModuleInfo[] = [
-  { slug: 'rgb', name: 'RGB', displayName: '渐变文本', description: '用渐变和扫光文字装饰聊天、称号与在线列表。', color: '#f472b6' },
   { slug: 'pickup', name: 'Pickup', displayName: '拾取提示', description: '显示拾取通知，或让玩家主动扫描附近掉落物。', color: '#84cc16', keywords: '附近战利品 掉落物清单 批量拾取 一键拾取' },
   { slug: 'announcer', name: 'Announcer', displayName: '公告与字幕', description: '轮播服务器公告，或为指定玩家播放字幕。', color: '#f59e0b' },
   { slug: 'loginview', name: 'LoginView', displayName: '登录认证', description: '为玩家提供登录、注册、条款确认与登录后传送界面。', color: '#3b82f6', keywords: '密码登录 正版登录 LittleSkin 代理认证 启动器授权' },
   { slug: 'onlinerewards', name: 'OnlineRewards', displayName: '在线奖励与签到', description: '按在线时长、签到记录和全服目标发放奖励。', color: '#22c55e', keywords: '在线礼包 时长奖励 签到补签' },
   { slug: 'combateffect', name: 'CombatEffect', displayName: '战斗特效', description: '展示伤害数字、连击提示与击杀特效。', color: '#ef4444' },
-  { slug: 'eventpacket', name: 'EventPacket', displayName: '事件与动作', description: '把进服、任务和自定义信号组合成公告、奖励等动作。', color: '#a855f7', keywords: '首次进服 进服礼包 自定义事件' },
+  { slug: 'eventpacket', name: 'EventPacket', displayName: '事件与动作', description: '按事件、信号或定时配置提示、任务、命令与邮件。', color: '#a855f7', keywords: '首次进服 进服礼包 自定义事件' },
   { slug: 'prop', name: 'Prop', displayName: '快捷道具', description: '通过快捷栏与按键使用道具，获得即时或持续效果。', color: '#06b6d4' },
   { slug: 'essentials', name: 'Essentials', displayName: '基础工具', description: '配置传送、家、传送点、玩家状态与常用管理功能。', color: '#14b8a6', keywords: '飞行 设置家 回家 传送请求 封禁' },
-  { slug: 'regions', name: 'Regions', displayName: '区域规则', description: '为选定区域设置建造、交互、传送等游戏规则。', color: '#557c53', keywords: '领地保护 圈地 禁止破坏' },
+  { slug: 'regions', name: 'Regions', displayName: '区域规则', description: '用中文面板和 YAML 管理区域、世界默认规则与成员。', color: '#557c53', keywords: '领地保护 圈地 世界规则 成员 禁止破坏' },
   { slug: 'afkreward', name: 'AfkReward', displayName: '挂机奖励', description: '在指定区域或原地挂机时，按周期发放奖励。', color: '#94a3b8' },
   { slug: 'tooltip', name: 'Tooltip', displayName: '物品提示', description: '展示兼容模组的物品说明与枪械浏览界面。', color: '#f97316', keywords: 'TACZ 神化词条 物品悬浮提示' },
 
@@ -35,7 +34,7 @@ export const modules: ModuleInfo[] = [
   { slug: 'battlepass', name: 'BattlePass', displayName: '战令', description: '配置赛季任务、经验等级与不同档位的奖励。', color: '#a78bfa' },
 
   { slug: 'chat', name: 'Chat', displayName: '聊天频道', description: '设置聊天频道、消息格式、私聊与物品展示。', color: '#557c53' },
-  { slug: 'tab', name: 'Tab', displayName: '在线列表', description: '自定义玩家在线列表、排序、分组和显示内容。', color: '#557c53' },
+  { slug: 'tab', name: 'Tab', displayName: '在线列表', description: '按 Tab 查看玩家名单，可跨 Velocity 子服汇总。', color: '#557c53' },
   { slug: 'entitytracker', name: 'EntityTracker', displayName: 'Boss 与目标面板', description: '显示目标信息、Boss 伤害排名与结算奖励。', color: '#557c53' },
   { slug: 'vanilla', name: 'VanillaUI', displayName: '原版界面与背包', description: '替换原版容器界面，管理自定义配方，并在随身背包中访问个人仓库。', color: '#10b981', keywords: '工作台 熔炉 配方书 一键填料 额外背包' },
   { slug: 'abyss', name: 'Abyss', displayName: '地牢副本', description: '配置地牢、怪物波次、阶段任务、队伍与结算奖励。', color: '#fb923c' },
@@ -43,7 +42,6 @@ export const modules: ModuleInfo[] = [
 
 export const taskGroups: Record<string, string[]> = {
   "界面与展示": [
-    "rgb",
     "pickup",
     "announcer",
     "loginview",

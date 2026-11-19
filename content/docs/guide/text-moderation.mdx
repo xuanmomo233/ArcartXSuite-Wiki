@@ -1,9 +1,9 @@
 ---
 title: "内容过滤与提示文字"
-description: "区分聊天、市场留言和邮件文本的过滤行为，以及本地与远程词库、语言文件的作用。"
+description: "配置聊天、市场留言和玩家邮件的内容审核、本地与远程词库，以及 Redact 接入。"
 ---
 
-主配置 `moderation` 提供统一词库，但各模块对过滤结果的使用方式不同。不能把“统一词库”理解为全服务器任意文本都会自动被替换。
+在 Suite 主配置 `config.yml` 的 `moderation` 节管理下表所列的玩家文本。
 
 ## 已接入的文本场景
 
@@ -11,9 +11,9 @@ description: "区分聊天、市场留言和邮件文本的过滤行为，以及
 | --- | --- | --- |
 | Chat | 频道消息与私聊处理中的文本 | 取消型结果会阻止发送；替换型结果使用替换后的文字继续 |
 | Market | 玩家上架、修改等操作中的留言 | 取消型结果会阻止该留言提交；否则使用处理后的留言 |
-| Mail | 玩家写信的主题与正文检查 | 当前检查是否需要阻止发送，不将替换后的文本写回主题、正文；不能保证 `cancel-on-match: false` 会重写邮件内容 |
+| Mail | 玩家写信的主题与正文 | 取消型结果会阻止发送；替换型结果会写入邮件，主题与正文仍受长度限制 |
 
-Mail 另有附件材质、名称、Lore 等限制；Market 的物品黑名单也不是文字词库。其他插件、控制台输出、公告预设或自定义界面文字，不会仅因打开本体开关就全部经过此流程。
+Mail 另有附件材质、名称与 Lore 等规则。Market 的物品黑名单在市场配置中单独维护。
 
 ## 配置词库
 
@@ -30,15 +30,30 @@ moderation:
     enabled: false
 ```
 
-本例在对应场景使用本地词库，命中后返回取消结果。`replacement` 供替换模式使用；将 `cancel-on-match` 改为 `false` 后，应分别测试聊天、市场与邮件，不能假定三者表现一致。
+本例命中后取消发送或提交。将 `cancel-on-match` 改为 `false` 后，Suite 使用 `replacement` 替换原文中的命中区间，区间内插入的标点一起替换，前后的标点和文字保留。
 
-`ignored-punctuations` 是文字匹配规则的一部分，按自己的文字政策调整即可。白名单会放行对应文本，添加后要测试正常句子和包含测试词的句子，避免放行范围与预期不同。
+词库匹配忽略大小写，并将全角 ASCII 和半角视作同一字符。`ignored-punctuations` 列出匹配时可忽略的字符或序列，例如 `'.'` 或 `'……'`。开启 `ignore-separators: true` 后，词库和白名单还会忽略 Unicode 空白与标点。正则仍在剥离 `ignored-punctuations` 的文本上匹配。
+
+`whitelist` 只放行完全处在白名单词组里的命中。例如屏蔽 `ass`、放行 `class` 时，`class ass` 中第二个词仍会触发过滤。
 
 ## 远程词库与本地词库
 
 `moderation.cloud.enabled` 控制远程词库，和云端模块账号没有关系。`urls` 填词库地址，`ignored` 排除远程库中的指定词，`refresh-minutes` 为刷新间隔。
 
-远程词库可使用每行一个词的文本、字符串 JSON 数组，或含 `words`、`data`、`list` 数组的对象。远程下载失败时应检查当前词库和实际过滤结果，不要用“没有继续刷错误”判断过滤已经恢复。
+远程词库可使用每行一个词的文本、字符串 JSON 数组，或含 `words`、`data`、`list` 数组的对象。某个地址刷新失败时，Suite 保留该地址上次成功下载的词库，其他地址按各自的刷新结果更新。
+
+## 接入 Redact
+
+将 [Redact](https://github.com/17Artist/Redact) 安装到同一服务端，然后在 Suite 的 `moderation` 节启用接入。Suite 通过 Redact 的 Bukkit 服务检查其本地词库、已同步的词条和精确结果缓存，并按 Suite 的 `cancel-on-match`、`replacement` 与白名单处理。替换模式下，Redact 的精确缓存命中或命中明细被截断时会替换整段文字。
+
+```yaml
+moderation:
+  enabled: true
+  redact:
+    enabled: true
+```
+
+Suite 调用 Redact 的同步本地接口。Redact 服务暂时不可用时，Suite 继续按自身词库和正则审核。
 
 修改后执行 `/axs reload all`。分别在频道、私聊、市场留言、邮件主题与正文中使用测试词，并检查正常文本能否通过。
 

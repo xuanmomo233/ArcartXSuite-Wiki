@@ -1,0 +1,124 @@
+---
+title: "区域保护判定接口"
+description: "查询指定位置的有效旗标、规则来源和区域边界，订阅实际发生的进出事件。"
+---
+
+| 项目 | 说明 |
+| --- | --- |
+| 提供模块 | [regions](/docs/regions) |
+| 完整类型 | `xuanmo.arcartxsuite.api.capability.RegionProtectionQueryable` |
+
+## 获取接口
+
+```java
+import xuanmo.arcartxsuite.api.AxsCapabilities;
+import xuanmo.arcartxsuite.api.capability.RegionProtectionQueryable;
+
+var api = AxsCapabilities.get(RegionProtectionQueryable.class);
+if (api == null) {
+    return;
+}
+var result = api.decide("world", 120, 65, -32, "block-break", player);
+if (result.state() == RegionProtectionQueryable.State.DENY) {
+    player.sendMessage("此位置禁止破坏方块。");
+}
+```
+
+在 Bukkit 主线程查询，并在业务调用时重新获取接口。Regions 未加载或暂时不可用时返回 `null`。基础接入见[快速开始](/docs/api/quick-start)。
+
+## 方法声明
+
+```java
+public interface RegionProtectionQueryable {
+    String REGION_CHANGE_TOPIC = "axs.regions.region_change";
+
+    Decision decide(String world, int x, int y, int z, String flag, Player player);
+    List<Boundary> boundaries(String world);
+
+    enum State { NONE, ALLOW, DENY }
+    enum Reason { UNSET, BYPASS, DIRECT, INHERITED, MEMBER_EXEMPT }
+    enum Kind { MANAGED, CLAIM, GLOBAL }
+
+    record Identity(UUID uuid, String world, String id, Kind kind) {}
+
+    record Boundary(
+        Identity region,
+        int minX, int minY, int minZ,
+        int maxX, int maxY, int maxZ,
+        int priority
+    ) {}
+
+    record Decision(State state, Reason reason, Identity matched, Identity source) {}
+}
+```
+
+## 参数与返回值
+
+| 方法 | 参数 | 返回值 |
+| --- | --- | --- |
+| `decide` | `world` 为世界名，`x/y/z` 为方块坐标，`flag` 为旗标配置键，`player` 可空 | 合并重叠区域、父区及世界默认值后的判定，未知旗标抛出 `IllegalArgumentException` |
+| `boundaries` | `world` 为世界名 | 该世界所有有界区域的边界和稳定身份列表 |
+
+传入玩家时计算适用的成员豁免和绕过权限，传入 `null` 时查询不带玩家身份的规则。
+
+| 返回字段或值 | 含义 |
+| --- | --- |
+| `State.NONE` | 此位置没有提供该旗标的规则 |
+| `State.ALLOW`、`State.DENY` | 当前判定允许或禁止 |
+| `matched` | 导致该结果的命中区域，默认或绕过结果可为空 |
+| `source` | 真正提供旗标的区域，可能是父区或世界默认记录，默认或绕过结果可为空 |
+| `Identity.uuid` | 区域稳定 UUID，改名和重定义范围后保持不变 |
+| `Identity.id`、`world`、`kind` | 区域名、世界和类型 |
+| `Boundary.minX` 等坐标 | 包含边界的三维最小值、最大值 |
+| `Boundary.priority` | 该区域的优先级 |
+
+| 原因 | 含义 |
+| --- | --- |
+| `UNSET` | 没有有效设置 |
+| `BYPASS` | 玩家绕过权限使该项允许 |
+| `DIRECT` | 命中区域直接提供了旗标 |
+| `INHERITED` | 命中区域从父区继承旗标 |
+| `MEMBER_EXEMPT` | 玩家是适用规则来源区域的成员，获得豁免 |
+
+## 调用注意事项
+
+`decide` 返回指定位置上一项旗标的判定。一次业务操作可能需检查多个位置及旗标，例如拾取检查玩家与掉落物，传送检查起点、终点及出入限制，容器还需检查交互和访问规则。方块材质禁用列表由实际交互事件处理。
+
+世界默认记录参与旗标判定，`boundaries` 返回几何区域。几何枚举可使用[区域范围查询接口](/docs/api/RegionQueryable)，公共聊天建议使用[区域聊天判定接口](/docs/api/RegionChatAccess)。
+
+## 订阅实际进出事件
+
+通过[事件总线接口](/docs/api/EventBusCapability)订阅 `axs.regions.region_change`。事件关联玩家，负载为字符串映射。
+
+| 字段 | 含义 |
+| --- | --- |
+| `type` | `enter` 进入或 `leave` 离开 |
+| `region_id` | 区域当前名称 |
+| `world` | 区域所属世界 |
+| `region_key` | `世界:区域ID` 形式的引用 |
+| `region_uuid` | 区域稳定 UUID |
+| `cause` | 行走为 `walk`，传送为原因枚举的小写形式，例如 `plugin`、`command`、`ender_pearl`、`nether_portal` |
+
+```java
+import xuanmo.arcartxsuite.api.AxsCapabilities;
+import xuanmo.arcartxsuite.api.capability.EventBusCapability;
+import xuanmo.arcartxsuite.api.capability.RegionProtectionQueryable;
+
+var bus = AxsCapabilities.get(EventBusCapability.class);
+if (bus != null) {
+    String subscription = bus.subscribe(
+        RegionProtectionQueryable.REGION_CHANGE_TOPIC,
+        event -> {
+            if (event.player() == null || !"enter".equals(event.payload().get("type"))) {
+                return;
+            }
+            event.player().sendMessage("进入区域 " + event.payload().get("region_id"));
+        }
+    );
+    // 保存 bus 与 subscription，在接入插件停用时调用 bus.unsubscribe(subscription)。
+}
+```
+
+事件在 Bukkit 主线程通知订阅者，按玩家实际跨区的顺序发送进入和离开。同一 tick 进入某区域再离开，也会分别收到两次通知。
+
+重复进入同一区域会重复发布进入事件。`region_uuid` 标识区域，需要累计“不同区域数”的任务可按自己的任务周期与区域 UUID 去重。

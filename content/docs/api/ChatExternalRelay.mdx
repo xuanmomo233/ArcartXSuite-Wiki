@@ -1,0 +1,58 @@
+---
+title: "外部聊天接入接口"
+description: "把可信聊天连接器的消息交给 Chat 审核、频道路由与本服投递。"
+---
+
+| 项目 | 说明 |
+| --- | --- |
+| 提供模块 | [chat](/docs/chat) |
+| 完整类型 | `xuanmo.arcartxsuite.api.capability.ChatExternalRelay` |
+
+## 获取接口
+
+```java
+ChatExternalRelay chat = AxsCapabilities.get(ChatExternalRelay.class);
+if (chat == null) return;
+```
+
+导入 `xuanmo.arcartxsuite.api.AxsCapabilities` 和上述完整接口类型，在 Bukkit 主线程提交消息。该接口供可信的 QQ 等外部连接器使用。
+
+## 方法声明
+
+```java
+public interface ChatExternalRelay {
+    @NotNull CompletionStage<Boolean> receive(String channelId, @Nullable UUID linkedPlayerId,
+                                             String format, String message, Set<UUID> mentions);
+}
+```
+
+## 参数与返回值
+
+| 参数 | 用途 |
+| --- | --- |
+| `channelId` | Chat 中允许外部消息进入的频道 ID |
+| `linkedPlayerId` | 外部账号绑定的玩家 UUID，无绑定时传 `null` |
+| `format` | 由连接器配置提供的显示模板，使用 `{message}` 放置正文 |
+| `message` | 待审核的消息正文 |
+| `mentions` | 被提及的玩家 UUID 集合；没有提及时传 `Set.of()` |
+
+消息须通过频道、权限、区域、禁言及内容审核等适用检查，再按接收者设置进行本服投递。不要把外部用户的正文直接当作 `format`。
+
+异步结果在主线程完成。`true` 表示消息已处理，也包括没有合格接收者的情况。`false` 表示拒绝、不可用或服务停用。
+
+## 调用注意事项
+
+在主线程准备连接器已核验的绑定 UUID 和正文，再提交给 Chat。
+
+```java
+chat.receive("normal", linkedPlayerId, "[QQ] {message}", text, Set.of())
+    .whenComplete((processed, error) -> {
+        if (error != null) {
+            plugin.getLogger().warning("外部消息处理失败：" + error.getMessage());
+        } else if (!Boolean.TRUE.equals(processed)) {
+            plugin.getLogger().fine("消息未通过频道检查或聊天服务暂不可用。");
+        }
+    });
+```
+
+用回调处理审核结果，主线程应继续处理其他事务。同一条外部消息交由 Chat 投递一次。

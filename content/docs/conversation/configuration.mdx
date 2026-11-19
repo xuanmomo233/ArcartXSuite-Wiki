@@ -44,6 +44,8 @@ __option__:
 
 > `dialog-ui-id` / `selector-ui-id` / `letterbox-ui-id` 均支持字符串或列表格式。列表格式时同一个 payload 会同时发送给多个 UI。
 
+自定义选择器需要保留 `ui/conversation_selector.yml` 中的 `distances` 处理器、`sync` 中的距离重置和距离文本绑定。候选列表稳定时，服务端通过 `distances` 更新距离。
+
 #### NPC 交互（interaction）
 
 | 配置项 | 类型 | 默认值 | 范围 | 说明 |

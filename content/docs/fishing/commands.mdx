@@ -19,6 +19,10 @@ description: "钓鱼可用命令、参数填写方式和权限要求。"
 | `/fishing sell` | 出售手中鱼类物品 |
 | `/fishing sell all` | 出售背包中所有鱼类物品 |
 
+批量售鱼按货币分别结算。付款前，系统会暂存该笔交易中的鱼。若在付款前中断，回到发起交易的子服重新登录，等待原服核对新会话加载的玩家存档。确认未扣鱼时解除预约，确认已扣鱼时把原鱼加入返还队列。明确未入账的交易也会退回原鱼。
+
+已经发起付款、结果仍待核对的交易会阻止新的售鱼申请。看到“售鱼结果待核对”时，请把交易编号交给服主管理员。出售和钓鱼货币奖励需要可确认入账的货币接口，仅通过控制台命令发放的货币不能用于这两种操作。
+
 ## 管理员命令
 
 管理命令挂载在Suite `/axs fishing` 下，需要权限 `axs.fishing.admin`。
@@ -29,8 +33,9 @@ description: "钓鱼可用命令、参数填写方式和权限要求。"
 | `/axs fishing stats [玩家]` | 查看玩家钓鱼统计（等级/经验/捕获数/完美数/图鉴进度） |
 | `/axs fishing givexp <玩家> <数量>` | 给予玩家钓鱼经验 |
 | `/axs fishing reset [玩家]` | 重置玩家钓鱼数据（赛季+永久+图鉴） |
-| `/axs fishing settlement` | 手动触发赛季结算（所有在线玩家） |
+| `/axs fishing settlement` | 后台结算调用时在线的玩家，确认后将奖励放入持久待发队列 |
 | `/axs fishing resetseason` | 查看赛季重置说明 |
+| `/axs fishing test <鱼种ID> <体型cm> <场景> [水流区ID] [personality=<ID>] [提竿模式]` | 直接开始试钓，场景填 `reeds` 或 `clear`，提竿模式填 `hook` 或 `hook-loop` |
 | `/axs fishing water create <id>` | 开始多边形选区创建水域 |
 | `/axs fishing water save <id>` | 保存当前选区为水域文件 |
 | `/axs fishing water delete <id>` | 删除指定水域 |
@@ -39,6 +44,36 @@ description: "钓鱼可用命令、参数填写方式和权限要求。"
 | `/axs fishing fatigue set <玩家> <值>` | 设置玩家疲惫值（0-100） |
 | `/axs fishing fatigue reset <玩家>` | 重置玩家疲惫值为 0 |
 | `/axs fishing fatigue view <玩家>` | 查看玩家疲惫值与钓鱼效率 |
+
+### 实机试钓
+
+管理员在游戏内执行以下命令，可直接对比两种体型。
+
+```text
+/axs fishing test legendary_carp 80 reeds
+/axs fishing test legendary_carp 250 reeds
+```
+
+两个场景都使用龙泉湖的难度配置。用 `reeds` 强制命中 `obstacle-zones.reeds`，换成 `clear` 则关闭障碍。体型按鱼种配置的范围填写，可按 Tab 补全鱼种、尺寸上下限和场景。
+
+命令末尾可加龙泉湖的水流区 ID。例如 `/axs fishing test legendary_carp 250 clear rapids` 会在没有芦苇的急流里开局。去掉 `rapids` 就用静水对照，使用 `reeds rapids` 可同时测试两种落点效果。
+
+加上 `personality=alert` 可指定警觉，`personality=resilient` 可指定顽强，默认使用普通性格。加上 `hook` 会直接打开提竿窗口，浮漂沉下时按 `F`。试钓时可对照同一体型的不同性格：
+
+```text
+/axs fishing test legendary_carp 250 clear personality=alert hook
+/axs fishing test legendary_carp 250 clear personality=resilient hook
+```
+
+`hook-loop` 用于连续练习。每轮在鱼种的 `tap-ticks` 基础上随机多等 0～20 个小游戏步才沉漂。每次按 `F` 后显示准点、早了几步或晚了几步，步数以准点窗口最近的一端为基准。反馈显示 20 步后，用同一鱼种、体型和性格开启下一轮。每轮重新按 `F`，用 `Q` 退出。
+
+界面显示本次练习已完成的轮数和准点率。早提、晚提和错过提竿都计入已完成轮数。
+
+```text
+/axs fishing test legendary_carp 250 clear personality=alert hook-loop
+```
+
+试钓跳过鱼种的出现条件，复用当前玩家的等级、天赋、疲惫、手持鱼竿和队首饵料效果。对抗试钓使用固定随机种子，结束时只展示结果，饵料数量、经验、图鉴、任务和疲惫值均不因试钓结算改变，也不会发放奖励。
 
 ## 权限节点
 

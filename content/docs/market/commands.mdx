@@ -113,6 +113,7 @@ description: "商店与拍卖可用命令、参数填写方式和权限要求。
 | `/axs market status` | 查看模块运行状态 | `arcartxsuite.market.admin` |
 | `/axs market clear-expired` | 同时处理拍卖与玩家商店的到期挂单 | `arcartxsuite.market.admin` |
 | `/axs market remove <auction\|pshop> <上架ID>` | 强制下架对应类型挂单并退还；旧写法 `remove <ID>` 仍表示拍卖 | `arcartxsuite.market.admin` |
+| `/axs market pshop-review <订单ID> <fulfill-paid\|refund-paid\|cancel-unpaid> <核对依据>` | 核对玩家商店成交或市场上架费。上架费支持退款和确认未扣款 | `arcartxsuite.market.admin` |
 | `/axs market open <auction\|pshop\|shop\|recycle\|history\|sell> [商店ID]` | 打开对应业务界面；仅玩家执行，商店 ID 只用于 shop | `arcartxsuite.market.admin` |
 | `/axs market edit [商店ID]` | 打开系统商店编辑 UI（仅玩家可执行；省略 ID 时打开商店选择界面） | `arcartxsuite.market.admin` |
 
@@ -131,7 +132,7 @@ AXS Market 状态
 
 ### 清理过期商品（clear-expired）
 
-手动触发到期物品处理，返回处理的条目数。正常情况下定时任务会自动处理，此命令用于手动触发。
+手动触发到期物品处理，返回本次加入处理队列的条目数。定时任务会自动处理到期商品。
 
 ### 移除指定商品（remove）
 

@@ -1,49 +1,20 @@
 ---
 title: "在线列表"
-description: "自定义玩家在线列表、排序、分组和显示内容。"
+description: "按 Tab 查看玩家名单，可显示头像、延迟和其他 Velocity 子服的玩家。"
 ---
-
-| 项目 | 说明 |
-| --- | --- |
-| 模块 ID | `tab` |
-| 主配置 | `plugins/ArcartX-Suite/data/tab/config.yml` |
-| 主要调整内容 | tabs/ 面板、排序字段、过滤条件与显示模板 |
-| 重载 | `/axs reload tab` |
-
-## 开始前
-
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。本模块还需要安装 `PlaceholderAPI`。可选插件只在使用对应功能时安装，具体要求见功能配置页。
 
 ## 第一次使用
 
-1. 编辑默认列表标题。
-2. 重载后按 Tab。
-3. 再调整一项排序规则。
+1. 确认游戏服已启用 `tab` 模块，玩家使用 ArcartX 客户端。
+2. 打开 `plugins/ArcartX-Suite/data/tab/config.yml`，在 `settings.layout` 选 `simple` 或 `avatar`。
+3. 执行 `/axs reload tab`，进服按住 Tab 查看名单。
 
 ## 检查是否配置成功
 
-使用两个测试账号检查排序和在线状态。
-
-按 Tab 没看到自定义列表时，核对 `arcartxsuite.tab.use`、所选定义是否启用及 `settings.debug-tools.dry-run`。列表打开但某个账号缺席时，先检查过滤条件，再用两名符合条件的玩家比较排序。
-
-## 可以配置的功能
-
-| 特性 | 说明 |
-|---|---|
-| 多 Tab 定义 | 通过 `tabs/` 目录下每个 `.yml` 文件定义一个独立 Tab，文件名即定义 ID |
-| 多键复合排序 | `sort-keys` 支持多级排序，每级可选 `name` / `prem` / `papi` 模式，按列表顺序优先级递减 |
-| 过滤器 | `filters.include` / `filters.exclude` 支持 PAPI 表达式与权限匹配，`hide-vanished` 自动隐藏隐身玩家 |
-| 置顶 / 置底 | `pinned.top` / `pinned.bottom` 规则将指定玩家排在最前或最后，三个分桶各自内部排序 |
-| 分组 | `grouping` 按 PAPI 表达式分桶，每组前可插入 `header-pack`，支持 `group-order` 排序与 `include-unordered` 控制 |
-| 分页 | `pagination` 每页固定行数，客户端发包 `Packet.send("TAB_PAGE", "next")` 或命令 `/tab page` 翻页 |
-| 跨服聚合 | `aggregate` 模式将每个服务器显示为一行（不展开玩家），用于大区网络总览 |
-| 多视图 | 玩家通过 `/tab view <name>` 切换 view，只有 `definition.view` 与玩家当前 view 匹配时才推送数据 |
-| 视觉风格 | PVP 高亮（`%axstab_pvp_color%`）、隐身灰化（`%axstab_vanish_color%`）、延迟图标（`%axstab_ping_icon%`） |
+用两个在线账号检查玩家名。选择 `avatar` 时也应看到头像和延迟。如果没有自定义界面，先用 `/axs status` 确认模块已加载，再核对布局名称。
 
 ## 继续配置
 
-- [功能配置](/docs/tab/configuration)：字段含义与配置示例。
-- [命令与权限](/docs/tab/commands)：玩家操作、管理命令和权限。
-- [跨服同步与聚合](/docs/tab/cross-server)：设置跨服在线列表和多服玩家聚合显示。
-- [排序与过滤](/docs/tab/sorting-filtering)：配置在线列表的排序、筛选、置顶、分组与分页。
-- [视觉风格与占位符](/docs/tab/visual-style)：调整在线列表的高亮、隐身显示、延迟图标与文字占位符。
+- [布局配置](/docs/tab/configuration)说明各字段及界面文件位置。
+- [操作与命令](/docs/tab/commands)列出玩家操作和管理员命令。
+- [Velocity 跨服名单](/docs/tab/cross-server)说明子服设置、隐身和双服验证。

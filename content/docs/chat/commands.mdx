@@ -20,6 +20,15 @@ Chat 模块注册了三个玩家命令（`/chat` 别名 `/axschat`，`/msg` 别�
 | `/chat socialspy [on\|off]` | 切换社交监听（监听全服私聊） | `arcartxsuite.chat.socialspy` |
 | `/chat redpacket <normal\|lucky> <总金额> <个数> [祝福语]` | 发送货币红包（`normal` 均分 / `lucky` 拼手气） | `arcartxsuite.chat.use` + `redpacket.send-permission`（若配置） |
 | `/chat grab <红包ID>` | 抢红包（也可直接点击红包卡片/文字按钮） | `arcartxsuite.chat.use` + `redpacket.claim-permission`（若配置） |
+| `/chat party <消息>` | 向当前 Abyss 小队发消息 | `arcartxsuite.chat.use` 和小队成员资格 |
+| `/chat meeting` / `/chat ready` | 向小队发集合导航或准备确认。准备确认需要队长权限 | `arcartxsuite.chat.use` |
+| `/chat share location` | 分享当前坐标。Abyss 副本内发给当前小队，Regions 私有区域还要求接收者是所有者或成员 | `arcartxsuite.chat.use`，需要 Map |
+| `/chat share quest <任务ID>` | 分享进行中的任务。接收者正在做同一任务时可以点击追踪 | `arcartxsuite.chat.use`，需要 QuestGPS |
+| `/chat share <auction\|listing\|shop\|store> <ID>` | 分享拍品、商品、公开系统商店或玩家店铺。玩家店铺使用店主 UUID | `arcartxsuite.chat.use` 和 `arcartxsuite.market.use` |
+| `/chat subscribe <频道>` / `/chat unsubscribe <频道>` | 订阅或取消接收指定频道 | `arcartxsuite.chat.use` |
+| `/chat quiet <频道> <on\|off>` | 单独设置指定频道的静音状态 | `arcartxsuite.chat.use` |
+| `/chat mentions` | 查看未读提及数量并标为已读 | `arcartxsuite.chat.use` |
+| `/chat history [频道]` / `/chat report <编号> <原因>` | 查询本次会话近期收到的消息，提交举报 | `arcartxsuite.chat.use` |
 
 #### /chat（无参数）
 
@@ -186,6 +195,14 @@ preset:
 ```
 
 **规则与限制**（均可在 `redpacket` 配置节调整）：金额上下限、每份最小金额、最大份数、发送冷却、过期时间、过期退款（仅玩家货币红包）、发送者可否自领、领取播报与手气王播报等。
+
+领取时还要满足频道接收权限。附近红包按点击领取时与发送者的距离判断。金额必须能按该货币的精度拆成足额的份数。领取后先登记发奖，实际到账时另有通知。
+
+物品红包写入持久待发队列后会提示已入队。宿主随后尝试放入背包，空间不足时按可用的仓库或邮箱投递。
+
+玩家红包扣款结果不明时，红包保持待核对，暂不开放领取。管理员可以用 `/axs chat redpacket ledger` 查看流水，核对经济或发奖记录后，再执行 `/axs chat redpacket resolve <流水ID> <paid|unpaid|retry|done>`。`paid` 用于确认扣款已保存，`unpaid` 用于确认未扣款。`retry` 仅用于确认未发放的记录，`done` 用于确认已经发放的记录。
+
+确认已扣款时，已过期红包按发送时记录的 `refund-on-expire` 设置处理。启用时，退款进入发送者的交付队列。
 
 ## 权限节点
 

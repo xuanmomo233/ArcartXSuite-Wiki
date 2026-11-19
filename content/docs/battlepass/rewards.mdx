@@ -3,7 +3,22 @@ title: "奖励系统"
 description: "配置各等级、各档位的战令奖励及赛季结束奖励。"
 ---
 
-BattlePass 奖励分为两类：**等级奖励**（玩家达到指定等级后主动领取）和**赛季结算奖励**（赛季结束时按等级阈值自动发放）。两类奖励都支持 item / command / currency / mail 四种奖励类型。
+BattlePass 奖励分为两类：**等级奖励**（玩家达到指定等级后主动领取）和**赛季结算奖励**（赛季结束时按等级阈值自动发放）。两类奖励都支持 item、command、currency、mail、title 和 map-anchor。
+
+称号与锚点奖励使用 `target-id`。玩家上线后，Suite 会向相应模块发放并等待保存确认。称号为永久授予，锚点为免费解锁。
+
+```yaml
+season-milestone:
+  min-level: 50
+  free:
+    type: title
+    target-id: season_veteran
+  premium:
+    type: map-anchor
+    target-id: season_hall
+```
+
+将示例中的 ID 换成 Title 和 Map 已配置的实际 ID。
 
 ## 等级奖励结构
 
@@ -185,9 +200,9 @@ premium:
 
 | 模式 | 降级行为 |
 |---|---|
-| 预设模式 | 降级为执行命令（`commands` 字段） |
-| 直接模式有物品 | 降级为直接发放物品（在线放入背包，离线跳过） |
-| 直接模式无物品 | 降级为执行命令 |
+| 预设模式 | 保留在待发放队列，等待邮件模块可用 |
+| 直接模式有物品 | 玩家在线处理奖励时可降级为物品发放 |
+| 直接模式无物品 | 使用配置的 `commands` |
 
 ## 奖励图标配置
 
@@ -242,6 +257,8 @@ rewards:
 | 自动结算 | 赛季结束日期到期后，定时任务检测并自动结算 |
 | 手动结算 | 管理员执行 `/axs battlepass settle` 手动触发 |
 
+配置了 Abyss 通关任务时，战令会先补记已保存的副本结果。Abyss 暂时不可用或补记尚未完成时，赛季会等待补记。补记完成后可再次执行 `/axs battlepass settle`。
+
 ### 结算逻辑
 
 结算分两步执行：
@@ -253,10 +270,10 @@ rewards:
 
 | 玩家状态 | 发放方式 |
 |---|---|
-| 在线 | 直接发放（通过 BattlePassRewardDispatcher） |
-| 离线 | 暂存到统一 PendingRewardService，玩家上线时自动补发 |
+| 在线 | 奖励确认入队后，由 Suite 触发发放 |
+| 离线 | 奖励确认入队后，等待玩家上线并通过认证 |
 
-> 离线玩家的 mail 类型奖励尝试通过邮件直接发送；其他类型暂存到 PendingRewardService。
+带附件的邮件保留完整物品配置、标题和正文。玩家上线时解析附件并发放。
 
 ### 档位降级规则
 
@@ -270,8 +287,8 @@ rewards:
 
 ### 防重复机制
 
-- 通过 `bp_season_settlement` 表记录已结算赛季，重启后不会重复结算
-- 结算奖励使用 `settlement_<settlementId>_<tier>` 作为领取记录 key，防止补发时重复
+- 全部奖励确认入队后才记录赛季已结算。结算中断后会沿用原发放请求继续处理。
+- 普通领奖与赛季补发共用领取记录。发放过程中结果不明的记录会保留，管理员可按日志中的待发放记录 ID 核对。
 
 ### 玩家主动领取
 
@@ -279,7 +296,7 @@ rewards:
 2. 系统检查玩家等级是否达到指定等级
 3. 系统检查玩家档位是否可领取该档位奖励
 4. 系统检查是否已领取过（通过 `claimedRewards` 集合）
-5. 通过 BattlePassRewardDispatcher 发放奖励
+5. 奖励持久入队后记录领取成功，由 Suite 负责发放
 6. 记录领取状态并异步落盘
 
 ### 一键领取

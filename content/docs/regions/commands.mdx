@@ -1,142 +1,110 @@
 ---
 title: "区域规则命令与权限"
-description: "区域规则可用命令、参数填写方式和权限要求。"
+description: "查询 Regions 的选区、区域管理、规则、成员、模板及诊断命令和权限。"
 ---
 
-Regions 模块通过 `/axs regions` 和 `/rg`（别名 `/axsrg`）两个命令入口提供全部区域管理功能。`/rg` 为独立注册的缩写命令，自动转发到 `regions` 子命令处理。
+主要入口是 `/rg`，命令别名为 `/axsrg`。也可以通过 `/axs regions <动作>` 调用，使用宿主管理命令入口需要 `arcartxsuite.admin`。
 
-## 玩家命令
+`/rg` 入口需要 `axs.regions.select`，默认向玩家开放。下面的管理条件在此基础上检查。
 
-`/rg` 与 `/axsrg` 都需要 `axs.regions.select`，默认向玩家开放。下表另列区域归属等条件。通过 `/axs regions` 执行时，还需具备 `arcartxsuite.admin`。
+## 区域名称写法
 
-| 命令 | 说明 | 条件与权限 |
-|---|---|---|
-| `/rg help` | 显示帮助信息 | `axs.regions.select` |
-| `/rg status` | 查看模块状态（已加载区域数、标志类型数） | `axs.regions.select` |
-| `/rg menu` | 打开玩家区域查看菜单（ArcartX UI） | `axs.regions.select` |
-| `/rg wand` | 获取选区工具 | `axs.regions.select` |
-| `/rg pos1` | 设置选区点 1（当前站位） | `axs.regions.select` |
-| `/rg pos2` | 设置选区点 2（当前站位） | `axs.regions.select` |
-| `/rg define <名称>` | 用当前选区创建区域 | `axs.regions.select` |
-| `/rg redefine <名称>` | 用当前选区重定义区域范围 | 区域所有者或 `axs.regions.admin` |
-| `/rg remove <名称>` | 删除区域 | 区域所有者或 `axs.regions.admin` |
-| `/rg list [世界]` | 列出区域（默认当前世界） | `axs.regions.select` |
-| `/rg info <名称>` | 查看区域详细信息 | `axs.regions.select` |
-| `/rg show` | 切换区域边框常驻粒子可视化 | `axs.regions.select` |
-| `/rg flag <区域> <标志> <allow\|deny> [数据]` | 设置区域标志 | 区域所有者或 `axs.regions.admin` |
-| `/rg removeflag <区域> <标志>` | 移除区域标志 | 区域所有者或 `axs.regions.admin` |
-| `/rg flags <区域>` | 查看区域所有标志 | `axs.regions.select` |
-| `/rg addowner <区域> <玩家\|g:组>` | 添加所有者 | 区域所有者或 `axs.regions.admin` |
-| `/rg removeowner <区域> <玩家\|g:组>` | 移除所有者 | 区域所有者或 `axs.regions.admin` |
-| `/rg addmember <区域> <玩家\|g:组>` | 添加成员 | 区域所有者或 `axs.regions.admin` |
-| `/rg removemember <区域> <玩家\|g:组>` | 移除成员 | 区域所有者或 `axs.regions.admin` |
-| `/rg priority <区域> <数字>` | 设置区域优先级 | 区域所有者或 `axs.regions.admin` |
-| `/rg parent <区域> <父区域\|none>` | 设置父区域 | 区域所有者或 `axs.regions.admin` |
-| `/rg tp <区域>` | 传送到区域中心 | `axs.regions.select` |
+使用 `world:spawn` 表示世界 `world` 中的区域 `spawn`。不写世界时，玩家优先查当前世界。其他世界存在同名区域时，使用完整名称消除歧义。区域 ID 不区分大小写，支持 1～64 位文字、数字、下划线或连字符。
 
-#### 创建区域（`/rg define`）
+## 玩家查看与选区
 
-用当前选区创建区域。创建者自动成为区域所有者。
+| 命令 | 用途 | 额外条件 |
+| --- | --- | --- |
+| `/rg help` | 查看命令帮助 | 无 |
+| `/rg status` | 查看已加载区域数与旗标类型数 | 无 |
+| `/rg menu` | 打开当前位置、我的区域和我的选区 | 需要 ArcartX 客户端界面 |
+| `/rg list [世界]` | 列出指定世界区域，玩家默认当前世界，控制台默认全部 | 无 |
+| `/rg info <区域>` | 查看类型、边界、优先级、成员 UUID 和旗标数量 | 无 |
+| `/rg flags <区域>` | 查看区域直接设置的旗标 | 无 |
+| `/rg why <旗标> [玩家]` | 查询自己或指定在线玩家脚下的最终判定与来源 | 查询其他玩家需要 `axs.regions.admin` |
+| `/rg wand` | 获取配置的选区工具 | 仅玩家 |
+| `/rg pos1`、`/rg pos2` | 将当前站位设为角点 | 仅玩家 |
+| `/rg preview [区域]` | 检查当前选区和重叠区域；指定区域时排除自身 | 指定已有区域需要管理权 |
+| `/rg show` | 切换附近区域的边框预览 | 普通玩家查看自己拥有或参与的区域 |
+| `/rg tp <区域>` | 在区域中心列的高度范围内寻找安全落点并尝试传送 | 仅玩家，目标世界已加载 |
 
-```
-/rg define <名称>
-```
+`/rg tp` 会经过传送、进入和离开规则检查。世界默认记录没有几何传送点。选区和预览用法见[选区工具](/docs/regions/selection)。
 
-| 参数 | 必填 | 说明 |
-|---|---|---|
-| 名称 | 是 | 区域 ID（不区分大小写），同世界内不可重复 |
+## 创建与修改区域
 
-校验流程：选区完成 → 体积不超限 → 名称不重复 → 数量不超限（`axs.regions.bypass.limit` 绕过）→ 创建并清除选区。
+这里的“领地管理权”指 `claim` 的所有者、所有者权限组，或拥有 `axs.regions.admin` 的管理员。
 
-#### 设置区域规则（`/rg flag`）
+| 命令 | 用途 | 管理条件 |
+| --- | --- | --- |
+| `/rg define <名称> [模板]` | 用当前选区创建区域，创建者成为所有者 | 管理员创建管理区域，普通玩家创建领地 |
+| `/rg redefine <区域>` | 用当前选区更新边界 | 领地管理权或管理员 |
+| `/rg rename <区域> <新名称>` | 重命名，保留区域 UUID 并更新子区域引用 | 领地管理权或管理员 |
+| `/rg remove <区域>` | 删除区域 | 领地管理权或管理员，需先处理子区域 |
+| `/rg flag <区域> <旗标> <状态> [文本]` | 设置允许、禁止或清除覆盖 | 领地管理权，管理员专属旗标还需管理员权限 |
+| `/rg removeflag <区域> <旗标>` | 清除该旗标的直接设置 | 与设置该旗标相同 |
+| `/rg priority <区域> <整数>` | 修改同类区域的数值优先级 | 管理员 |
+| `/rg parent <区域> <父区域或none>` | 设置同世界父区，`none` 清除父区 | 管理员 |
+| `/rg classify <区域> <managed或claim>` | 设置为管理区域或玩家领地 | 管理员，转成领地需有所有者且满足重叠限制 |
+| `/rg worlddefault <世界>` | 创建或查看世界默认记录 | 管理员 |
 
-设置区域标志，支持附加数据（如 greeting/farewell 自定义文本）。
+命令状态接受 `allow`、`deny`、`none`。其中 `true/yes` 对应允许，`false/no` 对应禁止。只有 `greeting` 和 `farewell` 接受文本，最多 1024 个字符。
 
-```
-/rg flag <区域> <标志> <allow|deny> [数据...]
-```
-
-| 参数 | 必填 | 说明 |
-|---|---|---|
-| 区域 | 是 | 区域 ID |
-| 标志 | 是 | 标志 Key（如 `pvp`、`block-break`、`greeting`） |
-| allow\|deny | 是 | 标志状态（也接受 `true`/`false`/`yes`/`no`） |
-| 数据 | 否 | 附加文本数据（greeting/farewell 的自定义消息） |
-
-示例：
-
-```
-/rg flag spawn pvp deny
-/rg flag spawn greeting allow &6欢迎来到出生点！
-/rg flag spawn block-break deny
+```text
+/rg flag world:spawn block-break deny
+/rg flag world:spawn greeting allow &6欢迎来到出生点！
+/rg flag world:spawn pvp none
+/rg parent world:shop spawn
 ```
 
-#### 添加区域所有者或成员（`/rg addowner` / `/rg addmember`）
+世界默认记录的 ID、区域类型及父区限制见[标志系统](/docs/regions/flags#父区域与世界默认值)。在线写入成功后才会提示完成并更新保护状态。
 
-添加区域所有者或成员，支持玩家名和权限组（`g:` 前缀）。
+## 所有者与成员
 
-```
-/rg addowner <区域> <玩家|g:组名>
-/rg addmember <区域> <玩家|g:组名>
-```
+| 命令 | 用途 | 管理条件 |
+| --- | --- | --- |
+| `/rg addowner <区域> <玩家或g:组>` | 添加所有者或所有者权限组 | 领地管理权或管理员 |
+| `/rg removeowner <区域> <玩家或g:组>` | 移除所有者或所有者权限组 | 领地管理权或管理员 |
+| `/rg addmember <区域> <玩家或g:组>` | 添加成员或成员权限组 | 领地管理权或管理员 |
+| `/rg removemember <区域> <玩家或g:组>` | 移除成员或成员权限组 | 领地管理权或管理员 |
 
-示例：
+玩家参数可填写登录名或 UUID，`g:builders` 代表具有 `axs.regions.group.builders` 权限的玩家。权限组名称使用 1～64 位小写英文字母、数字、下划线或连字符。
 
-```
-/rg addowner spawn Steve
-/rg addmember spawn g:vip
-```
-
-<Callout type="info">
-权限组通过 `axs.regions.group.<name>` 权限节点识别。玩家拥有该权限节点时被视为属于对应组，享受成员豁免。
-</Callout>
-
-#### 设置区域继承（`/rg parent`）
-
-设置区域父区域，父区域必须与当前区域同世界，模块自动检测继承环。
-
-```
-/rg parent <区域> <父区域|none>
+```text
+/rg addowner world:home Alex
+/rg addmember world:home g:builders
+/rg removemember world:home Alex
 ```
 
-| 参数 | 必填 | 说明 |
-|---|---|---|
-| 父区域 | 是 | 父区域 ID，设为 `none` 移除父区域 |
+普通领地所有者修改成员时，领地至少保留一位所有者或一个所有者权限组。普通成员享受适用旗标的成员豁免。可编辑范围见[成员与管理权限](/docs/regions/flags#成员与管理权限)。
 
-#### 显示区域边界（`/rg show`）
+## 模板与操作记录
 
-切换区域边框常驻粒子可视化。普通玩家仅看到自己拥有/参与的区域（黄色粒子），管理员（`axs.regions.admin`）可看到所有区域（紫色粒子）。按视距 48 方块半径裁剪，每 16 tick 刷新。
+| 命令 | 用途 | 权限 |
+| --- | --- | --- |
+| `/rg template list` | 查看模板名称 | `axs.regions.select` |
+| `/rg template show <模板>` | 查看模板设置的旗标 | 含管理员专属旗标的模板需要管理员 |
+| `/rg template apply <模板> <区域>` | 将模板列出的旗标应用到区域 | 需要区域管理权及模板对应权限 |
+| `/rg admin` | 打开中文管理面板 | `axs.regions.admin` |
+| `/rg history [条数]` | 查看最近的设置操作，默认 10 条，可选 1～50 | `axs.regions.admin` |
+| `/rg diff <编号>` | 查看指定操作前后的设置 | `axs.regions.admin` |
+| `/rg undo <编号>` | 撤销指定设置操作 | `axs.regions.admin` |
+| `/rg export <快照名> [世界]` | 导出全部或指定世界区域 | `axs.regions.admin` |
+| `/rg import <快照名>` | 预检导入内容并显示校验码 | `axs.regions.admin` |
+| `/rg import <快照名> apply <校验码>` | 提交预检过的导入 | `axs.regions.admin` |
+| `/rg profile <start或stop>` | 开始或结束查询与跨区耗时统计 | `axs.regions.admin` |
+| `/axs reload regions` | 重载 Regions 配置和数据 | `arcartxsuite.admin` |
 
-## 管理员命令
+详细操作见[区域管理](/docs/regions/management)。
 
-| 命令 | 说明 | 权限 |
-|---|---|---|
-| `/rg admin` | 打开管理员区域管理面板（ArcartX UI） | `axs.regions.admin` |
-| `/axs reload regions` | 重载模块配置 | `arcartxsuite.admin` |
+## 权限节点
 
-管理员面板支持区域列表浏览、区域编辑（标志/成员/优先级/父区域）、区域创建/重定义/重命名/删除，以及世界规则管理（禁飞/禁活塞/禁交互的运行时切换）。
+| 权限 | 默认 | 用途 |
+| --- | --- | --- |
+| `axs.regions.select` | 所有玩家 | 使用区域命令入口和选区工具 |
+| `axs.regions.admin` | 管理员 | 管理任意区域、世界默认值及管理员专属旗标 |
+| `axs.regions.bypass` | 管理员 | 绕过适用的玩家操作限制，完整旗标范围见[绕过权限](/docs/regions/flags#绕过权限) |
+| `axs.regions.bypass.limit` | 管理员 | 绕过普通玩家创建领地时的数量上限 |
+| `axs.regions.group.<组名>` | 按权限系统配置 | 将玩家识别为对应区域权限组成员 |
+| `arcartxsuite.admin` | 管理员 | 使用宿主管理命令和模块重载 |
 
-## 权限
-
-| 权限节点 | 默认 | 说明 |
-|---|---|---|
-| `axs.regions.select` | true | 使用 `/rg` 和选区工具 |
-| `axs.regions.admin` | op | 管理员权限，可管理任意区域、打开管理员面板 |
-| `axs.regions.bypass` | op | 绕过所有区域保护（标志查询直接返回 ALLOW） |
-| `axs.regions.bypass.limit` | op | 绕过每玩家最大区域数量限制 |
-| `axs.regions.group.<name>` | - | 区域权限组，玩家拥有此节点时属于对应组，享受成员豁免 |
-| `axs.essentials.fly.bypass` | op | 绕过世界规则禁飞限制 |
-| `axs.essentials.interact.bypass` | op | 绕过世界规则禁交互限制 |
-
-<Callout type="info">
-`axs.regions.bypass` 是全局保护绕过——拥有此权限的玩家在任何区域都不受标志限制。`axs.regions.bypass.limit` 仅绕过区域数量限制，不影响保护逻辑。
-</Callout>
-
-## 图形界面
-
-Regions 模块提供两个 ArcartX UI 界面：
-
-| 界面 | 打开方式 | 权限 | 功能 |
-|---|---|---|---|
-| 玩家菜单 | `/rg menu` | - | 查看当前区域、个人区域列表与选区状态 |
-| 管理员面板 | `/rg admin` | `axs.regions.admin` | 区域创建/编辑/删除、标志与成员管理、世界规则管理 |
+管理员身份与保护绕过分别检查。验证拒绝规则时，使用没有绕过权限的测试账号，并核对其成员身份。

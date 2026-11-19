@@ -95,9 +95,8 @@ time-bonus:
 | 字段 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
 | `offline-savings.enabled` | `boolean` | `true` | 是否启用离线时长储蓄 |
-| `offline-savings.max-minutes` | `int` | `120` | 每日可储蓄的最大分钟数（范围 0~1440） |
-| `offline-savings.storage-rate` | `double` | `1.0` | 储蓄比例（1.0=全额储蓄当日在线时长，范围 0.0~1.0） |
-| `offline-savings.expire-days` | `int` | `1` | 过期天数（保留用于未来扩展，当前跨天自动清零） |
+| `offline-savings.max-minutes` | `int` | `120` | 每日存入上限和储蓄余额上限，设为 0 停用储蓄 |
+| `offline-savings.storage-rate` | `double` | `1.0` | 可储蓄在线分钟的折算比例，范围 0.0～1.0 |
 
 ### 全服签到目标（server-sign-in-goal）
 

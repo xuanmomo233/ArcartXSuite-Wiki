@@ -11,7 +11,7 @@ LoginView 提供游戏内登录、条款确认、QQ 绑定和外部授权界面�
 | --- | --- | --- | --- |
 | 单服密码认证 | 玩家通过 Minecraft 在线验证后，在游戏界面注册或输入本服密码 | 玩家直连，游戏服 `online-mode=true` | [单服密码认证](/docs/loginview/configuration) |
 | 单服混合认证 | 验证微软或 LittleSkin 账号，通过后免输本服密码 | 玩家直连游戏服，同机运行混合登录网关 | [单服混合认证](/docs/loginview/mixed-login#单服混合认证) |
-| 代理转发认证 | Velocity 验证账号，子服校验代理传入的结果 | Velocity 代理、对应插件与已配置转发的子服 | [Velocity 代理认证](/docs/loginview/mixed-login#velocity-代理认证) |
+| 代理转发认证 | 代理验证账号，子服校验代理传入的结果 | BungeeCord 或 Velocity、对应代理插件与已配置转发的子服 | [代理转发认证](/docs/loginview/mixed-login#代理转发认证) |
 | 中心密码认证 | 玩家在游戏界面注册、输入密码，由中心验证 | 独立认证中心，玩家直连在线模式游戏服 | [独立认证中心](/docs/loginview/center) |
 | 外部授权认证 | 玩家通过官网或启动器授权，再在原游戏连接确认 | 独立认证中心与可接入的 OIDC 身份系统 | [外部身份接入](/docs/loginview/external-authorization) |
 

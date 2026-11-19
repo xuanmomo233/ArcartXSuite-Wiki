@@ -1,12 +1,14 @@
 ---
 title: "在线列表刷新接口"
-description: "刷新在线列表"
+description: "向 Velocity 重新上报子服玩家的准入与隐身状态。"
 ---
 
 | 项目 | 说明 |
 | --- | --- |
 | 提供模块 | [tab](/docs/tab) |
 | 完整类型 | `xuanmo.arcartxsuite.api.capability.TabRefreshable` |
+
+子服 Tab 启用 `settings.proxy-roster` 后，此接口可刷新向 Velocity 上报的可见状态。
 
 ## 获取接口
 
@@ -38,9 +40,9 @@ public interface TabRefreshable {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
-| `requestViewerRefresh` | 请求刷新指定玩家可见的 Tab。 | `viewer`：目标玩家；`reason`：触发原因（日志用） | 无返回值 |
-| `requestGlobalRefresh` | 请求刷新所有在线玩家的 Tab。 | `reason`：触发原因（日志用） | 无返回值 |
+| `requestViewerRefresh` | 重新检查指定玩家的准入与隐身状态，变化时向代理上报。 | `viewer`：要上报状态的玩家，`reason` 可传 `null` | 无返回值 |
+| `requestGlobalRefresh` | 检查本服在线玩家的状态，向代理上报有变化的玩家。 | `reason` 可传 `null` | 无返回值 |
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+适合在准入或隐身状态变化时调用。代理收到新状态后更新跨服名单，客户端继续使用当前选定的布局。 [跨服名单配置](/docs/tab/cross-server)

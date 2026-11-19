@@ -80,7 +80,9 @@ currencies:
 
 ### xconomy — XConomy 原生经济
 
-直连 XConomy，不经过 Vault。
+可直接选择 XConomy。Vault 的当前经济提供者为 XConomy 时，选择 `vault` 或 `xconomy` 使用的是同一个钱包。扣款接口返回成功后，余额保存结果仍可能需要核对。
+
+银行、市场付费交易、NPC 兑换和地图锚点付费解锁需要使用能确认余额已保存的货币接口。玩家红包、副本门票和付费抽奖遇到扣款结果不明时，会保留凭证供管理员核对。
 
 ```yaml
 currencies:

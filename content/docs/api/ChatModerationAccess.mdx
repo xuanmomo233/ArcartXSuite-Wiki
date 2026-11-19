@@ -1,0 +1,54 @@
+---
+title: "聊天审核查询接口"
+description: "为有审核权限的操作者查询禁言回执、举报并关闭举报。"
+---
+
+| 项目 | 说明 |
+| --- | --- |
+| 提供模块 | [chat](/docs/chat) |
+| 完整类型 | `xuanmo.arcartxsuite.api.capability.ChatModerationAccess` |
+
+## 获取接口
+
+```java
+ChatModerationAccess moderation = AxsCapabilities.get(ChatModerationAccess.class);
+if (moderation == null) return;
+```
+
+导入 `xuanmo.arcartxsuite.api.AxsCapabilities` 和上述完整接口类型。涉及操作者的调用在 Bukkit 主线程执行。
+
+## 方法声明
+
+```java
+public interface ChatModerationAccess {
+    void inspect(CommandSender operator, String action, String argument);
+}
+```
+
+## 参数与返回值
+
+玩家操作者须通过准入，并具有 `arcartxsuite.admin` 或 `arcartxsuite.chat.review`。结果直接发送给 `operator`，此方法不返回查询列表。
+
+| `action` | `argument` | 用途 |
+| --- | --- | --- |
+| `mutehistory` | 玩家名称 | 查询最多 20 条禁言操作记录 |
+| `receipt` | 回执 UUID 字符串 | 查看指定审核操作回执 |
+| `reports` | 空字符串 | 查看最多 20 条未关闭举报 |
+| `reports` | 举报 UUID 字符串 | 查看指定举报 |
+| `closereport` | 举报 UUID 字符串 | 以当前操作者身份关闭举报 |
+
+## 调用注意事项
+
+查询未关闭的举报时传入空字符串。
+
+```java
+moderation.inspect(operator, "reports", "");
+```
+
+需要关闭举报时，使用列表中显示的举报编号。
+
+```java
+moderation.inspect(operator, "closereport", reportId.toString());
+```
+
+为实际玩家处理请求时保留该玩家作为 `operator`，使接口检查权限并记录操作者身份。不要把普通玩家请求改成控制台身份执行。

@@ -106,17 +106,6 @@ xp-curve:
 
 > `overwrite-ui-files: false` 时，模块更新不会覆盖用户已修改的 UI 文件。设为 `true` 则每次启动强制覆盖（用于恢复默认 UI）。
 
-### cross-server 跨服配置
+### 跨服存储
 
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `cross-server.enabled` | boolean | `false` | 是否启用跨服数据同步 |
-| `cross-server.sync-fields` | list | `["progress", "task-progress", "claimed-rewards"]` | 需同步的字段列表 |
-
-可同步字段：
-
-| 字段值 | 说明 |
-|---|---|
-| `progress` | 战令等级与经验进度 |
-| `task-progress` | 任务完成进度 |
-| `claimed-rewards` | 已领取的奖励记录 |
+共用战令进度的子服要连接同一个 MySQL 数据库，并使用相同的赛季 ID、经验规则和任务配置。多台子服同时补记副本结果时，系统按数据库中的当前进度累计。重复收到同一任务记录时只记一次。

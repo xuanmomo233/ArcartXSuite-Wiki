@@ -10,6 +10,7 @@ description: "用两台游戏服验证 Redis 或代理转发，区分共享仓�
 | 目的 | 应配置的内容 |
 | --- | --- |
 | 跨服公告和其他模块通知 | 选 Redis 或代理转发，然后打开目标模块的跨服开关 |
+| 跨服聊天 | 各服使用同一个 MySQL 数据库，再开启 Chat 跨服与频道转发 |
 | 多服访问同一个共享仓库 | 各服连接同一个 MySQL 库，并开启 Warehouse 的跨服编辑锁 |
 | 跨服地图传送 | 完成消息连接后，继续配置[跨服地图](/docs/map/cross-server)的代理服名称和目标落地点 |
 
@@ -36,6 +37,12 @@ cross-server:
     secret: "替换为两服相同的随机密钥"
     verify: true
 ```
+
+### Redis 连接要求
+
+Redis 须为 6.2 或更高版本。同一频道的子服应使用相同的留存设置，每台子服须有独立的 `node-id`。使用 Redis ACL 用户时，填写 `cross-server.redis.username`。
+
+某个模块的 Redis 通道暂未启用时，其他模块可以继续接收。已进入本服收件箱的消息会保留，通道启用后可恢复处理。恢复检查时仍未启用且超过 `cross-server.dedupe-ttl-ms` 的消息会清理。
 
 ## 使用代理转发
 
@@ -64,7 +71,7 @@ cross-server:
   enabled: true
 ```
 
-Chat 还需要为指定频道开启 `cross-server: true`。Tab 的 `settings.cross-server` 和单个定义的 `cross-server` 决定哪些列表参与聚合，见[在线列表跨服配置](/docs/tab/cross-server)。各模块自己的开关控制其业务范围。
+Tab 的跨服名单通过 Suite Velocity 配置。 [跨服名单](/docs/tab/cross-server)
 
 ## 验证步骤
 

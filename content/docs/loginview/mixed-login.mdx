@@ -1,6 +1,6 @@
 ---
 title: "混合账号认证"
-description: "配置微软与 LittleSkin 账号认证，分别支持单服直连和 Velocity 代理转发。"
+description: "配置微软与 LittleSkin 账号认证，支持单服直连、BungeeCord 和 Velocity 代理转发。"
 ---
 
 混合账号认证接收微软和 LittleSkin 身份。验证完成后，玩家继续执行条款确认和已启用的 QQ 绑定要求。以下两种部署方式均由游戏服保存账号记录。
@@ -8,7 +8,7 @@ description: "配置微软与 LittleSkin 账号认证，分别支持单服直连
 | 连接拓扑 | 认证入口 | 网关部署位置 |
 | --- | --- | --- |
 | 玩家直接连接游戏服 | 单服混合认证，`local-mixed` | 与游戏服同一台机器 |
-| 玩家通过 Velocity 进入子服 | 代理转发认证，`signed-proxy` | 与 Velocity 同一台机器 |
+| 玩家通过 BungeeCord 或 Velocity 进入子服 | 代理转发认证，`signed-proxy` | 与代理同一台机器 |
 
 微软与 LittleSkin 账号通过在线身份验证后免输本服密码。需要在同一台在线模式游戏服再验证本服密码时，按[单服密码认证](/docs/loginview/configuration)设置对应入口。
 
@@ -72,19 +72,20 @@ Windows 使用 `start-mixed-auth.bat`，Linux 使用 `start-mixed-auth.sh`。主
 
 用微软账号和 LittleSkin 账号各测试一次。验证通过后，界面应进入条款步骤或直接关闭，玩家可以操作游戏。若提示握手回执过期，先重新连接，再检查脚本、网关端口和实际启动参数。
 
-## Velocity 代理认证
+## 代理转发认证
 
-Velocity 负责验证玩家身份，子服校验代理传入的认证结果。该转发入口使用 Velocity 对应适配。
+BungeeCord 或 Velocity 验证玩家身份，子服校验代理传入的认证结果。
 
 ### 配置玩家信息转发
 
-在 Velocity 的 `servers` 中登记子服，确认玩家能够通过代理连接。下文使用子服名称 `lobby`。
+在代理的 `servers` 中登记子服。下文使用子服名称 `lobby`。两种代理的子服都在 `server.properties` 中设置 `online-mode=false`，并在网络上限制只有代理可以连接子服。
 
-对于 Paper 子服，按 Velocity 的现代转发步骤设置 `player-info-forwarding-mode=modern`、子服 `online-mode=false`，并匹配 Paper 的 Velocity 转发开关和共享值。限制玩家绕过代理直连子服。具体文件位置以所用 Paper 版本为准。[Velocity 官方转发教程](https://docs.papermc.io/velocity/player-information-forwarding/)
+- **Velocity** 在 `velocity.toml` 中设置 `online-mode=true` 和 `player-info-forwarding-mode="modern"`。Paper 子服在 `config/paper-global.yml` 中开启 `proxies.velocity.enabled`，设置 `proxies.velocity.online-mode: true`，并使 `proxies.velocity.secret` 与代理一致。子服的 `spigot.yml` 使用 `settings.bungeecord: false`。 [Velocity 转发说明](https://docs.papermc.io/velocity/player-information-forwarding/#configuring-modern-forwarding-for-paper)
+- **BungeeCord** 在代理自己的 `config.yml` 中设置 `online_mode: true` 和 `ip_forward: true`。子服的 `spigot.yml` 使用 `settings.bungeecord: true`。Paper 子服还需在 `config/paper-global.yml` 中设置 `proxies.bungee-cord.online-mode: true`，并关闭 `proxies.velocity.enabled`。 [BungeeCord 配置源码](https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/conf/Configuration.java) · [Paper 代理配置](https://docs.papermc.io/paper/reference/global-configuration/#proxies)
 
 ### 生成代理启动脚本
 
-在 Velocity 安装 Suite 的代理端插件。编辑代理插件实际生成的 `proxy-config.yml`，先配置以下内容。
+安装与代理类型对应的 Suite 代理端插件。编辑插件生成的 `proxy-config.yml`，先配置以下内容。
 
 ```yaml
 deny-offline: true
@@ -100,7 +101,7 @@ auth:
   mixed-proxy-allow-ips: []
 ```
 
-启动一次代理，在代理控制台执行 `axsproxy auth setup`。生成脚本后停止代理。后续使用代理目录里的 `start-mixed-auth` 脚本启动，Velocity 保持 `online-mode=true`。
+启动一次代理，在代理控制台执行 `axsproxy auth setup`。生成脚本后停止代理。后续使用代理目录里的 `start-mixed-auth` 脚本启动，保持代理的在线模式开启。
 
 ### 启用认证转发
 
@@ -153,7 +154,7 @@ performance:
 
 | 代理上的字段 | 子服上要对应的字段 | 本例 |
 | --- | --- | --- |
-| `targets` 下的子服名称 | Velocity 的子服注册名称 | `lobby` |
+| `targets` 下的子服名称 | 代理上的子服注册名称 | `lobby` |
 | `targets.lobby.realm` | `realm-id` | `network` |
 | `targets.lobby.audience` | `ingress.audience` | `lobby-node` |
 | `issuer` | `trusted-proxies` 中的 `issuer` | `proxy-main` |
@@ -161,15 +162,17 @@ performance:
 
 ### 验证代理入口
 
-玩家必须通过 Velocity 的地址进入。分别用微软和 LittleSkin 账号测试，子服应接受验证结果并继续条款步骤。
+玩家通过代理地址进入。分别用微软和 LittleSkin 账号连接，子服应接受验证结果并继续条款步骤。
 
 若一直等待可信验证，先核对上表五项，再检查实际连接是否来自已配置的 `lobby` 子服及其转发设置。
+
+代理连接连续超过 12 小时后，若切服时身份验证未通过，请断开代理并重新连接，再进入子服。
 
 ## 部署约束
 
 | 配置情况 | 处理要求 |
 | --- | --- |
-| 子服配置了 `local-mixed`，玩家却从 Velocity 进入 | 使用代理转发认证的 `signed-proxy`，网关部署在代理端 |
+| 玩家通过代理进入，而子服配置了 `local-mixed` | 将子服认证入口设为 `signed-proxy`，把网关部署在代理端 |
 | 单服提示需要在线模式 | 单服混合认证的游戏服必须设置 `online-mode=true` |
 | 在中心模式中使用混合入口 | 中心节点按独立中心教程配置，当前中心入口要求直连 |
 | 服务器需要允许普通离线账号 | 由适合离线部署的其他登录插件管理。Suite 的单服密码入口要求在线模式直连 |

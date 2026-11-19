@@ -14,6 +14,7 @@ description: "战令可用命令、参数填写方式和权限要求。"
 | `/bp tasks` | — | `arcartxsuite.battlepass.use` | 打开任务列表界面 |
 | `/bp rewards` | — | `arcartxsuite.battlepass.use` | 打开奖励列表界面 |
 | `/bp claim <等级>` | — | `arcartxsuite.battlepass.use` | 领取指定等级的奖励 |
+| `/bp go <任务ID>` | — | `arcartxsuite.battlepass.use` | 前往已分配且未完成的任务目标 |
 | `/bp help` | — | `arcartxsuite.battlepass.use` | 显示玩家命令帮助 |
 
 > 无参数执行 `/bp` 等同于 `/bp open`。未知子命令也会自动打开主界面。
@@ -31,7 +32,7 @@ description: "战令可用命令、参数填写方式和权限要求。"
 
 ### Tab 补全
 
-第一参数支持补全：`open` / `tasks` / `rewards` / `claim` / `help`。
+第一参数支持补全 `open`、`tasks`、`rewards`、`claim`、`go` 和 `help`。
 
 ## 管理员命令
 
@@ -40,7 +41,7 @@ description: "战令可用命令、参数填写方式和权限要求。"
 | 命令 | 说明 |
 |---|---|
 | `/axs battlepass help` | 显示管理命令帮助 |
-| `/axs battlepass status` | 查看模块状态（赛季、活跃玩家数、跨服、奖励数） |
+| `/axs battlepass status` | 查看模块状态（赛季、活跃玩家数、奖励数） |
 | `/axs battlepass season` | 查看当前赛季信息（ID、名称、等级上限、起止日期、结算状态） |
 | `/axs battlepass reset <玩家>` | 重置指定玩家的战令进度 |
 | `/axs battlepass unlock <玩家> <premium\|deluxe>` | 解锁指定玩家的战令档位 |
@@ -60,7 +61,7 @@ description: "战令可用命令、参数填写方式和权限要求。"
 
 #### status 查看模块状态
 
-显示当前赛季 ID、活跃玩家数、跨服同步状态、奖励配置数量。
+显示当前赛季 ID、活跃玩家数和奖励配置数量。
 
 #### season 查看赛季信息
 
@@ -95,9 +96,9 @@ description: "战令可用命令、参数填写方式和权限要求。"
 异步执行当前赛季结算。结算流程：
 1. 发放所有玩家未领取的等级奖励
 2. 按等级阈值发放赛季结算奖励
-3. 标记赛季已结算
+3. 所有奖励确认入队后，标记赛季已结算
 
-> 用尚未结算的测试赛季验证发放流程。已结算的赛季会返回已有结算状态。
+> 有奖励暂未确认时，赛季会保持待结算。再次执行会继续处理尚未确认的奖励。
 
 ## 权限节点
 

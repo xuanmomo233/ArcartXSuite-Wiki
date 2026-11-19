@@ -32,6 +32,14 @@ public interface WarehouseAutoDepositable {
 
     default boolean shouldNotifyAutoDeposit(@NotNull Player player) { return true; }
 
+    boolean depositFromGroundAsync(Player player, Item source, ItemStack requested,
+                                   BooleanSupplier authorize, Predicate<GroundDepositResult> completion);
+
+    boolean isGroundDepositReserved(Item item);
+
+    record GroundDepositResult(boolean sourceTaken, boolean review, long storedAmount,
+                               boolean notifyPlayer, String operationId) {}
+
     record DepositResult(boolean success, long storedAmount, int remainingAmount, @NotNull String message) {}
 }
 ```
@@ -42,6 +50,8 @@ public interface WarehouseAutoDepositable {
 | --- | --- | --- | --- |
 | `depositToPersonalWarehouse` | 尝试将物品存入玩家的个人仓库。 | `player`：目标玩家；`itemStack`：待存入物品 | 存入结果 |
 | `shouldNotifyAutoDeposit` | 查询玩家是否开启入库聊天提示。 | `player`：目标玩家 | `boolean`：是否需要显示提示 |
+| `depositFromGroundAsync` | 接管地面实体的异步入库，保存结果确认前保留来源。 | 玩家、来源实体、请求物品快照、授权判定、结果回调 | 是否接收请求，尚不代表已存入 |
+| `isGroundDepositReserved` | 检查地面实体是否有尚未确定结果的入库请求。 | 来源实体 | 是否已被保留 |
 
 `depositToPersonalWarehouse` 用于自动入库，遵守 Warehouse 的服务器开关及玩家保存的普通物品／战利品开关，不修改传入物品。主动存储物品且不受自动入库个人开关影响时，使用 [WarehouseAccess](/docs/api/WarehouseAccess)。
 
@@ -49,22 +59,37 @@ public interface WarehouseAutoDepositable {
 
 Warehouse 自身的满背包拾取与工作台关闭溢出同样遵守这些自动存入开关。工作台先计算原版退回背包能容纳的部分，只尝试存储溢出量；未开启或未存下的材料继续按原版退回、掉落。细则见[自动存入与材料恢复](/docs/warehouse/material-recovery)。
 
+## 接管地面拾取
+
+地面实体使用 `depositFromGroundAsync`。`player` 和 `droppedItem` 为当前拾取者与来源实体，`canCollectHere` 是调用方提供的 `BooleanSupplier`，在主线程复核拾取权限、区域规则及拾取事件结果。授权判定不得移除实体或改变来源物品。
+
 ```java
-ItemStack source = droppedItem.getItemStack().clone();
-WarehouseAutoDepositable.DepositResult result = api.depositToPersonalWarehouse(player, source);
-if (result.storedAmount() > 0) {
-    if (result.remainingAmount() == 0) {
-        droppedItem.remove();
-    } else {
-        source.setAmount(result.remainingAmount());
-        droppedItem.setItemStack(source);
-    }
-    if (api.shouldNotifyAutoDeposit(player)) {
-        player.sendMessage("已存入仓库 " + result.storedAmount() + " 件物品。");
-    }
-}
-// 没有成功存入时，来源物品保持原样。
+if (api.isGroundDepositReserved(droppedItem)) return;
+ItemStack requested = droppedItem.getItemStack().clone();
+boolean accepted = api.depositFromGroundAsync(player, droppedItem, requested,
+    canCollectHere,
+    result -> {
+        if (result.review()) {
+            plugin.getLogger().warning("拾取入库待核对，操作编号：" + result.operationId());
+        } else if (player.isOnline() && result.notifyPlayer() && result.storedAmount() > 0) {
+            player.sendMessage("已存入仓库 " + result.storedAmount() + " 件物品。");
+        }
+        return true;
+    });
+// accepted 为 false 时没有接管，交回正常拾取流程。
 ```
+
+授权判定和完成回调都在主线程执行。请求受理后，来源数量和实体清理由 Warehouse 管理；调用方不要再次扣除、移除或发放这份物品。未存下的部分保留在来源实体上。处理拾取事件时还要阻止其他代码再次处理已经保留的实体。
+
+| 结果字段 | 含义 |
+| --- | --- |
+| `sourceTaken` | 来源交接已确认，不能据此认定整组物品全部存入或实体已经删除 |
+| `storedAmount` | 本次已确认存入的数量 |
+| `review` | 结果尚待核对；此时不能将数量 0 当作“确定没有入库”，也不能盲目重发 |
+| `notifyPlayer` | 本次是否应显示入库提示 |
+| `operationId` | 用于核对本次入库的稳定操作编号 |
+
+`DepositResult` 对应直接传入物品的同步调用，`GroundDepositResult` 对应地面实体的异步交接；按实际调用读取对应结果，不要用请求受理的布尔值作为发放或扣除凭证。
 
 ## 调用注意事项
 

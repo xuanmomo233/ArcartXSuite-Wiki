@@ -32,7 +32,7 @@ description: "展示兼容模组的物品说明与枪械浏览界面。"
 |---|---|
 | 客户端 tooltip 采集 | 客户端 ArcartX-Suite-Tooltips 采集 tooltip 文本行和结构化数据并发送给服务端 |
 | 按物品指纹缓存 | 以玩家 + 物品注册名（如 `tacz:ak47`）为键去重缓存，避免同一物品重复处理 |
-| 结构化数据透传 | 保留客户端采集的 JSON 格式结构化数据（如 TACZ 枪属性的 damage、armorIgnore、headshotMultiplier 等字段），供业务逻辑直接解析使用 |
+| 结构化数据 | 客户端可报告 TaCZ 枪属性等数据，用于该玩家自己的展示。实际属性和公开物品预览以服务端数据为准。 |
 | 自动清理 | 缓存 60 秒自动过期，玩家退出时立即清理其全部缓存数据 |
 | 管理命令 | `/axs tooltip status`（缓存/模式/通道）+ `/axs tooltip push <玩家>`（手动重推模式） |
 

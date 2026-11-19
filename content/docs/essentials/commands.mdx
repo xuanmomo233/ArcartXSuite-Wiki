@@ -11,25 +11,27 @@ Essentials 模块的所有功能通过 `/axs essentials <action>` 或缩写 `/es
 |----------|------|
 | `/axs essentials <action> [参数...]` | 标准命令格式（管理入口，需 `arcartxsuite.admin`） |
 | `/ess <action> [参数...]` | 缩写命令，别名 `/axsess`。需要 `axs.essentials.menu` 和所用子命令的权限 |
-| `/<别名> [参数...]` | `command-aliases` 配置的简写别名（默认含 `/fly`、`/gm` 等 47 个），自动转发 |
+| `/<别名> [参数...]` | `command-aliases` 配置的简写别名（如 `/fly`、`/gm`），自动转发 |
 
 ### 默认简写别名
 
-模块默认配置在 `command-aliases` 节注册了 47 个顶层命令别名。除 `/gm` 转发至 `gamemode` 外，其余别名均转发至同名 action。别名命令享有与子命令相同的权限校验和 Tab 补全转发。
+模块默认配置在 `command-aliases` 节注册顶层命令别名。除 `/gm` 转发至 `gamemode` 外，其余默认别名转发到同名动作。权限校验和 Tab 补全沿用实际动作。已有配置可自行加入 `tptoggle: tptoggle`、`tpcancel: tpcancel` 或 `unstuck: unstuck`，也可以直接用 `/ess` 调用这些子命令。
 
 | 类别 | 别名 |
 |------|------|
 | 状态切换 | `/fly` `/god` `/heal` `/feed` `/vanish` `/afk` `/back` `/speed` |
 | 游戏模式 | `/gm`（→ `gamemode`） |
 | 物品与容器 | `/repair` `/hat` `/enderchest` `/workbench` `/anvil` `/trash` `/nick` `/seen` `/inv` |
-| 传送 | `/home` `/sethome` `/delhome` `/warp` `/setwarp` `/delwarp` `/spawn` `/setspawn` `/tpa` `/tpahere` `/tpaccept` `/tpdeny` `/tp` `/top` `/tppos` |
+| 传送 | `/home` `/sethome` `/delhome` `/warp` `/setwarp` `/delwarp` `/spawn` `/setspawn` `/tpa` `/tpahere` `/tpaccept` `/tpdeny` `/tptoggle` `/tpcancel` `/tp` `/top` `/tppos` `/unstuck` |
 | 世界 | `/time` `/weather` |
 | 管理 | `/ban` `/tempban` `/unban` `/mute` `/tempmute` `/unmute` `/kick` `/warn` `/sudo` |
-| 交互与工具 | `/sit` `/lay` `/sort` |
+| 交互与工具 | `/sit` `/lay` |
 
 示例：`/gm 0` 等价于 `/ess gamemode 0`，将游戏模式切换为生存模式。
 
-> 别名可在 `config.yml` 的 `command-aliases` 节中自定义增删，格式为 `别名: action`（action 必须为合法子命令）。别名不能包含空格，与其它插件命令冲突时以先注册者为准。
+> 在 `config.yml` 的 `command-aliases` 节中用 `别名: action` 增删简写，action 必须为合法子命令。别名不能包含空格或命名空间前缀。遇到同名命令时，默认优先使用 Essentials 简写。需要保留已有的无前缀命令时，开启[命令冲突保护](/docs/essentials/configuration#命令冲突保护)。
+
+用 `/ess conflicts [命令名或页码]` 查询当前命令归属、Essentials 可用的命名空间前缀，以及失效或停用的别名，需要 `axs.essentials.conflicts`。若 `/ess` 被占用，可用 `/arcartx-suite:ess conflicts`。
 
 ## 玩家命令
 
@@ -44,7 +46,7 @@ Essentials 模块的所有功能通过 `/axs essentials <action>` 或缩写 `/es
 | `heal` | `axs.essentials.heal` | `[玩家]` | 恢复生命值并清除着火状态 |
 | `feed` | `axs.essentials.feed` | `[玩家]` | 恢复饥饿值与饱和度 |
 | `gamemode` | `axs.essentials.gamemode` | `<模式> [玩家]` | 切换游戏模式：`survival`/`creative`/`adventure`/`spectator`，也可用数字 `0`/`1`/`2`/`3` 或字母 `s`/`c`/`a`/`sp` |
-| `speed` | `axs.essentials.speed` | `<fly\|walk> <速度>` | 设置飞行或行走速度（1-10） |
+| `speed` | `axs.essentials.speed` | `<fly\|walk> [速度\|reset]` | 设置飞行或行走速度，省略速度或输入 `reset` 时使用配置值 |
 | `vanish` | `axs.essentials.vanish` | — | 切换隐身状态 |
 | `afk` | `axs.essentials.afk` | — | 切换 AFK 挂机状态 |
 | `back` | `axs.essentials.back` | — | 返回上次传送前的位置 |
@@ -95,7 +97,6 @@ Essentials 模块的所有功能通过 `/axs essentials <action>` 或缩写 `/es
 |------|------|------|------|
 | `sit` | `axs.essentials.sit` | — | 坐下（基于 ArmorStand） |
 | `lay` | `axs.essentials.lay` | — | 躺下（基于 sleep API） |
-| `sort` | `axs.essentials.sort` | — | 整理背包（非快捷栏） |
 | `replant` | `axs.essentials.replant` | — | 切换自动补种开关 |
 | `autotool` | `axs.essentials.autotool` | — | 切换自动工具开关 |
 
@@ -112,14 +113,14 @@ Essentials 模块的所有功能通过 `/axs essentials <action>` 或缩写 `/es
 |------|------|------|------|
 | `ban` | `axs.essentials.ban` | `<玩家> [原因]` | 永久封禁玩家（记录 IP） |
 | `tempban` | `axs.essentials.ban` | `<玩家> <时长> [原因]` | 临时封禁（时长格式：`1d`、`2h`、`30m`） |
-| `unban` | `axs.essentials.unban` | `<玩家>` | 解除封禁 |
+| `unban` | `axs.essentials.unban` | `<玩家名或 UUID>` | 解除封禁，支持离线玩家 |
 | `mute` | `axs.essentials.mute` | `<玩家> [原因]` | 永久禁言（依赖 Chat 模块） |
 | `tempmute` | `axs.essentials.mute` | `<玩家> <时长> [原因]` | 临时禁言 |
 | `unmute` | `axs.essentials.unmute` | `<玩家>` | 解除禁言 |
 | `kick` | `axs.essentials.kick` | `<玩家> [原因]` | 踢出玩家 |
 | `warn` | `axs.essentials.warn` | `<玩家> [原因]` | 警告玩家（达阈值自动封禁） |
-| `sudo` | `axs.essentials.sudo` | `<玩家> <命令>` | 强制玩家执行命令 |
-| `inv` | `axs.essentials.inv` | `<玩家>` | 查看在线玩家背包（实时同步） |
+| `sudo` | `axs.essentials.sudo` | `<玩家> <命令>` | 以玩家身份执行命令，玩家对他人使用时需要 `axs.essentials.sudo.others` |
+| `inv` | `axs.essentials.inv` | `<玩家> [edit]` | 查看在线玩家背包，编辑模式需要 `axs.essentials.inv.edit` |
 
 ### 模块管理命令
 

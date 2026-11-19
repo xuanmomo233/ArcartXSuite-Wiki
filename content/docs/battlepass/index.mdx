@@ -38,7 +38,7 @@ description: "配置赛季任务、经验等级与不同档位的奖励。"
 | 增量策略 | 固定增量（FixedIncrementStrategy）和载荷值增量（PayloadValueStrategy，支持 scale / max-per-event / min-per-event） |
 | 触发限制 | 每个任务可配置冷却时间（cooldown-ms）和每日最大计入次数（max-per-day） |
 | 等级奖励 | 每级三档奖励，支持 item / command / currency / mail 四种奖励类型 |
-| 赛季结算 | 按等级阈值（min-level）发放结算奖励，在线直接发放，离线暂存补发 |
+| 赛季结算 | 按等级阈值提交结算奖励，在线玩家自动触发发放，离线玩家上线后发放 |
 
 ## 继续配置
 

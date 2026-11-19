@@ -111,7 +111,7 @@ description: "查询公开授权接口的完整路径、JSON 请求、返回结�
 | --- | --- | --- |
 | `AUTHORIZATION_PENDING` | 玩家尚未完成授权 | 等待返回的 interval 后再轮询 |
 | `SLOW_DOWN` | 请求过快 | 改用本次返回的更长 interval |
-| `ACCESS_DENIED` | 玩家拒绝或已取消 | 停止轮询 |
+| `ACCESS_DENIED` | 玩家在认证中心确认页拒绝，或客户端已取消授权 | 停止轮询 |
 | `EXPIRED_TOKEN` | 本次授权已过期 | 停止轮询，由玩家重新发起 |
 | `OK` | 授权完成 | 读取 launchToken，停止轮询 |
 

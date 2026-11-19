@@ -32,14 +32,74 @@ Essentials 模块使用两个配置文件：
 |--------|------|--------|------|
 | `config-version` | `int` | `3` | 配置版本号，使用自动生成的值 |
 | `debug` | `boolean` | `false` | 是否输出调试日志 |
+| `command-conflict-protection` | `boolean` | `false` | 同名时是否保留已有的无前缀命令 |
 | `command-aliases` | `map<string, string>` | 见下文 | 命令简写别名映射（别名 → action） |
+| `disabled-actions` | `list<string>` | `[]` | 停用的子命令名。对应的面板操作和顶层简写也会停用 |
+| `warps` | `map` | `{}` | 从 YAML 新建、修改、分组或停用的传送点 |
+
+### 命令冲突保护
+
+```yaml
+command-conflict-protection: false
+```
+
+- `false` 时，遇到原版或其他插件的同名命令，`/tp` 等无前缀命令优先使用 Essentials 简写。原命令仍可用原有前缀调用，例如 `/minecraft:tp`。
+- `true` 时，保留已有的无前缀命令。遇到同名冲突时，用 `/arcartx-suite:tp` 等带前缀的命令调用 Essentials 简写。
+
+修改后执行 `/axs reload essentials`。注册日志会标明发生冲突的命令来源。
+
+### 停用功能
+
+例如 `disabled-actions: [sudo, inv, weather]` 会停用强制执行、背包查看和天气管理。`tpa.enabled: false` 可关闭整套传送请求，`unstuck.enabled: false` 可关闭脱困。已经生效的封禁仍会在登录时检查。
+
+### 在 YAML 新建或修改 Warp
+
+将 `warps: {}` 替换成以下结构，并按地图填写世界名和坐标。
+
+```yaml
+warps:
+  hub:
+    world: world
+    x: 100.5
+    y: 70
+    z: -20.5
+    yaw: 90
+    pitch: 0
+    group: 主城
+    permission: ""
+    enabled: true
+  event-gate:
+    enabled: false
+```
+
+- 启用的点需要 `world`、`x`、`y`、`z`。`yaw` 和 `pitch` 默认是 0。`group` 默认是「默认」。
+- `permission` 留空时，拥有基础 Warp 权限的玩家可见。填写权限节点后，列表和实际传送都会检查该权限。
+- 传送点名称大小写视为相同，名称不能包含句点。用 `enabled: false` 可停用该点。
+- `/setwarp <名称>` 把当前位置写入 `config.yml`，更新已有点时保留分组、权限和启用状态。`/delwarp <名称>` 删除相应配置。两条命令保存后立即生效。
+
+手动修改后执行 `/axs reload essentials`，用 `/ess warps` 查看列表。玩家菜单可按名称或分组搜索，也可切换收藏视图。
+
+### 请求与脱困设置
+
+| 字段 | 默认 | 说明 |
+|---|---|---|
+| `tpa.enabled` | `true` | 启用传送请求 |
+| `tpa.cooldown-seconds` | `5` | 发出请求间隔，0 表示无间隔 |
+| `tpa.max-incoming` / `tpa.max-outgoing` | `5` / `5` | 同时待处理的接收和发出上限 |
+| `unstuck.enabled` | `true` | 启用脱困 |
+| `unstuck.cooldown-seconds` | `120` | 成功脱困后的冷却 |
+| `unstuck.warmup-seconds` | `3` | 脱困预热，移动会取消 |
+| `unstuck.combat-seconds` | `15` | 最近受到伤害或造成攻击伤害后的等待时间 |
+| `unstuck.search-radius` / `unstuck.vertical-range` | `4` / `4` | 水平和垂直搜索距离 |
+| `unstuck.only-when-stuck` | `true` | 仅在站立点不安全或周围没有可行走出口时允许 |
+| `unstuck.allowed-worlds` / `unstuck.blocked-worlds` | `[]` / `[]` | 世界允许与禁止列表，禁止列表优先 |
 
 ### 玩家管理（`player` 节）
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `player.default-fly-speed` | `int` | `1` | 默认飞行速度倍率（1-10，自动限幅） |
-| `player.default-walk-speed` | `int` | `1` | 默认行走速度倍率（1-10，自动限幅） |
+| `player.default-fly-speed` | `int` | `1` | `/speed fly reset` 使用的速度（1–10） |
+| `player.default-walk-speed` | `int` | `1` | `/speed walk reset` 使用的速度（1–10） |
 | `player.afk-timeout` | `int` | `300` | AFK 自动检测超时（秒，0=禁用自动检测） |
 | `player.afk-kick-timeout` | `int` | `0` | AFK 后额外超时踢出（秒，0=不踢出） |
 | `player.vanish-hide-quit-message` | `boolean` | `true` | 隐身时是否隐藏退出消息 |
@@ -62,7 +122,7 @@ Essentials 模块使用两个配置文件：
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `world.allowed-worlds` | `list<string>` | `[]` | 允许 `/time` 和 `/weather` 生效的世界名称列表，空列表表示所有世界 |
+| `world.allowed-worlds` | `list<string>` | `[]` | 允许 Essentials 命令和管理面板修改时间、天气的世界名称，空列表表示所有世界 |
 
 ### 安全管理（`moderation` 节）
 
@@ -73,6 +133,8 @@ Essentials 模块使用两个配置文件：
 | `moderation.mute-message` | `string` | `&c你已被禁言，无法发送消息。\n&7到期: {expiry}` | 禁言消息（发给被禁言玩家） |
 | `moderation.max-warnings-before-ban` | `int` | `5` | 触发自动封禁的累计警告数（0=不自动封禁） |
 | `moderation.warning-expire-days` | `int` | `30` | 警告记录过期天数（0=永不过期） |
+| `moderation.allow-offline-bans` | `boolean` | `true` | 允许封禁服务端已知的离线玩家 |
+| `moderation.history-page-size` | `int` | `10` | 每页处罚历史的条数（1–25） |
 
 > 消息占位符：`{reason}` 封禁原因、`{expiry}` 到期时间（永久封禁显示"永久"）、`{player}` 玩家名、`{operator}` 操作者。
 
@@ -90,9 +152,6 @@ Essentials 模块使用两个配置文件：
 | `inv-actions.auto-replant.enabled` | `boolean` | `true` | 是否启用自动补种 |
 | `inv-actions.auto-replant.permission` | `string` | `axs.essentials.replant` | 所需权限 |
 | `inv-actions.auto-replant.crops` | `list<string>` | `[WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART]` | 支持的作物类型 |
-| `inv-actions.inventory-sort.enabled` | `boolean` | `true` | 是否启用背包整理 |
-| `inv-actions.inventory-sort.permission` | `string` | `axs.essentials.sort` | 所需权限 |
-| `inv-actions.inventory-sort.sort-mode` | `string` | `type` | 排序方式：`type`（按类型）/ `name`（按名称）/ `amount`（按数量） |
 | `inv-actions.auto-tool.enabled` | `boolean` | `true` | 是否启用自动工具切换 |
 | `inv-actions.auto-tool.permission` | `string` | `axs.essentials.autotool` | 所需权限 |
 | `inv-actions.auto-tool.switch-on-break` | `boolean` | `true` | 破坏方块时自动切换到最佳工具 |
@@ -151,7 +210,6 @@ Essentials 模块使用两个配置文件：
 | `no-permission` | `&c你没有权限执行此操作。` | — |
 | `unban-success` | `&a已解封 &f{player}&a。` | `{player}` |
 | `unmute-success` | `&a已解除 &f{player} &a的禁言。` | `{player}` |
-| `sort-done` | `&a背包已整理。` | — |
 | `tree-felled` | `&a一键砍树! 共砍落 {count} 个原木方块。` | `{count}` |
 | `replant-enabled` | `&a自动补种已开启。` | — |
 | `replant-disabled` | `&c自动补种已关闭。` | — |

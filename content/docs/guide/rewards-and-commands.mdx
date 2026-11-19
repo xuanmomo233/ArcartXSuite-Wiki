@@ -25,7 +25,7 @@ description: "按实际发放结果排查物品去向、离线补发、附件领
 tell {player} 你的奖励已发放
 ```
 
-EventPacket 若给规则显式传入了名为 `player` 的上下文变量，会优先使用该值。需要明确引用事件主体时，可以继续用 `{player_name}`。
+EventPacket 的 `command` 动作填写固定命令，使用 `executor` 选择控制台或玩家身份。
 
 如果游戏里收到的命令仍含变量原文，先核对该字段支持的变量。手动验证时，把 `{player}` 换成测试玩家名，再以配置指定的身份执行。三类写法见[配置写法](/docs/guide/config-syntax#id显示名称和占位符不同)。
 

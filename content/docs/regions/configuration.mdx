@@ -1,246 +1,191 @@
 ---
 title: "区域规则配置"
-description: "调整区域标志、优先级与世界规则；附字段解释、修改示例与重载步骤。"
+description: "查阅 config.yml 与 regions.yml 的字段、布尔规则、成员和完整配置示例。"
 ---
 
-## 先改哪些内容
+Regions 的模块目录是 `plugins/ArcartX-Suite/data/regions/`。手动修改文件后执行 `/axs reload regions`。通过命令或管理面板保存时，文件写入成功后会更新保护规则。
 
-区域标志、优先级与世界规则。先使用默认示例完成一次测试，再按本页逐项调整。
+| 文件 | 内容 |
+| --- | --- |
+| `config.yml` | 选区限制、区域初始值、模板和通知方式 |
+| `regions.yml` | 每个区域与世界的范围、优先级、父区、成员、旗标及操作记录 |
+| `messages.yml` | 命令和保护提示文字 |
+| `plugins/ArcartX-Suite/ui/regions_control.yml` | 管理面板的界面文件 |
+| `plugins/ArcartX-Suite/ui/regions_view.yml` | 玩家菜单的界面文件 |
 
-配置位置：`plugins/ArcartX-Suite/data/regions/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
+`regions.yml` 在第一次保存时生成，也可以按下文示例创建。区域和世界规则直接保存在此文件中。每台服务器读取自己的模块目录，规则文件可按服务器需要分别配置。
 
-修改后执行 `/axs reload regions`；涉及插件安装或全局设置的变更请重启后验证。
+## 通用设置
 
-Regions 模块的配置文件位于 `plugins/ArcartX-Suite/data/regions/config.yml`，消息文件位于 `plugins/ArcartX-Suite/data/regions/messages.yml`。修改后执行 `/axs reload regions` 即可生效。
-
-### 顶层设置
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `config-version` | int | `3` | 配置版本号，使用自动生成的值 |
-| `debug` | boolean | `false` | 调试模式，输出详细日志 |
-
-### selection 选区设置
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `selection.wand-item` | Material | `WOODEN_AXE` | 选区工具物品类型（MATERIAL 枚举名） |
-| `selection.max-volume` | long | `500000` | 单次选区最大方块体积，范围 `1` ~ `100000000` |
-| `selection.max-regions-per-player` | int | `20` | 每玩家最大区域数量，`0` 表示无限 |
-
-<Callout type="info">
-`max-volume` 有配置诊断校验，范围为 `1` ~ `100000000`，超出范围会在 `diagnosis/` 目录报告中提示。
-</Callout>
-
-### defaults 区域默认值
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `defaults.priority` | int | `0` | 新建区域默认优先级 |
-| `defaults.global-region-id` | string | `__global__` | 全局区域 ID，无任何区域覆盖时的保底规则 |
-
-### notifications 通知设置
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `notifications.show-actionbar` | boolean | `true` | 进出区域时是否显示通知 |
-| `notifications.display-mode` | string | `actionbar` | 通知显示方式：`actionbar` / `chat` / `title` |
-
-| 显示模式 | 说明 |
-|---|---|
-| `actionbar` | 在 Actionbar 展示通知（默认） |
-| `chat` | 在聊天栏发送通知消息 |
-| `title` | 以 Title 副标题展示通知（淡入 5 tick / 持续 40 tick / 淡出 10 tick） |
-
-<Callout type="info">
-当区域设置了 `greeting` / `farewell` 标志的自定义文本时，通知消息使用自定义文本，忽略 `display-mode` 配置（始终通过 `sendNotification` 发送）。
-</Callout>
-
-### world-rules 世界规则
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `world-rules.no-fly-worlds` | list | `["world_pvp"]` | 禁止飞行的世界名列表 |
-| `world-rules.no-fly-action` | string | `cancel` | 进入禁飞世界的处理方式：`cancel`（取消飞行） |
-| `world-rules.no-fly-message` | string | `&c此世界禁止飞行。` | 禁飞提示消息（支持 `&` 颜色码） |
-| `world-rules.no-piston-worlds` | list | `[]` | 禁止活塞推动的世界名列表 |
-| `world-rules.disabled-interactions` | map | `{}` | 按世界配置禁止交互的物品/方块类型 |
-
-`disabled-interactions` 为动态配置节（`SyncPolicy.dynamicSection`），格式为世界名到 MATERIAL 列表的映射：
+下面示例可作为 `config.yml` 的基础内容，模板可在其后继续添加。
 
 ```yaml
-world-rules:
-  disabled-interactions:
-    world_spawn:
-      - ENDER_CHEST
-      - ANVIL
-    world_creative:
-      - CRAFTING_TABLE
+config-version: 4
+debug: false
+
+selection:
+  # 选区工具
+  wand-item: WOODEN_AXE
+  # 两个角点组成的体积上限
+  max-volume: 500000
+  # 普通玩家创建领地时的数量上限，0 取消数量上限
+  max-regions-per-player: 20
+
+defaults:
+  priority: 0
+  global-region-id: "__global__"
+
+notifications:
+  show-actionbar: true
+  display-mode: actionbar
 ```
 
-<Callout type="info">
-世界规则支持运行时 CRUD——管理员通过 `/rg admin` UI 面板修改后，变更自动持久化回 `config.yml` 配置文件，无需手动编辑。
-</Callout>
+| 字段 | 默认值 | 说明 |
+| --- | --- | --- |
+| `config-version` | `4` | 通用配置版本，使用模块生成的值 |
+| `debug` | `false` | 模块调试开关 |
+| `selection.wand-item` | `WOODEN_AXE` | Bukkit 选区工具物品名称 |
+| `selection.max-volume` | `500000` | 每次通过选区创建或更新区域的体积上限，配置诊断范围为 1～100000000 |
+| `selection.max-regions-per-player` | `20` | 普通玩家领地数量限制，`0` 取消限制，`axs.regions.bypass.limit` 可绕过此项 |
+| `defaults.priority` | `0` | 新建有界区域的初始优先级 |
+| `defaults.global-region-id` | `__global__` | 每个世界默认记录使用的 ID，与 `type: global` 的记录保持一致 |
+| `notifications.show-actionbar` | `true` | 没有自定义进出文字时，是否显示默认进出提示 |
+| `notifications.display-mode` | `actionbar` | 进出提示位置，可用 `actionbar`、`chat`、`title` |
 
-## 区域标志定义
+`display-mode` 同时用于默认提示和自定义的 `greeting`、`farewell`。关闭 `show-actionbar` 后，显式配置的自定义文字仍按选择的位置显示。
 
-区域标志（`RegionFlag`）共 50 个，分为六大类别。每个标志支持 `ALLOW` / `DENY` / `NONE` 三态。
+## 区域与世界数据
 
-### 战斗类（COMBAT）
+`regions.yml` 的 `version: 2` 描述区域数据格式。`regions` 是区域记录列表，同一世界的区域 ID 必须唯一。
 
-| 标志 Key | 说明 |
-|---|---|
-| `pvp` | 玩家间伤害 |
-| `mob-damage` | 怪物对玩家伤害 |
-| `damage-animals` | 玩家伤害动物 |
-| `invincibility` | 玩家无敌 |
-| `fall-damage` | 摔落伤害 |
-
-### 方块类（BLOCK）
-
-| 标志 Key | 说明 |
-|---|---|
-| `block-break` | 方块破坏 |
-| `block-place` | 方块放置 |
-| `use` | 右键交互（门/按钮/拉杆等） |
-| `chest-access` | 容器访问 |
-| `trample` | 踩踏耕地 |
-| `vehicle-destroy` | 破坏矿车/船 |
-| `vehicle-place` | 放置矿车/船 |
-
-### 环境类（ENVIRONMENT）
-
-| 标志 Key | 说明 |
-|---|---|
-| `tnt` | TNT 爆炸 |
-| `creeper-explosion` | 苦力怕爆炸 |
-| `other-explosion` | 其他爆炸（末影水晶等） |
-| `fire-spread` | 火焰蔓延 |
-| `lava-fire` | 岩浆点火 |
-| `lightning` | 雷击起火 |
-| `snow-fall` | 雪覆盖 |
-| `snow-melt` | 雪融化 |
-| `ice-form` | 冰生成 |
-| `ice-melt` | 冰融化 |
-| `leaf-decay` | 树叶腐烂 |
-| `grass-spread` | 草方块蔓延 |
-| `mushroom-spread` | 蘑菇蔓延 |
-| `vine-growth` | 藤蔓生长 |
-| `crop-growth` | 作物生长 |
-| `water-flow` | 水流动 |
-| `lava-flow` | 岩浆流动 |
-| `pistons` | 活塞移动 |
-| `soil-dry` | 耕地干燥 |
-
-### 生物类（MOB）
-
-| 标志 Key | 说明 |
-|---|---|
-| `mob-spawning` | 怪物生成 |
-| `animal-spawning` | 动物生成 |
-| `enderman-grief` | 末影人搬方块 |
-| `ghast-fireball` | 恶魂火球 |
-| `wither-damage` | 凋灵破坏 |
-
-### 玩家类（PLAYER）
-
-| 标志 Key | 说明 |
-|---|---|
-| `entry` | 玩家进入 |
-| `exit` | 玩家离开 |
-| `enderpearl` | 末影珍珠传送 |
-| `chorus-fruit` | 紫颂果传送 |
-| `item-drop` | 丢弃物品 |
-| `item-pickup` | 拾取物品 |
-| `exp-drop` | 经验球掉落 |
-| `hunger` | 饥饿消耗 |
-| `heal` | 自然恢复 |
-| `fly` | 允许飞行 |
-| `ride` | 骑乘实体 |
-| `sleep` | 使用床 |
-| `respawn-anchors` | 重生锚 |
-
-### 杂项类（MISC）
-
-| 标志 Key | 说明 |
-|---|---|
-| `notify-enter` | 进入时通知区域成员 |
-| `notify-exit` | 离开时通知区域成员 |
-| `greeting` | 进入消息（自定义文本，通过 flag data 设置） |
-| `farewell` | 离开消息（自定义文本，通过 flag data 设置） |
-| `potion-splash` | 药水瓶投掷 |
-| `send-chat` | 发送聊天 |
-| `receive-chat` | 接收聊天 |
-
-### 标志状态值
-
-| 状态 | 别名 | 说明 |
-|---|---|---|
-| `allow` | `true`、`yes` | 允许操作 |
-| `deny` | `false`、`no` | 拒绝操作 |
-| `none` | - | 未设置，继承父区域或全局 |
-
-## 消息文件
-
-消息文件 `messages.yml` 位于 `plugins/ArcartX-Suite/data/regions/messages.yml`，支持 `&` 颜色码和占位符变量。
-
-### 通用消息
-
-| 键 | 默认值 | 说明 |
-|---|---|---|
-| `prefix` | `&8[&6Regions&8] &r` | 消息前缀 |
-| `common.service-down` | `&cRegions 服务未启动。` | 服务未启动提示 |
-| `common.unknown` | `&e未知命令，使用 /{0} regions help 查看帮助` | 未知命令提示 |
-| `common.only-player` | `&c该命令仅限玩家使用。` | 非玩家执行提示 |
-| `common.no-permission` | `&c你没有权限执行这个命令。` | 无权限提示 |
-
-### 玩家消息
-
-| 键 | 占位符 | 说明 |
-|---|---|---|
-| `wand-pos1` | `{x}`、`{y}`、`{z}` | 选区点 1 设置提示 |
-| `wand-pos2` | `{x}`、`{y}`、`{z}` | 选区点 2 设置提示 |
-| `region-created` | `{name}` | 区域创建提示 |
-| `region-deleted` | `{name}` | 区域删除提示 |
-| `region-not-found` | `{name}` | 未找到区域提示 |
-| `region-exists` | `{name}` | 区域已存在提示 |
-| `no-selection` | - | 未选区提示 |
-| `selection-too-large` | `{max}` | 选区过大提示 |
-| `max-regions-reached` | `{max}` | 达到最大区域数量提示 |
-| `flag-set` | `{region}`、`{flag}`、`{value}` | 标志设置提示 |
-| `flag-removed` | `{region}`、`{flag}` | 标志移除提示 |
-| `flag-unknown` | `{flag}` | 未知标志提示 |
-| `member-added` | `{player}`、`{region}`、`{role}` | 成员添加提示 |
-| `member-removed` | `{player}`、`{region}` | 成员移除提示 |
-| `no-permission-region` | - | 区域无权限提示 |
-| `no-build` | - | 禁止建造提示 |
-| `no-interact` | - | 禁止交互提示 |
-| `no-pvp` | - | 禁止 PVP 提示 |
-| `region-enter` | `{region}` | 进入区域提示 |
-| `region-leave` | `{region}` | 离开区域提示 |
-
-### 消息文件示例
+下面示例为世界设置禁飞和禁活塞，为城镇设置建造保护并允许飞行，再定义一块由权限组管理的玩家领地。
 
 ```yaml
-prefix: "&8[&6Regions&8] &r"
+version: 2
+regions:
+  - id: __global__
+    world: world
+    type: global
+    flags:
+      fly: false
+      pistons: false
+    blocked-interactions:
+      - ANVIL
 
-common:
-  service-down: "&cRegions 服务未启动。"
-  unknown: "&e未知命令，使用 /{0} regions help 查看帮助"
-  only-player: "&c该命令仅限玩家使用。"
-  no-permission: "&c你没有权限执行这个命令。"
+  - id: town
+    world: world
+    type: managed
+    min: [0, 60, 0]
+    max: [49, 100, 49]
+    priority: 10
+    flags:
+      fly: true
+      block-break: false
+      block-place: false
+      chest-access: false
+      greeting:
+        state: true
+        text: "&6欢迎来到城镇！"
 
-player:
-  ui:
-    offline: "&cUI 功能不可用（ArcartX 未加载）"
+  - id: home
+    world: world
+    type: claim
+    min: [200, 60, 200]
+    max: [219, 85, 219]
+    owner-groups: [home_owners]
+    member-groups: [home_members]
+    flags:
+      block-break: false
+      block-place: false
+      use: false
+      chest-access: false
+```
 
-wand-pos1: "&a已设置选区点 1: &f{x}, {y}, {z}"
-wand-pos2: "&a已设置选区点 2: &f{x}, {y}, {z}"
+此领地示例的所有者组对应权限 `axs.regions.group.home_owners`，成员组对应 `axs.regions.group.home_members`。直接按玩家管理时，使用面板或 `/rg addowner`、`/rg addmember`，模块会将对应 UUID 写入记录。
+
+### 记录字段
+
+| 字段 | 是否必填 | 说明 |
+| --- | --- | --- |
+| `id` | 是 | 区域名称，1～64 位文字、数字、下划线或连字符，同世界内不区分大小写 |
+| `world` | 是 | 世界文件夹名称，按实际大小写填写 |
+| `type` | 是 | `managed` 管理区域、`claim` 玩家领地、`global` 世界默认 |
+| `min`、`max` | 有界区域必填 | 三个整数 `[X, Y, Z]`，每个方向最小坐标不大于最大坐标，边界包含在保护范围内 |
+| `priority` | 否 | 整数，默认 `0`，用于同类区域的优先级比较 |
+| `parent` | 否 | 同一世界的父区域 ID，省略代表没有显式父区 |
+| `uuid` | 否 | 区域稳定标识，新记录可省略；已有记录重命名、重定义时保留 |
+| `owners`、`members` | 否 | 所有者或成员的 UUID 字符串列表 |
+| `owner-groups`、`member-groups` | 否 | 所有者或成员权限组名称列表 |
+| `flags` | 否 | 直接设置的旗标映射，省略的旗标进入继承或世界默认判定 |
+| `blocked-interactions` | 否 | 世界默认记录专用，按 Bukkit 方块材质名列出禁交互对象 |
+
+每个世界最多一条 `global`，它的 ID 使用 `defaults.global-region-id`，并省略坐标和父区。玩家领地需要至少一个所有者 UUID 或所有者权限组。父区类型限制见[父区域与世界默认值](/docs/regions/flags#父区域与世界默认值)。
+
+### 布尔规则与文本
+
+`regions.yml` 中的普通旗标必须填写 YAML 布尔值，允许为 `true`，禁止为 `false`。省略旗标时，使用继承或默认判定。
+
+```yaml
+flags:
+  pvp: false
+  use: true
+  greeting:
+    state: true
+    text: "&a欢迎来到集市！"
+```
+
+只有 `greeting` 和 `farewell` 可填写 `state` 与 `text` 对象，文字最多 1024 个字符。所有可用键见[旗标参考](/docs/regions/flags#旗标参考)。
+
+### 保存与重载
+
+面板修改后的「已保存」表示该次修改已写入文件。显示保存失败时，按提示处理后重新保存，再用玩家菜单检查结果。
+
+手动编辑文件后执行 `/axs reload regions`，再打开管理面板。面板提示“regions.yml 已被手动修改”时，也按此步骤重新加载。
+
+需要查看或撤销一次设置时，使用 `/rg history`、`/rg diff` 和 `/rg undo`，操作步骤见[撤销一次设置](/docs/regions/management#撤销一次设置)。
+
+## 区域模板
+
+模板填写在 `config.yml` 的 `templates` 下，名称使用 1～64 位小写英文字母、数字、下划线或连字符。模板状态使用 `allow`、`deny`、`none`。应用时仅更新列出的旗标，`none` 清除对应覆盖。
+
+```yaml
+templates:
+  market:
+    block-break: deny
+    block-place: deny
+    use: allow
+    chest-access: deny
+    greeting:
+      state: allow
+      text: "&6欢迎来到市场！"
+```
+
+重载后可用以下命令检查和应用。
+
+```text
+/rg template show market
+/rg template apply market world:town
+```
+
+内置 `spawn`、`public`、`claim`、`arena` 模板的用途见[用模板创建或更新区域](/docs/regions/management#用模板创建或更新区域)。普通领地所有者只能使用全部旗标均允许其编辑的模板。
+
+## 消息文字
+
+`messages.yml` 支持 `&` 颜色代码。保留实际文件的其他键，修改需要调整的文字即可。
+
+```yaml
 region-created: "&a区域 &f{name} &a已创建。"
-region-deleted: "&c区域 &f{name} &c已删除。"
-region-not-found: "&c未找到区域: &f{name}"
+no-build: "&c你不能在此区域放置或破坏方块。"
+no-interact: "&c你不能在此区域操作这个对象。"
 region-enter: "&a[进入] &f{region}"
 region-leave: "&a[离开] &f{region}"
-no-build: "&c你不能在此区域放置或破坏方块。"
-no-pvp: "&c此区域禁止 PVP。"
 ```
+
+| 消息键 | 占位符 | 用途 |
+| --- | --- | --- |
+| `wand-pos1`、`wand-pos2` | `{x}`、`{y}`、`{z}` | 选点成功提示 |
+| `region-created`、`region-deleted`、`region-not-found` | `{name}` | 创建、删除和查询提示 |
+| `flag-set` | `{region}`、`{flag}`、`{value}` | 旗标保存提示 |
+| `member-added` | `{player}`、`{region}`、`{role}` | 成员添加提示 |
+| `member-removed` | `{player}`、`{region}` | 成员移除提示 |
+| `region-enter`、`region-leave` | `{region}` | 默认进出文字 |

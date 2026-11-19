@@ -71,7 +71,7 @@ preset:
 | [Lottery](/docs/lottery) | 奖品 `delivery: MAIL` + `mail.presets` | 奖励由预设内容决定，不是把奖品图标自动寄给玩家；预设为空或派发失败会返回失败 |
 | [Fishing](/docs/fishing) | 任务、赛季等奖励的 `type: mail` + `mail.presets` | 此外首次收集某个 LEGENDARY 鱼种会尝试发送 `legendary_first_catch`；这些预设都需在 Mail 中存在 |
 | [EntityTracker](/docs/entitytracker) | 奖励动作 `type: mail`、`preset-id` | Boss 结算与排行奖励分别定义动作；收件人按对应奖励目标解析，不一定为在线操作者 |
-| [EventPacket](/docs/eventpacket) | 动作 `type: mail.send`、`preset-id` | 发送给触发规则的有效在线玩家，不是任意离线目标 |
+| [EventPacket](/docs/eventpacket) | 持久规则中的 `type: mail` | 按副本结果、首次准入或到期成交确定收件人 |
 | [QQBot](/docs/qqbot) | 兑换 `prizes[].mail.presets`，以及群管理邮件派发入口 | 兑换目标取绑定玩家；同时检查绑定、积分、限制和派发结果 |
 
 上表列的是直接邮件与预设入口。其他模块通过物品发放处理背包溢出时也可能产生邮件，但不代表它们接受 `mail.presets` 字段。市场、拾取等功能的物品去向需按各自流程检查。
@@ -97,7 +97,7 @@ mail:
     - welcome_demo
 ```
 
-只有条目支持并选用了对应投递方式，字段才参与处理。不要把 `end-mail` 放进战令奖励，也不要把 `type: mail.send` 当成所有模块的通用类型。
+按对应模块的字段结构填写预设 ID。
 
 ### 在线阶段奖励
 
@@ -116,17 +116,22 @@ rewards:
 
 这是该模块文件的结构示例，应修改已有奖励，不要重复新增 `rewards`。先重载邮件预设，再执行 `/axs reload onlinerewards`，按[在线奖励](/docs/onlinerewards)的实际领取流程测试。
 
-### 事件动作
+### 首次准入邮件
 
-在 EventPacket 规则的 `actions` 中使用：
+将规则加入 EventPacket 主配置的 `rules` 段。重载后让尚未通过准入的测试账号进服，检查收件箱。
 
 ```yaml
-actions:
-  - type: mail.send
-    preset-id: welcome_demo
+rules:
+  welcome-mail:
+    trigger: first-admitted
+    actions:
+      - type: mail
+        id: welcome
+        title: "欢迎加入服务器"
+        content: "你的冒险从这里开始。"
 ```
 
-收件人为触发该规则的玩家，不是任意玩家列表。规则触发时需要有效的在线玩家上下文。完整规则入口和触发方式见[事件与动作](/docs/eventpacket)。
+标题和正文直接写在动作里。 [事件动作配置](/docs/eventpacket/actions)
 
 ## 多人派发
 

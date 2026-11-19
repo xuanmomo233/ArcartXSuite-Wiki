@@ -1,214 +1,189 @@
 ---
 title: "标志系统"
-description: "为区域设置建造、交互、传送等规则，并理解优先级与继承。"
+description: "查阅全部区域旗标，理解允许、禁止、继承、重叠优先级、成员豁免和绕过权限。"
 ---
 
-Regions 模块的标志系统是区域保护的核心。模块提供 50 个标志，覆盖战斗、方块、环境、生物、玩家、杂项六大类别，每个标志支持 `ALLOW` / `DENY` / `NONE` 三态，并支持父子继承与成员豁免。
+旗标可设置在有界区域或世界默认记录上。管理员在面板中点「允许」「禁止」设置覆盖，点「继承」清除覆盖。
 
-## 三态标志模型
+## 状态与写法
 
-每个标志有三种状态，存储在 `RegionFlag.State` 枚举中：
+| 含义 | 面板 | 命令状态 | regions.yml |
+| --- | --- | --- | --- |
+| 明确允许 | 允许 | `allow`，也接受 `true`、`yes` | `true` |
+| 明确禁止 | 禁止 | `deny`，也接受 `false`、`no` | `false` |
+| 清除直接设置 | 继承 | `none` 或 `removeflag` | 删除这一项旗标 |
 
-| 状态 | 别名 | 说明 |
-|---|---|---|
-| `ALLOW` | `true`、`yes` | 显式允许操作 |
-| `DENY` | `false`、`no` | 显式拒绝操作 |
-| `NONE` | - | 未设置，继承父区域或全局规则 |
+大部分旗标在禁止时阻止对应行为。`invincibility` 则在允许时启用无敌，`notify-enter` 和 `notify-exit` 在允许时向成员发送进出通知。`greeting` 和 `farewell` 可启用自定义文字。
 
-`NONE` 是默认状态，表示该区域未对此标志做出决策。查询时会沿父链向上继承；若所有区域均为 `NONE`，则该位置无保护。
+## 重叠区域如何判定
 
-命令中设置标志时，`allow` / `true` / `yes` 均视为允许，`deny` / `false` / `no` 均视为拒绝（不区分大小写），其他值视为 `NONE`（移除标志）。
+每项旗标分别计算结果。
 
-## 标志判定规则
+1. 先判断命中的管理区域 `managed`，再判断玩家领地 `claim`。
+2. 同一类型按优先级从高到低查找，当前区域未设置时查询其父区。
+3. 找到有效规则的层级后，同类型、同优先级的禁止结果优先。没有提供这项规则的高优先级区域会继续向后查找。
+4. 局部区域没有给出结果时，使用所在世界的 `global` 默认旗标。
+5. 所有来源均未设置时返回默认状态，Regions 对该旗标没有额外限制。
 
-当玩家在某坐标执行操作时，按以下规则判定标志：
+例如两个同级重叠区域分别设置 `pvp: true` 和 `pvp: false`，最终禁止玩家间伤害。管理区域设置的规则优先于玩家领地，单独提高领地优先级无法覆盖管理区域。
 
-1. 取该坐标的所有覆盖区域，按优先级从高到低逐个检查
-2. 区域自身设置了标志 → 采用其值（ALLOW/DENY）
-3. 区域未设置（NONE）→ 沿父区域链向上继承；父链全部未设置 → 检查下一个低优先级区域
-4. 所有区域均为 NONE → 无保护（允许操作）
-5. 玩家拥有 `axs.regions.bypass` 权限 → 一律允许
-6. 标志为 DENY 且属成员豁免类时，区域成员自动豁免
+玩家的成员豁免在规则判定中计算。若另一个同级重叠区域仍给出禁止结果，该项行为仍可能被拒绝。玩家菜单的「当前位置」显示合并后的结果及来源。
 
-## 成员豁免
+## 父区域与世界默认值
 
-部分标志对区域成员（含所有者）自动豁免。当标志查询结果为 `DENY` 时，若该标志属于成员豁免类且玩家是区域成员，则返回 `ALLOW`。
+父区必须位于同一世界，且不能形成继承环。
 
-### 成员豁免标志列表
+| 子区域类型 | 可设置的父区域 |
+| --- | --- |
+| `managed` 管理区域 | 管理区域或世界默认记录 |
+| `claim` 玩家领地 | 世界默认记录 |
+| `global` 世界默认记录 | 没有父区 |
 
-| 标志 | 类别 | 说明 |
-|---|---|---|
-| `block-break` | BLOCK | 方块破坏 |
-| `block-place` | BLOCK | 方块放置 |
-| `use` | BLOCK | 右键交互 |
-| `chest-access` | BLOCK | 容器访问 |
-| `vehicle-destroy` | BLOCK | 破坏矿车/船 |
-| `vehicle-place` | BLOCK | 放置矿车/船 |
-| `item-drop` | PLAYER | 丢弃物品 |
-| `item-pickup` | PLAYER | 拾取物品 |
-| `ride` | PLAYER | 骑乘实体 |
-| `sleep` | PLAYER | 使用床 |
+父区按 ID 引用，是否提供继承值取决于父区的配置。世界默认值同时作为没有局部结果时的回退规则。
 
-### 成员判定
-
-成员判定支持玩家和权限组两种方式。玩家权限组通过 `axs.regions.group.<name>` 权限节点识别，拥有该节点的玩家视为对应组的成员。
-
-### 战斗类（COMBAT）
-
-| 标志 Key | 说明 | 成员豁免 |
-|---|---|---|
-| `pvp` | 玩家间伤害 | 否 |
-| `mob-damage` | 怪物对玩家伤害 | 否 |
-| `damage-animals` | 玩家伤害动物 | 否 |
-| `invincibility` | 玩家无敌 | 否 |
-| `fall-damage` | 摔落伤害 | 否 |
-
-### 方块类（BLOCK）
-
-| 标志 Key | 说明 | 成员豁免 |
-|---|---|---|
-| `block-break` | 方块破坏 | 是 |
-| `block-place` | 方块放置 | 是 |
-| `use` | 右键交互（门/按钮/拉杆等） | 是 |
-| `chest-access` | 容器访问 | 是 |
-| `trample` | 踩踏耕地 | 否 |
-| `vehicle-destroy` | 破坏矿车/船 | 是 |
-| `vehicle-place` | 放置矿车/船 | 是 |
-
-### 环境类（ENVIRONMENT）
-
-| 标志 Key | 说明 | 成员豁免 |
-|---|---|---|
-| `tnt` | TNT 爆炸 | 否 |
-| `creeper-explosion` | 苦力怕爆炸 | 否 |
-| `other-explosion` | 其他爆炸（末影水晶等） | 否 |
-| `fire-spread` | 火焰蔓延 | 否 |
-| `lava-fire` | 岩浆点火 | 否 |
-| `lightning` | 雷击起火 | 否 |
-| `snow-fall` | 雪覆盖 | 否 |
-| `snow-melt` | 雪融化 | 否 |
-| `ice-form` | 冰生成 | 否 |
-| `ice-melt` | 冰融化 | 否 |
-| `leaf-decay` | 树叶腐烂 | 否 |
-| `grass-spread` | 草方块蔓延 | 否 |
-| `mushroom-spread` | 蘑菇蔓延 | 否 |
-| `vine-growth` | 藤蔓生长 | 否 |
-| `crop-growth` | 作物生长 | 否 |
-| `water-flow` | 水流动 | 否 |
-| `lava-flow` | 岩浆流动 | 否 |
-| `pistons` | 活塞移动 | 否 |
-| `soil-dry` | 耕地干燥 | 否 |
-
-### 生物类（MOB）
-
-| 标志 Key | 说明 | 成员豁免 |
-|---|---|---|
-| `mob-spawning` | 怪物生成 | 否 |
-| `animal-spawning` | 动物生成 | 否 |
-| `enderman-grief` | 末影人搬方块 | 否 |
-| `ghast-fireball` | 恶魂火球 | 否 |
-| `wither-damage` | 凋灵破坏 | 否 |
-
-### 玩家类（PLAYER）
-
-| 标志 Key | 说明 | 成员豁免 |
-|---|---|---|
-| `entry` | 玩家进入 | 否 |
-| `exit` | 玩家离开 | 否 |
-| `enderpearl` | 末影珍珠传送 | 否 |
-| `chorus-fruit` | 紫颂果传送 | 否 |
-| `item-drop` | 丢弃物品 | 是 |
-| `item-pickup` | 拾取物品 | 是 |
-| `exp-drop` | 经验球掉落 | 否 |
-| `hunger` | 饥饿消耗 | 否 |
-| `heal` | 自然恢复 | 否 |
-| `fly` | 允许飞行 | 否 |
-| `ride` | 骑乘实体 | 是 |
-| `sleep` | 使用床 | 是 |
-| `respawn-anchors` | 重生锚 | 否 |
-
-### 杂项类（MISC）
-
-| 标志 Key | 说明 | 成员豁免 |
-|---|---|---|
-| `notify-enter` | 进入时通知区域成员 | 否 |
-| `notify-exit` | 离开时通知区域成员 | 否 |
-| `greeting` | 进入消息（自定义文本） | 否 |
-| `farewell` | 离开消息（自定义文本） | 否 |
-| `potion-splash` | 药水瓶投掷 | 否 |
-| `send-chat` | 发送聊天 | 否 |
-| `receive-chat` | 接收聊天 | 否 |
-
-## 标志附加数据
-
-部分标志支持附加数据（自定义文本）。当前使用附加数据的标志：
-
-| 标志 | 数据内容 | 设置方式 |
-|---|---|---|
-| `greeting` | 进入区域的自定义欢迎文本 | `/rg flag <区域> greeting allow &6欢迎来到出生点！` |
-| `farewell` | 离开区域的自定义告别文本 | `/rg flag <区域> farewell allow &c再见！` |
-
-附加数据随标志一起保存，设置后长期有效。
-
-### 命令方式
-
-```bash
-# 设置标志为允许
-/rg flag spawn pvp allow
-
-# 设置标志为拒绝
-/rg flag spawn block-break deny
-
-# 设置带附加数据的标志
-/rg flag spawn greeting allow &6欢迎来到出生点！
-
-# 移除标志（恢复为 NONE，继承父区域）
-/rg removeflag spawn pvp
-
-# 查看区域所有已设置标志
-/rg flags spawn
+```text
+/rg worlddefault world
+/rg flag world:__global__ pvp deny
+/rg parent world:shop world:town
+/rg flag world:town block-break deny
+/rg removeflag world:shop block-break
 ```
 
-### UI 方式
+这里要求 `shop` 和 `town` 均为已存在的管理区域。`shop` 的破坏规则继承 `town`；如果整条父链都未设置某项规则，再取世界默认值。
 
-管理员通过 `/rg admin` 打开管理面板，在区域编辑页可查看全部 50 个标志的当前状态并直接修改。
+## 成员与管理权限
 
-### 优先级机制
+成员包括直接列出的玩家 UUID、所有者，以及通过 `axs.regions.group.<组名>` 识别的成员组和所有者组。成员豁免以**实际提供规则的区域**为准，继承父区的禁止规则时核对父区成员。
 
-同一坐标可被多个区域覆盖。高优先级区域的标志先被检查。若高优先级区域设置了该标志（非 `NONE`），则直接采用其值，不再检查低优先级区域。
+| 范围 | 旗标 |
+| --- | --- |
+| 成员自动豁免 | `block-break`、`block-place`、`use`、`chest-access`、`vehicle-destroy`、`item-drop`、`item-pickup`、`ride`、`sleep` |
+| 普通领地所有者额外可编辑 | `vehicle-place`、`damage-animals`、`greeting`、`farewell`、`notify-enter`、`notify-exit` |
 
-### 父子继承
+普通领地所有者可以编辑上述两行列出的旗标，并管理领地成员。其他旗标需要 `axs.regions.admin`。可编辑某项旗标与享受成员豁免分别按表中范围判断。
 
-区域可设置父区域（须同世界），未设置的标志从父区域继承，沿父链向上查找直到找到非 `NONE` 的值或到顶。设置父区域时自动检测继承环，若沿父链回到自身则拒绝设置。
+## 绕过权限
 
-### 继承示例
+`axs.regions.bypass` 适用于以下玩家操作旗标。
 
+- 战斗和建造中的 `pvp`、`damage-animals`、`block-break`、`block-place`、`use`、`chest-access`、`trample`、`vehicle-destroy`。
+- 玩家操作中的 `entry`、`exit`、`teleport`、`enderpearl`、`chorus-fruit`、`item-drop`、`item-pickup`、`fly`、`ride`、`sleep`、`respawn-anchors`。
+- 公共聊天中的 `send-chat`、`receive-chat`。
+
+活塞、爆炸、生成、生长等按环境位置处理的规则继续生效。伤害减免、饥饿、自然恢复及无敌等效果按对应旗标配置处理。
+
+## 旗标参考
+
+### 战斗规则
+
+| 键 | 说明 |
+| --- | --- |
+| `pvp` | 玩家间伤害，检查攻击者和受害者位置 |
+| `mob-damage` | 怪物及非玩家来源投射物对玩家造成的伤害 |
+| `damage-animals` | 玩家伤害动物，检查动物所在位置 |
+| `invincibility` | 允许时取消玩家受到的伤害 |
+| `fall-damage` | 玩家摔落伤害 |
+
+### 方块规则
+
+| 键 | 说明 |
+| --- | --- |
+| `block-break` | 破坏方块、破坏挂物及装取液体等破坏行为 |
+| `block-place` | 放置方块、倒出液体等放置行为 |
+| `use` | 右键方块和实体交互，例如门、按钮、拉杆及喂食 |
+| `chest-access` | 箱子、陷阱箱、木桶、漏斗、投掷器、发射器、潜影盒、熔炉、高炉、烟熏炉、酿造台访问 |
+| `trample` | 踩踏耕地 |
+| `vehicle-destroy` | 破坏矿车和船等载具 |
+| `vehicle-place` | 创建矿车和船等载具 |
+
+### 环境规则
+
+| 键 | 说明 |
+| --- | --- |
+| `tnt` | 炸药爆炸对方块的影响 |
+| `creeper-explosion` | 苦力怕爆炸对方块的影响 |
+| `other-explosion` | 其他实体及方块爆炸对方块的影响，含床和重生锚 |
+| `fire-spread` | 火焰蔓延与方块燃烧 |
+| `lava-fire` | 岩浆点火 |
+| `lightning` | 雷击起火 |
+| `snow-fall` | 形成积雪 |
+| `snow-melt` | 积雪融化 |
+| `ice-form` | 形成冰 |
+| `ice-melt` | 冰融化 |
+| `leaf-decay` | 树叶腐烂 |
+| `grass-spread` | 草方块蔓延 |
+| `mushroom-spread` | 蘑菇蔓延 |
+| `vine-growth` | 藤蔓生长 |
+| `crop-growth` | 作物生长 |
+| `water-flow` | 水流动，检查流入位置 |
+| `lava-flow` | 岩浆流动，检查流入位置 |
+| `pistons` | 活塞移动，检查活塞、前方和被移动方块的起终点 |
+| `soil-dry` | 耕地干燥 |
+
+### 生物规则
+
+| 键 | 说明 |
+| --- | --- |
+| `mob-spawning` | 怪物生成 |
+| `animal-spawning` | 动物生成 |
+| `enderman-grief` | 末影人改变方块 |
+| `ghast-fireball` | 恶魂火球爆炸对方块的影响 |
+| `wither-damage` | 凋灵改变方块及凋灵爆炸对方块的影响 |
+
+### 玩家规则
+
+| 键 | 说明 |
+| --- | --- |
+| `entry` | 行走、传送或传送门跨边界进入 |
+| `exit` | 行走、传送或传送门跨边界离开 |
+| `teleport` | 普通传送及特殊传送未单设规则时的默认值 |
+| `enderpearl` | 末影珍珠传送 |
+| `chorus-fruit` | 紫颂果传送 |
+| `item-drop` | 玩家丢弃物品 |
+| `item-pickup` | 自动拾取和 Pickup 主动收取，检查玩家与掉落物位置 |
+| `exp-drop` | 玩家死亡时掉落经验 |
+| `hunger` | 玩家饥饿值下降 |
+| `heal` | 玩家饱食恢复及再生类回血事件 |
+| `fly` | 开启或保持飞行的许可 |
+| `ride` | 玩家骑乘实体 |
+| `sleep` | 玩家使用床 |
+| `respawn-anchors` | 玩家与重生锚交互 |
+
+### 消息与其他规则
+
+| 键 | 说明 |
+| --- | --- |
+| `notify-enter` | 允许时向其他在线区域成员发送进入通知 |
+| `notify-exit` | 允许时向其他在线区域成员发送离开通知 |
+| `greeting` | 进入区域时显示的文字 |
+| `farewell` | 离开区域时显示的文字 |
+| `potion-splash` | 喷溅药水生效，按药水所在位置判断 |
+| `send-chat` | 发送者能否发送公共聊天 |
+| `receive-chat` | 接收者能否收到公共聊天 |
+
+## 自定义进出文字
+
+```text
+/rg flag world:spawn greeting allow &6欢迎来到出生点！
+/rg flag world:spawn farewell allow &7你已离开出生点。
 ```
-区域层级：
-  __global__ (priority=0)
-    └→ town (priority=10, pvp=deny)
-        └→ spawn (priority=20, pvp=none, block-break=deny)
 
-查询 spawn 区域的 pvp 标志：
-  spawn.pvp = NONE → 继承父区域 town
-  town.pvp = DENY → 返回 DENY
+也可以在管理面板的「消息」类别中点击「文字」。数据文件使用以下写法。
 
-查询 spawn 区域的 block-break 标志：
-  spawn.block-break = DENY → 直接返回 DENY（不继承）
-
-查询 spawn 区域的 mob-spawning 标志：
-  spawn.mob-spawning = NONE → 继承 town
-  town.mob-spawning = NONE → 继承 __global__
-  __global__.mob-spawning = NONE → 返回 NONE（无保护）
+```yaml
+flags:
+  greeting:
+    state: true
+    text: "&6欢迎来到出生点！"
+  farewell:
+    state: true
+    text: "&7你已离开出生点。"
 ```
 
-## 容器类型识别
+设为禁止可关闭对应进出提示，清除覆盖则回到继承或默认值。文字显示位置由[通知设置](/docs/regions/configuration#通用设置)控制。
 
-`chest-access` 标志覆盖的容器类型：箱子、陷阱箱、木桶、漏斗、投掷器、发射器、各色潜影盒、熔炉、高炉、烟熏炉、酿造台。
+## 多个条件共同检查
 
-## 相关页面
+传送需通过起点、终点和跨区边界规则，容器操作需通过交互及容器访问规则，拾取需通过玩家和掉落物两处规则。具体场景见[世界规则](/docs/regions/world-rules)。
 
-- [配置](/docs/regions/configuration) — 标志在配置文件中的定义与消息模板
-- [命令与权限](/docs/regions/commands) — 标志相关命令与权限要求。
-- [选区工具](/docs/regions/selection) — 选区工具与粒子可视化
-- [世界规则](/docs/regions/world-rules) — 独立于区域标志的世界级限制
+玩家可在「当前位置」查看当前玩家脚下的生效结果，`/rg why <旗标>` 用于查询一项规则及其来源。登录和死亡重生使用各自的出生流程，环境事件则按受影响方块或实体的位置判断。

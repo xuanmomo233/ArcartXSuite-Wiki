@@ -1,106 +1,21 @@
 ---
-title: "跨服同步与聚合"
-description: "设置跨服在线列表和多服玩家聚合显示。"
+title: "Velocity 跨服名单"
+description: "在 Velocity 代理中汇总参与子服的玩家，验证准入和隐身状态。"
 ---
 
-Tab 模块支持跨服玩家列表聚合：多个子服节点间互相同步 Tab 数据，玩家在任一子服都能看到全网络的在线列表。支持三种跨服模式：完整玩家列表合并、服务器聚合（每服一行）以及退服宽限（避免跨服跳传闪烁）。
+## 启用跨服名单
 
-### 配置层级
-
-跨服功能涉及三个层级的配置：
-
-| 配置层级 | 文件 | 字段 | 说明 |
-|---|---|---|---|
-| Suite | `config.yml` | `cross-server` 节 | Redis 或 Proxy 后端连接参数 |
-| 模块 | `config.yml` | `settings.cross-server` | 全局默认开关 |
-| 定义 | Tab 定义文件 | `cross-server` | 单定义覆盖全局开关（不填时使用全局） |
+1. 在各参与子服的 `plugins/ArcartX-Suite/data/tab/config.yml` 中设置 `settings.proxy-roster: true`，执行 `/axs reload tab`。
+2. 在 Suite Velocity 插件的 `proxy-config.yml` 中加入以下设置，保存后重启代理。
 
 ```yaml
-# config.yml
-settings:
-  server-id: "lobby-01"
-  cross-server: true
-  stale-snapshot-ms: 30000
-  leave-grace-ms: 2000
-  batch:
-    window-ticks: 20
-cross-server:
+tab-list:
   enabled: true
+  max-remote-entries: 80
 ```
 
-> Tab 定义中 `cross-server` 留空表示使用全局 `settings.cross-server` 默认值；显式设为 `true` 或 `false` 则覆盖全局设置。
+`max-remote-entries` 是每个名单额外显示的远端玩家上限，可填 1～80，默认 80。代理只有在确认远端玩家已通过准入且可见时才会展示该玩家。跨服传递隐身状态需要各参与子服使用 Paper 的 Velocity modern forwarding，并启用 Suite Essentials 和 Tab。
 
-### 当前服务器标识（server-id）
+## 检查显示与隐身
 
-`server-id` 是当前服务端节点的唯一标识，用于跨服数据中区分不同节点。每个节点必须配置唯一的 `server-id`。
-
-```yaml
-settings:
-  server-id: "survival-01"
-```
-
-> `server-id` 为空时回退为 `default`。多节点部署时建议使用有意义的名称（如 `lobby-01` / `survival-01` / `arena-01`）。
-
-## 同步行为
-
-- 每个刷新周期，本服对所有启用跨服的 Tab 定义广播本服玩家条目（含排序值、分组键与已渲染显示文本）
-- 收到其他节点数据后合并排序显示；与本地节点相同 `node-id` 的数据被跳过
-- 远程条目使用发送端预渲染的显示文本，**各节点的 `pack` 显示格式由发送端决定**——建议所有节点使用相同的 Tab 定义文件
-- 远程条目不参与本地 `filters` 与 pinned `top`/`bottom` 规则（统一视为普通条目）
-- 超过 `stale-snapshot-ms`（默认 30000，最小 5000）未更新的远程节点条目自动移除，节点崩溃时不会残留数据
-
-## 聚合模式 aggregate
-
-聚合模式将每个服务器（含本服与远程节点）在 Tab 中只占一行，不展开玩家列表。适用于大区网络的"服务器总览"视图。
-
-### 配置
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `enabled` | `boolean` | `false` | 是否启用聚合模式（仅 `cross-server: true` 时生效） |
-| `line-pack` | `Object` | - | 每行渲染模板，支持 `{server-id}` / `{server-display}` / `{server-online}` 占位符及完整 PAPI |
-
-### line-pack 占位符
-
-| 占位符 | 说明 |
-|---|---|
-| `{server-id}` | 服务端 ID（来自 `settings.server-id`） |
-| `{server-display}` | 服务端显示名（默认同 `server-id`） |
-| `{server-online}` | 当前服在线人数 |
-
-> 聚合模式下 PAPI 按本服第一个在线玩家上下文渲染；本服无在线玩家时占位符原样输出。`line-pack` 未配置时回退使用 `pack` 作为行模板。
-
-## 退服宽限
-
-退服宽限（`leave-grace-ms`）在玩家退服后保留其在跨服列表中的条目，避免跨服跳传时的"消失闪烁"。
-
-| 配置项 | 默认值 | 说明 |
-|---|---|---|
-| `leave-grace-ms` | `0` | 退服宽限期（毫秒），0 表示禁用。典型值 1500~3000 |
-
-```yaml
-settings:
-  leave-grace-ms: 2000
-```
-
-> 宽限期内其他节点仍能看到该玩家，宽限期过后条目自动移除。
-
-### 节点配置一致性
-
-| 配置项 | 要求 | 说明 |
-|---|---|---|
-| Tab 定义文件 | 所有节点一致 | 定义 ID、sort-keys、pack 必须相同，否则远程条目渲染异常 |
-| `server-id` | 每节点唯一 | 用于区分不同节点 |
-| `cross-server` | 所有节点启用 | 任一节点未启用则无法收发数据 |
-| `stale-snapshot-ms` | 所有节点一致 | 避免不同节点的过期清理时间不同 |
-
-### 性能建议
-
-| 场景 | 建议 |
-|---|---|
-| 大型网络（10+ 节点） | 使用聚合模式减少条目数量 |
-| 高频 PVP 服 | 降低 `refresh-interval-ticks` 并启用 `batch.window-ticks` 节流 |
-| 跨服跳传频繁 | 启用 `leave-grace-ms: 2000` 避免闪烁 |
-| 调试跨服问题 | 使用 `/axs tab snapshot save` 存档现场 |
-
-> 条件系统配置详见 [条件系统](/docs/guide/conditions)，图标配置详见 [图标配置](/docs/guide/icons)。
+用两个账号分别进入不同子服，按 Tab 检查是否能看到对方。让其中一个账号隐身并切服，另一个账号重新查看名单，确认该账号仍处于隐藏状态。

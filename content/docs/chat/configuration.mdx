@@ -37,7 +37,7 @@ Chat 模块的配置文件位于 `plugins/ArcartX-Suite/data/chat/config.yml`。
 
 | 字段 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `cross-server.enabled` | boolean | `false` | 是否启用跨服聊天转发；需要 Redis 支持 |
+| `cross-server.enabled` | boolean | `false` | 启用跨服聊天，各节点使用同一个 MySQL 数据库。 |
 
 <Callout type="info">
 跨服同步需配合Suite `config.yml` 的 `cross-server` 节使用。单服无需开启。

@@ -255,27 +255,19 @@ monthly-rewards:
 
 ## 离线时长储蓄
 
-离线时长储蓄功能允许玩家下线时按比例存储当日已在线时长，次日登录时作为初始在线时长加成，使玩家不会因下线而完全丢失前一天的进度。
+玩家离服时，系统按比例储蓄当天已记入的在线分钟。跨日后，玩家在线时，系统会把余额结转到当天的在线奖励进度并清空储蓄余额。
 
 | 字段 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
 | `offline-savings.enabled` | `boolean` | `true` | 是否启用离线时长储蓄 |
-| `offline-savings.max-minutes` | `int` | `120` | 每日可储蓄的最大分钟数 |
+| `offline-savings.max-minutes` | `int` | `120` | 当天可存入的上限，也是储蓄余额上限。设为 0 停用储蓄 |
 | `offline-savings.storage-rate` | `double` | `1.0` | 储蓄比例（1.0=全额储蓄，范围 0.0~1.0） |
-| `offline-savings.expire-days` | `int` | `1` | 过期天数（保留用于未来扩展，当前跨天自动清零） |
 
-### 储蓄计算公式
+### 储蓄如何累计
 
-```
-下线时：
-  stored = floor(onlineMinutes × storageRate)
-  capped = min(stored, maxMinutes)
-  offlineSavingsMinutes = min(maxMinutes, offlineSavingsMinutes + capped)
+每次离服时，系统按当天累计的可储蓄分钟乘以储蓄比例，向下取整，再扣除当天已核算的部分。本轮只存入差额，最多存到余额上限。此前结转到账的储蓄分钟不参与当天的储蓄计算。
 
-次日登录时：
-  onlineMinutes += offlineSavingsMinutes（作为当日初始在线时长）
-  offlineSavingsMinutes 归零
-```
+例如，储蓄比例为 1.0、上限为 120 分钟时，玩家上午在线 60 分钟后离服，余额增加 60 分钟。当天再次上线并增加 10 分钟在线时长，第二次离服时只增加 10 分钟，余额共 70 分钟。
 
 ### 储蓄示例
 
@@ -292,10 +284,9 @@ offline-savings:
   enabled: true
   max-minutes: 120
   storage-rate: 1.0
-  expire-days: 1
 ```
 
-> 离线储蓄在玩家退出事件（`PlayerQuitEvent`）时计算并存储，在次日首次 tick 时作为初始在线时长加成。
+在线时长按完整分钟结算。离服时，储蓄使用已经记入的分钟。
 
 ### 离线储蓄管理
 
@@ -411,6 +402,8 @@ time-bonus:
 
 ## 时长占位符
 
+占位符从内存快照读取。首次查询尚未加载的玩家时，模块在后台补载数据，当前请求以 `0` 或对应的零时长格式显示。
+
 | 占位符 | 返回值 | 说明 |
 |---|---|---|
 | `%axsonlinerewards_daily_minutes%` | `int` | 今日在线原始分钟数 |
@@ -481,6 +474,6 @@ time-bonus:
 2. **周期重置**：跨天/跨周/跨月时对应统计字段自动归零，`repeat: false` 的周期奖励领取记录会保留
 3. **倍率下限**：`multiplier` 最小为 1.0，配置值小于 1.0 时自动取 1.0
 4. **时刻奖励仅在线**：时刻奖励只对触发时在线的玩家发放，离线玩家不会补发
-5. **离线储蓄上限**：`max-minutes` 限制每日最大储蓄量，`storage-rate` 控制储蓄比例
+5. `max-minutes` 同时限制每天可存入的分钟数和储蓄余额，`storage-rate` 控制储蓄比例。
 6. **时区影响**：所有周期判定受 `settings.timezone` 影响，建议海外服务器显式设置
 7. **文件路径**：阶段奖励文件路径可通过 `rewards-file` 配置项自定义（默认 `rewards.yml`）

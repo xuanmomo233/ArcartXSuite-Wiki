@@ -5,6 +5,34 @@ description: "定义日常、每周和赛季任务的完成条件、进度与经
 
 BattlePass 任务系统是战令经验的核心来源。任务模板按周期分为每日、每周、赛季三类，从任务池中按权重随机分配给玩家。每个任务通过事件触发驱动进度更新，支持条件过滤和增量策略。
 
+## 启用联动任务
+
+`tasks/integrations.yml` 带有副本、拾取、钓鱼、市场和签到任务示例。把所需示例设为 `enabled: true`，将示例里的副本、水域、兑换所或任务 ID 换成服务器实际值，然后重载 BattlePass。各示例会进入对应周期的任务池。
+
+| 来源 | 可统计的内容 |
+|---|---|
+| Abyss | `axs.abyss.result_committed` 按本体副本已落盘的通关结果推进，支持按副本、难度、用时和死亡次数过滤。断线且仍属于通关队伍的玩家也可计数。每个结果对同一玩家和任务只计一次，补记覆盖仍有效的任务周期。 |
+| Pickup | `axs.pickup.item_pickup` 的 `amount` 是实际收取数量，`source: nearby` 可筛选附近掉落列表的收取。 |
+| Fishing | `axs.fishing.success` 支持按 `water_area` 和 `fish_rarity` 过滤，`axs.fishing.collection_unlock` 统计新解锁的鱼类。 |
+| Market | `axs.market.npc_exchange_completed` 在兑换完成后发出，可用 `shop` 和 `offer` 过滤。竞拍成功使用 `axs.market.auction_purchased`，按买家和拍卖单计数。 |
+| OnlineRewards | `axs.onlinerewards.signin_completed` 统计当日签到，按玩家和签到日期计数。 |
+
+启用市场竞拍联动时，请在所有参与拍卖结算的游戏服启用 BattlePass 并配置对应任务。成交按结算日期计入符合条件的任务，任务进度保存后会确认这次联动。用已分配该任务的测试玩家完成一笔竞拍，确认买家的任务进度已更新。
+
+已用 Abyss 脚本 `bp_task` 直接推进的任务，请继续使用原脚本，或改用通关结果事件。两条路径同时推进同一个任务会累计两次。
+
+### 给任务配置前往入口
+
+`navigation.type: quest` 的 `target` 填 QuestGPS 任务 ID，已接取时开始追踪。玩家也可使用 `/bp go <任务ID>`。
+
+```yaml
+navigation:
+  type: map
+  target: "dungeon:example"
+```
+
+地图目标可填 Abyss 入口的 `dungeon:<副本ID>`，或 Fishing 实际发布的鱼群目标 ID。
+
 ## 任务模板字段
 
 ### 先制作一条能触发的任务
@@ -107,7 +135,7 @@ daily_trial_kills:
 | `PlayerItemBreakEvent`  | 玩家物品损坏 | `material`, `world` |
 | `PlayerHarvestBlockEvent`  | 玩家采收方块 | `material`, `world` |
 
-> TACZ 枪械事件（`TaczGunKillEvent` / `TaczGunDamageEvent`）是 Suite 自定义事件，用于准确追踪枪械击杀和伤害（TACZ 伤害不触发 `EntityDamageByEntityEvent`）。
+伤害任务保留 `EntityDamageByEntityEvent` 和 `TaczGunDamageEvent` 两个配置入口。Suite 会按伤害来源路由一次，有效伤害量可在 `damage` 读取。Symphony 接管的伤害在确认后才计入，并提供 `transaction_id`。取消、闪避和零伤害不计入进度。
 
 ### 事件字段怎样填写
 
@@ -480,3 +508,5 @@ weekly-region-explore:
     value: 1
   weight: 2
 ```
+
+区域探索按当前周任务和区域 UUID 去重。同一区域重进或改名不会再加进度。下一轮周任务可重新探索。

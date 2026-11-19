@@ -115,7 +115,7 @@ for (const { name } of moduleFolders) {
     }
   }
 }
-if (moduleFolders.length !== 29) errors.push(`模块数应为 29，实际为 ${moduleFolders.length}`);
+if (moduleFolders.length !== 28) errors.push(`模块数应为 28，实际为 ${moduleFolders.length}`);
 const apiIndex = readFileSync(join(docs, 'api/index.mdx'), 'utf8');
 const apiGuidePages = new Set(['index', 'quick-start', 'examples', 'data-types']);
 const apiNavigation = JSON.parse(readFileSync(join(docs, 'api/meta.json'), 'utf8')).pages;

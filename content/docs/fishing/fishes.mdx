@@ -71,8 +71,103 @@ description: "定义鱼类的稀有度、尺寸、售价、出现条件和小游
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `behaviors` | list | 小游戏中鱼的行为模式及权重 |
-| `behavior-stages` | map | 多阶段行为（进度达到 threshold 后切换行为模式） |
+| `behavior-mode` | string | `random`（默认）按权重抽取动作，`sequence` 按列表顺序执行，完成后从头循环 |
+| `behaviors` | list | 每项填写 `type`。`random` 可用 `weight` 设置抽取权重，默认为 `1` |
+| `behaviors[].duration-ticks` | int | 动作持续的小游戏更新步数。`sequence` 每项必填正整数。`random` 填正整数时到期重新抽取，省略或填 `0` 时持续到阶段切换或本局结束 |
+| `behavior-stages` | map | 到达 `threshold` 后进入该阶段。每个阶段可独立设置 `behavior-mode` 和 `behaviors` |
+
+下面的鱼在前半段随机选动作，进度达到 `0.60` 后，按下沉、上浮、摆动的顺序循环。进度掉回阈值以下时会切回前一阶段，再进入顺序阶段会从第一项开始。默认每次小游戏更新约为 50 毫秒。
+
+```yaml
+behavior-mode: random
+behaviors:
+  - type: smooth
+    weight: 2
+    duration-ticks: 24
+  - type: dart
+    weight: 1
+    duration-ticks: 16
+behavior-stages:
+  late:
+    threshold: 0.60
+    behavior-mode: sequence
+    behaviors:
+      - type: sinker
+        duration-ticks: 18
+      - type: floater
+        duration-ticks: 22
+      - type: zigzag
+        duration-ticks: 12
+```
+
+`sequence` 固定动作顺序和基础持续时间。各动作本身的抖动、突进以及独立的逃离机制仍按鱼种配置运行。
+
+### 读招、张力和途中宝藏
+
+动作可加 `tell-ticks` 和 `recovery-ticks`，单位都是小游戏更新步数。填写任一项时，`duration-ticks` 必须为正整数，表示实际移动的时长。预警箭头显示本次锁定的方向。配置了预警和回稳的动作执行完后，才检查进度并安排下一招。
+
+```yaml
+line-tension:
+  enabled: true
+active-treasure:
+  enabled: true
+behavior-mode: sequence
+behaviors:
+  - { type: sinker, tell-ticks: 12, duration-ticks: 17, recovery-ticks: 32 }
+  - { type: floater, tell-ticks: 12, duration-ticks: 17, recovery-ticks: 32 }
+```
+
+- `line-tension.enabled` 开启后，鱼挣扎时张力上升。按 `R` 松线可降张力。松线期间倒计时继续，命中暂时停止涨进度。张力满后超过宽限时间会断线。
+- `active-treasure.enabled` 开启后，本局抽中的宝藏会在合适的回稳窗口出现。把绿条移过去连续覆盖 8 步可捞取，收竿成功后才发奖。此模式需要配置足够长的回稳窗口。
+- 鲫鱼可练固定读招，鲶鱼可练随机动作和捞宝，传说鲤鱼会用到松线。已有安装试用时，先更新 `ui/fishing_minigame.yml`，再将需要的样例设置合并到模块的鱼种、竿、饵和水域文件。
+
+### 体型差异
+
+传说鲤鱼在咬钩时抽取 80～250 cm 的体型。本局的冲刺速度、冲刺时长和拉力按体型在 `small` 与 `large` 之间线性变化。固定尺寸的鱼取两端的中点，省略倍率时按 `1.0`，可填写 `0.25`～`4.0`。
+
+```yaml
+size-difficulty:
+  small: { rush-speed: 1.15, rush-duration: 0.90, pull: 0.85 }
+  large: { rush-speed: 0.85, rush-duration: 1.20, pull: 1.25 }
+```
+
+小鱼冲得更快，大鱼的冲刺阶段更长、拉力更高。预警与回稳时长由动作配置决定。拉力倍率在开启张力的对局生效，擦线额外张力由[落点障碍](/docs/fishing/pools#落点障碍)配置。
+
+### 鱼的体力
+
+设置 `stamina` 后，鱼从 100% 体力开始，每个读招冲刺步扣除 `rush-drain-per-tick` 个百分点。体力耗尽后等本次冲刺结束，再进入力竭窗口。力竭时长超过原本的回稳期则延长回稳，窗口结束后鱼回满体力。
+
+```yaml
+stamina:
+  rush-drain-per-tick: 3.0
+  exhausted-ticks: 20
+  progress-gain-multiplier: 1.40
+```
+
+力竭时，绿条命中且鱼线未放松，收线进度乘以 `progress-gain-multiplier`（`1.0`～`3.0`）。松线期间力竭计时照常前进。配合带有 `tell-ticks` 或 `recovery-ticks` 的动作配置使用。
+
+### 个体性格与提竿
+
+传说鲤鱼在咬钩开局时抽取一个性格，界面会显示本局结果。权重 `7 / 2 / 1` 分别对应普通、警觉和顽强。
+
+```yaml
+personalities:
+  normal-weight: 7
+  variants:
+    alert: { display-name: "警觉", weight: 2, first-miss-rush: true }
+    resilient: { display-name: "顽强", weight: 1, stamina-drain-multiplier: 0.65 }
+hook-set:
+  tap-ticks: 12
+  window-ticks: 8
+  late-ticks: 12
+  good-recovery-bonus: 8
+  miss-recovery-penalty: 4
+```
+
+- `first-miss-rush` 在鱼曾被绿条命中、随后首次脱靶时生效。等当前招式结束后补一次有方向预警的冲刺，每局最多一次。
+- `stamina-drain-multiplier` 调整读招冲刺的体力消耗。示例的顽强鲤鱼每步消耗普通个体的 65%。
+- 配置 `hook-set` 后，真实咬钩会先出现提竿提示。浮漂轻点时等待，沉漂亮绿时按 `F`。第一下提竿决定结果，开场提竿期间对抗倒计时暂停。
+- 准点增加第一招的回稳步数。早提、晚提或错过窗口均继续对抗，并缩短第一招回稳。回稳修正适用于有预警或回稳的动作。
 
 **行为类型**（`FishBehaviorType`）：
 
@@ -83,7 +178,7 @@ description: "定义鱼类的稀有度、尺寸、售价、出现条件和小游
 | `SINKER` | 下沉型：整体下沉 + 不规则波动 + 偶发上突 |
 | `FLOATER` | 上浮型：整体上浮 + 不规则波动 + 偶发下突 |
 | `MIXED` | 混合型：在 smooth/dart/sinker/floater 之间随机切换 |
-| `ZIGZAG` | 之字型：规律性左右摆动，幅度和频率随难度增加 |
+| `ZIGZAG` | 之字型：沿轨道往复摆动，幅度和频率随难度增加 |
 | `IDLE` | 停滞型：长时间几乎不动，偶尔突然突进 |
 
 ### 小游戏机制覆盖（可选）

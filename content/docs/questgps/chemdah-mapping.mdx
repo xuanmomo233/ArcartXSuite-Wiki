@@ -43,7 +43,7 @@ suite_demo_hunt:
 
 将 `world 100 64 100` 换成实际目的地。任务 ID `suite_demo_hunt`、目标 ID `kills` 可自行命名，但在同一任务或其他引用中保持一致。已有任务时直接使用其现有定义，不必为 QuestGPS 再复制任务逻辑。
 
-想一次检查整个界面，可复制 QuestGPS 数据目录的 `examples/chemdah-quest.yml`。随新版模块导出的示例含五种物品来源、称号和文字奖励。若目录里已有早期示例，可在[奖励预览](#奖励预览)查看完整配置。
+可使用 QuestGPS 数据目录的 `examples/chemdah-quest.yml` 测试任务界面。 [奖励预览](#奖励预览)
 
 ## QuestGPS 读取哪些 Chemdah 数据
 
@@ -169,46 +169,7 @@ addon:
 
 ### 实际发放物品
 
-可在 Chemdah 的 `agent.completed` 执行服务器已有的发奖脚本，也可使用完成信号派发 Mail 预设。采用后者时，在 `plugins/ArcartX-Suite/data/mail/presets/quest_hunt_reward.yml` 填写实际交付物品。下面使用和预览相同的物品 ID。
-
-```yaml
-preset:
-  id: quest_hunt_reward
-  enabled: true
-  subject: "初次讨伐奖励"
-  body: "请领取你的讨伐奖励。"
-  item-attachments:
-    - { source: minecraft, id: APPLE, amount: 2 }
-    - { source: mythic, id: MythicStarterSword, amount: 1 }
-    - { source: neige, id: NeigeStarterArmor, amount: 1 }
-    - { source: overture, id: OvertureStarterGem, amount: 1 }
-    - { source: mmoitems, id: "SWORD;LEGENDARY_SWORD", amount: 1 }
-```
-
-启用 Mail 和 EventPacket 后，把下面的 `hooks` 合并到该任务已有的 `addon.axs-view`。这里的 `demo_hunt_completed` 是你定义的信号名。
-
-```yaml
-addon:
-  axs-view:
-    hooks:
-      completed:
-        - demo_hunt_completed
-```
-
-再保存下方规则为 `plugins/ArcartX-Suite/data/eventpacket/rules/quest_hunt_reward_mail.yml`。玩家完成任务时，QuestGPS 发送信号。EventPacket 用 `signal` 匹配同名信号，再通过 `mail.send` 把指定预设发给完成任务的玩家。
-
-```yaml
-quest_hunt_reward_mail:
-  enabled: true
-  trigger: command-signal
-  signal: demo_hunt_completed
-  repeatable: false
-  actions:
-    - type: mail.send
-      preset-id: quest_hunt_reward
-```
-
-本例用于一次性任务。依次执行 `/axs mail preset reload`、`/axs reload eventpacket`、`/chemdah reload`，再用测试玩家完成任务并领取附件，核对物品 ID 和数量。称号须另配实际授予流程。详见[邮件预设](/docs/mail/presets)和[事件动作](/docs/eventpacket/actions)。
+在 Chemdah 的 `agent.completed` 中配置发奖脚本。QuestGPS 的奖励条目用于菜单展示。用测试玩家完成任务后，逐项检查实际到账的物品和数量。 [Chemdah 接入](/docs/guide/chemdah-setup)
 
 ## 导航覆盖
 
@@ -240,23 +201,25 @@ addon:
 
 ## 生命周期信号
 
-`hooks` 用于把任务事件交给 EventPacket 处理。例如接取时播放提示，完成时发送邮件。QuestGPS 决定**何时发送**，EventPacket 的 `actions` 决定**收到后做什么**。只需要任务列表、进度和导航时，整个 `hooks` 都可以省略。只有信号、没有启用的同名规则时，联动动作不会执行。
+`hooks` 用于把任务事件交给 EventPacket 处理。例如接取时播放字幕，完成时发送提示。QuestGPS 决定**何时发送**，EventPacket 的 `actions` 决定**收到后做什么**。只需要任务列表、进度和导航时，整个 `hooks` 都可以省略。只有信号、没有启用的同名规则时，联动动作不会执行。
 
 | 字段 | 发送时机 | 可用于 |
 | --- | --- | --- |
 | `triggered` | 通过 QuestGPS 向玩家推荐任务时 | 提醒玩家有新任务可查看 |
 | `accepted` | 玩家接取任务时 | 播放开场字幕 |
 | `abandoned` | 玩家放弃任务时 | 发送放弃后的提示 |
-| `completed` | 玩家完成任务时 | 发送完成提示或派发奖励邮件 |
+| `completed` | 玩家完成任务时 | 发送完成提示 |
 | `track-changed` | QuestGPS 开始或取消追踪时 | 更新追踪提示。两种变化都会触发 |
 
-每个字段可填一个或多个自定义信号名。接收规则使用 `trigger: command-signal`，并将 `signal` 填成相同名称。动作可用 `{quest_id}` 取任务 ID，派发命令时可用 `{player}` 取触发玩家名。发送、匹配和执行的完整配置见[实际发放物品](#实际发放物品)。同一份奖励只配置一个发放入口，避免 Chemdah 完成脚本与邮件各发一次。
+每个字段可填一个或多个信号名。接收规则使用 `trigger: signal`，并将 `signal` 填成相同名称。消息可用 `{quest_id}` 引用任务 ID。 [规则示例](/docs/eventpacket/configuration#测试一条信号规则)
 
 ### 任务完成联动
 
 BattlePass 和 Abyss 通过 `axs.questgps.quest_completed` 接收任务完成事件，无需为它们配置 `hooks.completed`。规则应按 `quest_id` 匹配 Chemdah 任务 ID。`quest_name` 用于展示，依次取 `addon.axs-view.name`、Chemdah 原生任务名称和任务 ID。
 
-EventPacket 的自定义完成信号单独在 `hooks.completed` 声明。例如使用内置称号奖励示例时，添加 `questgps_quest_completed` 并启用同名信号的规则，动作中用 `{quest_id}` 获取任务 ID。单条信号发送失败会记录日志，后续信号和任务完成事件仍会继续处理。
+可以读取 Chemdah 接取时间时，完成事件也会附带 `event_id`。订阅方可用它识别同一玩家同一次接取产生的重复通知。
+
+需要按任务完成播放字幕或发送消息时，可订阅 `axs.questgps.quest_completed`，用 `when.quest_id` 指定任务。
 
 ## 保存与重载
 

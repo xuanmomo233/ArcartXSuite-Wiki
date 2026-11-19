@@ -30,7 +30,10 @@ public interface PickupNotifiable {
 
     boolean isNotificationActive(UUID playerId);
 
-    boolean notifyPickup(@NotNull Player player, @NotNull ItemStack itemStack, int amount) ;
+    boolean notifyPickup(@NotNull Player player, @NotNull ItemStack itemStack, int amount);
+
+    boolean notifyPickupPrepared(@NotNull Player player, @NotNull ItemStack itemStack, int amount,
+                                 @NotNull String previewJson);
 }
 ```
 
@@ -39,7 +42,13 @@ public interface PickupNotifiable {
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
 | `isNotificationActive` | 查询该玩家的拾取 HUD 通知是否处于活跃状态。 | `playerId`：玩家 UUID | `true` 表示通知模式已启用且该玩家未关闭 |
+| `notifyPickup` | 物品被仓库等功能接管后，补发拾取事件和 HUD 提示。 | 玩家、物品原型、实际获得数量 | 是否排入 HUD 推送流程 |
+| `notifyPickupPrepared` | 使用已经生成的物品预览补发同一提示。 | 同上，另加与该物品对应、数量归一为 1 的 `previewJson` | 是否排入 HUD 推送流程 |
 
 ## 调用注意事项
 
 涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+
+这两个通知方法不向玩家发放物品。仅在实际获得物品后调用一次，`amount` 填实际获得数量，传入物品不得由调用方在通知期间修改。预览来自同一物品时才能使用 `notifyPickupPrepared`；没有预览时使用 `notifyPickup`。
+
+拾取事件在 HUD 开关检查前发布。返回 `false` 只表示 HUD 没有排入推送，不代表拾取事件未发生，不要据此重复调用。该能力仅在通知模式注册，扫描面板模式下需处理接口不可用。

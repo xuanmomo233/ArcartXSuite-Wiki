@@ -33,6 +33,67 @@ description: "划定钓鱼区域，配置该水域的鱼群、宝藏与进入条
 | `max-player-level` | int | `0` | 最高钓鱼等级（0 = 不限，防高等级刷低级鱼） |
 | `bait-multipliers` | map | - | 饵料在该水域的额外倍率 |
 | `require-permission` | string | - | 进入此水域钓鱼所需权限（留空 = 无限制） |
+| `fish-schools` | map | - | 可选鱼讯点。浮漂进入活跃点位时，对水域中的候选鱼加权 |
+| `obstacle-zones` | map | - | 可选落点障碍。咬钩时浮漂落在区内，本局出现危险带 |
+| `current-zones` | map | - | 可选水流区。鱼冲刺结束后，在指定水层沿流向滑动 |
+
+### 鱼讯点
+
+在有明确 `world` 的水域中设置鱼讯点。中心的 `x/y/z` 对准水面，`y` 是水面上一格的高度。`shore` 填玩家能走到的岸边。活跃时附近玩家可看到水纹。安装 Map 时，发现过的鱼讯也会显示在地图上，并可导航到岸边。
+
+```yaml
+fish-schools:
+  rain-carp:
+    x: 150.5
+    y: 63
+    z: 200.5
+    radius: 8
+    active-ticks: 2400
+    interval-ticks: 6000
+    rain-only: true
+    shore: { x: 140.5, y: 64, z: 200.5 }
+    weights:
+      legendary_carp: 2.0
+```
+
+`active-ticks` 和 `interval-ticks` 使用世界游戏刻。示例每 6000 刻进入一次活跃窗口，持续 2400 刻，同时要求该世界下雨。鱼讯倍率在浮漂咬钩时应用，等级和权限照常检查。
+
+### 落点障碍
+
+在龙泉湖的 `water-dragon_lake.yml` 中，可以把一片水面划成芦苇区。浮漂咬钩时按 XZ 方块坐标选区。多个障碍重叠时按配置顺序取第一个。
+
+```yaml
+obstacle-zones:
+  reeds:
+    display-name: "芦苇区"
+    pos: ["145,195", "158,195", "158,205", "145,205"]
+    track-min: 0.06
+    track-max: 0.24
+    warning-ticks: 4
+    tension-per-tick: 4.0
+```
+
+- `pos` 至少填三个不同的 XZ 顶点。把示例坐标改到实际可抛竿的水面。
+- `track-min` 和 `track-max` 是轨道上的危险带范围，`0` 在最底，`1` 在最顶，最小值要小于最大值。
+- 鱼进入危险带的前 `warning-ticks` 个连续判定步只预警，填 `0` 时立即擦线。擦线时每步增加 `tension-per-tick` 的基础张力，与鱼的拉力合计后由鱼竿线强抵消一部分。
+- 命中障碍区的对局会开启张力和 `R` 松线。鱼离开危险带或成功松线会清空预警计时，松线期间暂停擦线。
+
+### 水流与水层
+
+浮漂咬钩时，按 XZ 方块坐标选中第一个匹配的水流区。鱼冲刺结束时如果处在水层范围内，回稳的前几步会沿水流方向滑动，漂移逐步衰减。鱼移出水层后停止受水流推动。水流和落点障碍可在同一局生效，鱼被水流带进危险带时照常判定擦线。
+
+```yaml
+current-zones:
+  rapids:
+    display-name: "湖口急流"
+    pos: ["150,190", "172,190", "172,212", "150,212"]
+    track-min: 0.04
+    track-max: 0.42
+    drift-per-tick: -0.016
+    carry-ticks: 8
+```
+
+`track-min` 和 `track-max` 对应小游戏轨道，`0` 是底部，`1` 是顶部。负的 `drift-per-tick` 往下推，正值往上推，绝对值最大为 `0.05`。示例水层显示在轨道右缘，实际发生漂移时会亮起。把多边形坐标改到实际水面。
 
 ### pos 多边形边界
 

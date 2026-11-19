@@ -33,7 +33,7 @@ export default async function Page({
         <DocsTitle>{page.data.title}</DocsTitle>
         <DocsDescription>{page.data.description}</DocsDescription>
       </header>
-      <DocsBody id="main-content" className="suite-prose">
+      <DocsBody id="main-content" className={slug?.[0] === 'map' ? 'suite-prose map-prose' : 'suite-prose'}>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
     </DocsPage>

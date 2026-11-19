@@ -1,30 +1,46 @@
 ---
 title: "快捷道具"
-description: "通过快捷栏与按键使用道具，获得即时或持续效果。"
+description: "绑定物品，通过主手右键、快捷键或自动触发使用道具。"
 ---
 
 | 项目 | 说明 |
 | --- | --- |
 | 模块 ID | `prop` |
 | 主配置 | `plugins/ArcartX-Suite/data/prop/config.yml` |
-| 主要调整内容 | props/ 道具效果、key.yml 按键与槽位设置 |
+| 道具定义 | `plugins/ArcartX-Suite/data/prop/props/` |
 | 重载 | `/axs reload prop` |
 
 ## 开始前
 
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。可选插件只在使用对应功能时安装，具体要求见功能配置页。
+在 Suite 本体的 `config.yml` 中启用 `modules.prop.enabled`，并确认服务端已加载 ArcartX。执行 `/axs prop status` 查看道具数和桥接状态。快捷键使用需要匹配的 ArcartX 客户端与已配置的额外槽位。属性类道具还需要相应的[属性提供方](/docs/prop/effects#属性组)。
 
 ## 第一次使用
 
-1. 选择一个默认道具。
-2. 手持测试物品执行 `/axs prop set <道具ID>`。
-3. 按配置按键使用。
+下面定义一份补给，主手右键使用时恢复 6 点饱食度、消耗 1 个物品并进入 10 秒冷却。
+
+```yaml
+# data/prop/props/field_ration.yml
+name: "野外补给"
+coolDownGroup: "野外补给"
+coolDownTime: 10
+remove: true
+hand: true
+key: true
+effects:
+  food: 6
+  messages:
+    - "&a你使用了野外补给。"
+```
+
+1. 保存为 `props/field_ration.yml`，执行 `/axs reload prop`。
+2. 管理员将要发放的物品拿在主手，执行 `/axs prop set field_ration`。要绑定一叠补给，直接手持整叠执行命令。
+3. 玩家拿到绑定后的物品，在饱食度未满时主手右键。
+
+道具 ID 来自 `props/` 下的相对路径，例如 `supplies/field_ration.yml` 对应 `supplies/field_ration`。绑定后的物品按该 ID 读取效果。调整定义后重载，同一 ID 的已绑定物品会读取新定义。
 
 ## 检查是否配置成功
 
-检查道具效果、消耗和冷却提示。
-
-按键无反应时，检查 `key.yml` 中绑定的槽位、物品是否在对应槽内，以及物品是否已绑定道具 ID。道具有提示却无效果时，从[按键测试](/docs/prop/keybinds#第一次测试)检查冷却、权限和使用条件。
+首次使用应收到补给提示，物品数量减少一个。还有同组物品时，立即再用一次应收到剩余冷却提示。排查时先确认 `/axs prop status` 中有已加载道具，再用 `/axs prop set` 的补全核对 ID。准备改用快捷键时，按[槽位绑定说明](/docs/prop/keybinds#配置按键与槽位)核对三个位置使用同一个槽位 ID。
 
 ## 可以配置的功能
 
@@ -36,9 +52,11 @@ description: "通过快捷栏与按键使用道具，获得即时或持续效果
 | 冷却组 | 同一冷却组内的多个道具共享冷却时间，避免重复使用 |
 | 物品消耗 | 使用后可选消耗一个物品（`remove: true`）或保留物品（`remove: false`） |
 | 权限控制 | 每个道具可配置使用权限节点，留空表示无限制 |
-| 使用条件 | 支持 PlaceholderAPI 条件判断（等级、余额、世界、职业等），全部满足才可使用 |
-| 自动触发 | 服务端定时轮询快捷槽道具，独立的触发条件（`auto.conditions`）满足时自动使用，支持每道具检查间隔与成功提示开关 |
-| 效果系统 | 支持 10 种效果类型：命令、消息、饱食度、生命值、经验、百分比生命、药水、AttributePlus、MythicLib、Symphony |
+| 使用条件 | 按玩家数据判断道具是否可用，支持 PAPI 比较、Aria 条件等写法 |
+| 自动触发 | 定期检查绑定槽位，可按低血量等条件自动使用 |
+| 效果系统 | 配置即时效果、药水和独立计时的属性组，支持 AttributePlus、CraneAttribute、MythicLib、Symphony 和 Forge 模组属性 |
+| 动态数值 | 属性加成可用 Aria 计算，读取玩家等级、Symphony 属性或 PAPI 数值 |
+| 快捷使用真实物品 | 可单独为原版药水和受支持的 MMOItems 右键动作配置按键模式 |
 
 ## 继续配置
 
@@ -46,3 +64,4 @@ description: "通过快捷栏与按键使用道具，获得即时或持续效果
 - [命令与权限](/docs/prop/commands)：玩家操作、管理命令和权限。
 - [效果系统](/docs/prop/effects)：为快捷道具设置即时效果、属性加成、持续时间与效果组合。
 - [按键绑定系统](/docs/prop/keybinds)：将道具槽位绑定到客户端按键，并检查使用流程与冷却。
+- [自动触发](/docs/prop/keybinds#自动触发)：配置仅在满足指定条件时使用的快捷槽道具。

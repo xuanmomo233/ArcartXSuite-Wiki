@@ -32,12 +32,12 @@ description: "了解区域选择、邮件派发、奖励、属性、按键等可
 | 使用多种经济与点券 | [货币系统](/docs/guide/currencies) | 价格、费用、银行、邮件附件 |
 | 为支持的功能配置多个界面 | [多界面配置](/docs/guide/multi-ui) | 公告、字幕与其他 HUD |
 | 在多个子服间使用同一项业务 | [跨服功能使用](/docs/guide/cross-server-setup) | 聊天、公告、邮件等 |
-| 将事件与多个动作组合 | [事件动作](/docs/eventpacket/actions) | 进服欢迎、任务完成、发放称号 |
+| 将事件与多个动作组合 | [事件动作](/docs/eventpacket/actions) | 首次准入邮件、任务完成提示 |
 | 发送字幕、卡片、信号与群消息 | [通知与功能联动](/docs/guide/notifications-and-actions) | 挂机、菜单、事件、副本与收件通知，分别有各自入口 |
 | 对接 Chemdah 对话和任务 | [Chemdah 接入](/docs/guide/chemdah-setup)与[Chemdah 任务配置](/docs/questgps/chemdah-mapping) | 对话主题、NPC 绑定、任务 ID、展示来源、进度和导航 |
 | 过滤玩家文本、修改提示文字 | [内容过滤与提示文字](/docs/guide/text-moderation) | Chat、Market、Mail 的接入行为不同；提示文件也不完全同名 |
 | 理解离线和失败奖励 | [奖励发放排查](/docs/guide/rewards-and-commands#先确认奖励发到了哪里) | 钓鱼、战令、副本、Boss、红包与市场的不同处理分支 |
-| 定时命令、条件监听与清理 | [EventPacket 定时服务](/docs/eventpacket/services) | 由该模块提供，不是所有模块默认启用的本体开关 |
+| 定时执行控制台命令 | [EventPacket 定时命令](/docs/eventpacket/services) | 按游戏服时区或固定间隔执行 |
 
 ## 怎样使用这些说明
 
@@ -45,7 +45,7 @@ description: "了解区域选择、邮件派发、奖励、属性、按键等可
 2. 再到本目录查概念和通用写法，例如物品 ID、货币 ID、预设 ID 的含义。
 3. 先完成一次最小测试，再加入条件、其他插件物品和多人派发等组合。
 
-**通用规则不代表配置结构完全相同。** 例如在线奖励用 `mail.presets`，事件动作用 `type: mail.send`；两者都引用邮件预设，但不能交换外层 YAML。支持玩家名替换的命令字段统一使用 `{player}`。各字段还可提供自己的变量，见[配置写法](/docs/guide/config-syntax)。
+在线奖励通过 `mail.presets` 引用邮件预设。EventPacket 的持久邮件使用 `type: mail`，在动作中填写标题、正文和可选货币。
 
 各专题中的“模块实际用法”表列出已核对的消费位置。没有列出的模块不应自行套用字段；相似配置先查该模块的功能配置页，而不是推断它会被自动识别。
 

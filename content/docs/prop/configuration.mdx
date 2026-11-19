@@ -1,34 +1,27 @@
 ---
 title: "快捷道具配置"
-description: "调整props/ 道具效果、key.yml 按键与槽位设置；附字段解释、修改示例与重载步骤。"
+description: "配置道具定义、触发条件、共享冷却、按键与提示文本。"
 ---
 
-## 先改哪些内容
+## 配置文件
 
-props/ 道具效果、key.yml 按键与槽位设置。先使用默认示例完成一次测试，再按本页逐项调整。
-
-配置位置：`plugins/ArcartX-Suite/data/prop/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload prop`；涉及插件安装或全局设置的变更请重启后验证。
-
-Prop 模块的配置分散在多个文件中，模块首次启动时自动导出默认值到 `data/prop/` 目录。
+以下路径均相对于 `plugins/ArcartX-Suite/`。模块首次启动时会导出缺失的默认文件。修改 Prop 文件后执行 `/axs reload prop`。
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
-| 主配置 | `data/prop/config.yml` | 调试开关、MythicLib 前缀 |
+| 主配置 | `data/prop/config.yml` | 调试开关、MythicLib 前缀、自动触发轮询 |
 | 按键映射 | `data/prop/key.yml` | 客户端按键分类与槽位绑定 |
 | 语言文件 | `data/prop/language.yml` | 冷却、权限、条件等提示消息 |
-| 道具定义 | `data/prop/props/*.yml` | 每个文件一个道具定义 |
-| 消息文件 | `data/prop/messages.yml` | 管理命令的提示消息 |
+| 道具定义 | `data/prop/props/` | 支持子目录，每个 `.yml` 或 `.yaml` 文件定义一个道具 |
+| 消息文件 | `data/prop/messages.yml` | 管理命令、属性不可用、公式错误和槽位写入提示 |
 
 ## 主配置（`config.yml`）
-
-主配置由 `PropModuleConfiguration` 解析，包含调试开关与 MythicLib 子配置。
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
 | `config-version` | `int` | `1` | 配置版本号，由模块自动管理，不要手动修改 |
 | `settings.debug` | `boolean` | `false` | 是否输出调试日志（按键注册、使用成功、效果跳过等） |
+| `mythiclib.source-prefix` | `string` | `AXS_PROP` | MythicLib 临时属性来源的命名前缀 |
 | `auto-trigger.enabled` | `boolean` | `false` | 自动触发总开关。开启后服务端按固定间隔轮询在线玩家的快捷槽，自动使用满足触发条件的道具 |
 | `auto-trigger.interval` | `int` | `20` | 全局轮询间隔（tick，20 = 1 秒）。道具 `auto.interval` 可覆盖，但实际粒度不会比该值更细 |
 | `auto-trigger.mode` | `string` | `all` | 同轮多个槽位道具满足触发条件时的模式：`all` 全部尝试触发，`first` 第一个成功触发后停止本轮 |
@@ -45,7 +38,7 @@ mythiclib:
   # 临时属性 modifier 前缀。
   # 是否生效由本体 config.yml 的 attribute-bridges.mythiclib 统一管理。
   # 最终会生成:
-  #   <前缀>_<PROP_ID>_<STAT>
+  #   <前缀>_<道具属性组的稳定标识>_<属性 ID>
   source-prefix: "AXS_PROP"
 
 auto-trigger:
@@ -63,13 +56,14 @@ auto-trigger:
 
 ## 按键映射（`data/prop/key.yml`）
 
-按键映射配置由 `PropKeyMappingConfiguration` 解析，定义客户端按键分类名称与全部按键绑定。
+这里填写客户端按键分类与 ArcartX 额外槽位 ID。[额外槽位和界面写法](/docs/prop/keybinds#配置按键与槽位) · [MMOItems 普通按键和潜行按键示例](/docs/prop/keybinds#同一个按键触发两种技能)
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
 | `category` | `string` | `ArcartX 快捷道具按键` | 客户端按键分类显示名称，玩家在按键设置中看到的分类名 |
 | `keys.<绑定ID>.defaultKey` | `string` | `X` | 默认按键（客户端按键名，如 `Z` / `X` / `C`） |
 | `keys.<绑定ID>.slot` | `string` | `Slot1` | 绑定的道具槽位标识（`Slot1` / `Slot2` / `Slot3`...） |
+| `keys.<绑定ID>.mode` | `string` | `prop` | `prop` 使用已绑定道具，`vanilla-potion` 使用槽位里的原版药水，`mmoitems` 使用支持的 MMOItems 右键动作 |
 
 ```yaml
 # 客户端按键分类名。
@@ -92,7 +86,7 @@ keys:
 
 ## 语言文件（`data/prop/language.yml`）
 
-语言文件由 `PropLanguageConfiguration` 解析，定义道具使用受限时的提示消息。支持 `&` 颜色码和占位符。
+语言文件支持 `&` 颜色码和表中列出的占位符。`{item}` 优先使用定义的 `name`，省略时读取物品显示名。属性和公式故障提示在同目录的 `messages.yml` 中修改。
 
 | 配置项 | 占位符 | 说明 |
 |--------|--------|------|
@@ -119,93 +113,45 @@ AUTO_USED: "&7[&dArcartXProp&7]&f已自动使用 &a{item}"
 
 ## 道具定义（`data/prop/props/*.yml`）
 
-每个 YAML 文件定义一个道具，由 `PropDefinitionLoader` 解析为 `PropDefinition`。文件相对路径（去除扩展名、小写归一化）作为道具 ID。
+每个 YAML 文件定义一个道具。以 `props/` 为根取相对路径，去掉扩展名得到道具 ID。例如 `props/potions/heal.yml` 的 ID 是 `potions/heal`。查询道具时忽略大小写，同一 ID 只能定义一次。修改文件路径后，原先绑定该 ID 的物品需要重新绑定。
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `name` | `string` | 道具 ID | 道具显示名称，用于 AttributePlus 来源 ID 生成与提示消息 |
+| `name` | `string` | 物品显示名 | 道具使用提示中的名称 |
 | `coolDownGroup` | `string` | `默认冷却组` | 冷却组名称，同组道具共享冷却时间 |
-| `coolDownTime` | `int` | `10` | 冷却时长（秒） |
-| `Duration` | `int` | `10` | 效果持续时间（秒），属性类效果到期后自动移除 |
+| `coolDownTime` | `int` | `10` | 冷却秒数，`0` 表示该次使用无冷却 |
 | `remove` | `boolean` | `true` | 使用后是否消耗一个物品 |
 | `hand` | `boolean` | `true` | 是否允许手持右键使用 |
 | `key` | `boolean` | `true` | 是否允许客户端按键触发 |
 | `permission` | `string` | `""` | 使用所需权限节点，留空表示无限制 |
-| `conditions` | `list<string>` | `[]` | 使用条件列表，全部满足才可使用（AND 逻辑） |
-| `effects` | `list<string>` | `[]` | 效果列表，每行格式为 `type\|payload` |
+| `conditions` | 列表或配置节 | `[]` | 手持、按键和自动触发都要满足的条件 |
+| `effects` | 配置节 | 必填 | 即时效果、药水和属性组。只需填写道具用到的字段 |
 | `auto.enabled` | `boolean` | `false` | 是否启用自动触发（整节可省略）。独立于 `hand` / `key` 开关 |
 | `auto.interval` | `int` | `0` | 该道具的检查间隔（tick）；`0` 或缺省表示使用全局 `auto-trigger.interval` |
 | `auto.notify` | `boolean` | `true` | 自动使用成功时是否给玩家发送 `AUTO_USED` 提示 |
-| `auto.conditions` | `list<string>` | `[]` | 触发条件列表，格式与 `conditions` 一致，全部满足才尝试使用 |
+| `auto.conditions` | 列表或配置节 | `[]` | 自动触发额外需要满足的条件 |
 
-> `coolDownGroup` 为空时会回退为 `默认冷却组` 并输出警告日志。`coolDownTime` 和 `Duration` 的负值会被归零。
+> `coolDownGroup` 为空时会回退为 `默认冷却组` 并输出警告日志。`coolDownTime` 的负值会归零。
 
-> 自动触发只检测 `key.yml` 中已配置的快捷槽物品。触发条件满足后仍要经过冷却、`permission` 与 `conditions` 校验，失败一律静默跳过（不发送提示）；`remove` 消耗语义与手动使用一致。
+自动触发扫描 `key.yml` 指向的额外槽位。开启方式、扫描顺序与急救包示例见[自动触发](/docs/prop/keybinds#自动触发)。
 
 ### 效果格式
 
-效果行以 `|` 分隔类型和载荷，共支持 10 种类型：
-
-| 格式 | 说明 |
-|------|------|
-| `cmd\|<命令>` | 以控制台身份执行命令，支持 `{player}` 变量（玩家名经安全校验） |
-| `msg\|<消息>` | 给玩家发送消息，支持 `&` 颜色码和 `{player}` 变量 |
-| `food\|<数量>` | 恢复饱食度，上限 20 |
-| `health\|<数量>` | 恢复生命值，上限为玩家最大生命值 |
-| `exp\|<数量>` | 增加经验值 |
-| `healthPercent\|<百分比>` | 按最大生命值百分比恢复生命值 |
-| `potion\|<效果>:<等级>` | 附加药水效果，持续 `Duration` 秒 |
-| `ap\|<属性>:<值>` | 附加 AttributePlus 属性词条，持续 `Duration` 秒后自动移除 |
-| `ml\|<属性>:<值>` | 附加 MythicLib 临时属性 modifier，持续 `Duration` 秒 |
-| `mythiclib\|<属性>:<值>` | 同 `ml`，完整前缀写法 |
-| `sy\|<属性>:<值>` | 附加 Symphony 属性修改，持续 `Duration` 秒 |
-| `symphony\|<属性>:<值>` | 同 `sy`，完整前缀写法 |
-
-> 药水效果兼容映射：`SLOW` → `SLOWNESS`、`FAST_DIGGING` → `HASTE`、`SLOW_DIGGING` → `MINING_FATIGUE`、`INCREASE_DAMAGE` → `STRENGTH`、`JUMP` → `JUMP_BOOST`、`CONFUSION` → `NAUSEA`、`HEAL` → `INSTANT_HEAL`、`HARM` → `INSTANT_DAMAGE`、`DAMAGE_RESISTANCE` → `RESISTANCE`。
+在 `effects` 中按字段配置即时效果，在 `potions` 和 `attributes` 中分别配置药水和属性组。每项药水和每个属性组都需要自己的 `duration`，单位为秒。字段说明和 TaCZ 示例见[效果系统](/docs/prop/effects)。
 
 ### 条件格式
 
-条件使用 Suite 统一条件系统，支持 PAPI / ARIA / JS / CONTEXT 四种类型。最常用的是 PAPI 条件：
-
-```
-<PAPI变量> <运算符> <期望值>
-```
-
-支持运算符：`==` `!=` `>=` `<=` `>` `<` `contains` `regex`
-
-详细语法请参考 [条件系统](/docs/guide/conditions)。
-
-### 主配置示例
+多个条件需要全部满足。可以把 PAPI 比较和 Aria 条件放在同一列表里。例如设置道具需在 `world` 使用，并要求原版经验等级达到 5：
 
 ```yaml
-config-version: 1
-
-settings:
-  debug: true
-
-mythiclib:
-  source-prefix: "AXS_PROP"
+conditions:
+  - "%player_world% == world"
+  - "aria: global.player.getLevel() >= 5"
 ```
 
-### 按键映射示例
+Prop 道具条件中的 Aria 通过 `global.player` 访问玩家。属性 `amount` 公式使用自己的 `global.stats` 和 `global.level`。PAPI 比较支持 `==`、`!=`、`>=`、`<=`、`>`、`<`、`contains` 和 `regex`，需要对应的占位符扩展。列表也可用结构化条件对象，字段见[条件系统](/docs/guide/conditions)。
 
-```yaml
-category: "ArcartX 快捷道具按键"
-
-keys:
-  快捷道具1:
-    defaultKey: "Z"
-    slot: Slot1
-  快捷道具2:
-    defaultKey: "X"
-    slot: Slot2
-  快捷道具3:
-    defaultKey: "C"
-    slot: Slot3
-  快捷道具4:
-    defaultKey: "V"
-    slot: Slot4
-```
+若条件无法解析，`conditions` 会使该道具无法加载，`auto.conditions` 会停用该道具的自动触发。重载日志会给出文件或道具 ID。
 
 ### 道具定义示例
 
@@ -214,7 +160,6 @@ keys:
 name: "治疗药水"
 coolDownGroup: "治疗冷却组"
 coolDownTime: 30
-Duration: 10
 remove: true
 hand: true
 key: true
@@ -224,19 +169,25 @@ conditions:
   - "%player_level% >= 5"
   - "%player_health% < 20"
 
-# 自动触发：生命值低于 30% 时自动使用（需全局 auto-trigger.enabled 开启）
+# 自动触发：当前生命值低于 8 点时尝试使用（需开启全局自动触发）
 auto:
   enabled: true
   interval: 20
   notify: true
   conditions:
-    - "%player_health% < 30"
+    - "%player_health% < 8"
 
 effects:
-  - "potion|REGENERATION:2"
-  - "health|10"
-  - "msg|&a你使用了治疗药水！"
-  - "cmd|say {player} 使用了治疗药水"
+  health:
+    points: 10
+  potions:
+    - id: minecraft:regeneration
+      level: 2
+      duration: 10
+  messages:
+    - "&a你使用了治疗药水！"
+  commands:
+    - "say {player} 使用了治疗药水"
 ```
 
 ### 属性道具示例
@@ -246,7 +197,6 @@ effects:
 name: "力量卷轴"
 coolDownGroup: "增益冷却组"
 coolDownTime: 60
-Duration: 30
 remove: true
 hand: false
 key: true
@@ -255,12 +205,16 @@ permission: ""
 conditions: []
 
 effects:
-  - "ml|ATTACK_DAMAGE:5"
-  - "mythiclib|critical_damage:8"
-  - "ap|物理伤害:10"
-  - "sy|ATTACK_DAMAGE:5"
-  - "symphony|ATTACK_SPEED:10%"
-  - "potion|STRENGTH:1"
+  attributes:
+    mythiclib:
+      damage:
+        duration: 30
+        modifiers:
+          - id: ATTACK_DAMAGE
+            amount: 5
+  potions:
+    - id: minecraft:strength
+      duration: 10
 ```
 
 ### 消息文件示例
@@ -268,6 +222,12 @@ effects:
 ```yaml
 # data/prop/messages.yml
 prefix: "&3◆ &6ArcartXSuite &7| &r"
+
+use:
+  effect-provider-unavailable: "&c道具效果依赖的 {0} 当前不可用，道具未消耗。"
+  attribute-unavailable: "&c当前角色的属性 {0} 不可用，道具未消耗。"
+  amount-unavailable: "&c道具的属性数值无法计算，道具未消耗。"
+  slot-update-failed: "&c无法确认道具槽位已更新，道具效果未触发。"
 
 common:
   service-down: "&c服务未启动。"
@@ -284,10 +244,14 @@ status:
   keys: "&7Key: &f{0}"
   ap: "&7AP: &f{0}"
   mythiclib: "&7MythicLib: &f{0}"
+  craneattribute: "&7CraneAttribute: &f{0}"
+  symphony: "&7Symphony: &f{0}"
+  mod-attributes: "&7Mod Attributes: &f{0}"
 
 set:
   no-item: "请先手持一个物品。"
   invalid-id: "道具 ID 不存在: {0}"
+  bind-failed: "无法把道具 ID 写入手中物品。"
   success: "已将手中物品设置为道具 {0}。"
   only-player: "&c此命令只能由玩家执行。"
   usage: "&e用法: /axs prop set <道具ID>"

@@ -59,8 +59,7 @@ CombatEffect 模块的配置文件位于模块数据目录下，首次启动时�
 | `combo-tracker.source` | string | `auto` | 连击来源：`auto` / `chronos` / `bukkit` |
 | `combo-tracker.timeout` | long | `2000` | 连击超时重置时间（毫秒），最小 200 |
 | `combo-tracker.chronos-groups` | `List<String>` | `["攻击", "连击"]` | Chronos 状态组过滤，仅这些组的状态进入才计为连击 |
-| `combo-tracker.sync-variable` | boolean | `true` | 是否同步连击数到客户端服务器变量 |
-| `combo-tracker.variable-name` | string | `combo_count` | 客户端变量名，UI 可通过 `{server.combo_count}` 引用 |
+| `combo-tracker.sync-variable` | boolean | `true` | 向默认 HUD 推送实时连击数 |
 | `combo-tracker.per-target` | boolean | `false` | 切换攻击目标是否重置连击 |
 | `combo-tracker.debug` | boolean | `false` | 是否开启连击追踪调试日志 |
 
@@ -74,8 +73,8 @@ CombatEffect 模块的配置文件位于模块数据目录下，首次启动时�
 | `death-buffer.visuals.third-person-camera` | boolean | `true` | 是否切换到第三人称视角 |
 | `death-buffer.visuals.camera-preset` | string | `""` | ArcartX 预设相机 ID（电影级俯拍） |
 | `death-buffer.visuals.chronos.enabled` | boolean | `false` | 是否启用 Chronos 状态切换 |
-| `death-buffer.visuals.chronos.state-id` | string | `死亡` | 强制玩家进入的 Chronos 状态 ID |
-| `death-buffer.block-auto-respawn` | boolean | `true` | 缓冲期间阻止其他插件触发的自动复活 |
+| `death-buffer.visuals.chronos.state-id` | string | `死亡` | 尝试进入的受控状态 ID，需在当前控制器中定义，受霸体窗口限制 |
+| `death-buffer.abyss-packet-id` | string | `""` | Abyss 倒地后向玩家发送的特效包 ID。留空关闭发包 |
 | `death-buffer.world-blacklist` | `List<String>` | `[]` | 不启用死亡缓冲的世界列表 |
 | `death-buffer.debug` | boolean | `false` | 是否开启死亡缓冲调试日志 |
 
@@ -192,7 +191,6 @@ combo-tracker:
     - "攻击"
     - "连击"
   sync-variable: true
-  variable-name: "combo_count"
   per-target: false
   debug: false
 
@@ -206,7 +204,7 @@ death-buffer:
     chronos:
       enabled: false
       state-id: "死亡"
-  block-auto-respawn: true
+  abyss-packet-id: ""
   world-blacklist: []
   debug: false
 

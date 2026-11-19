@@ -37,17 +37,25 @@ description: "地图与传送锚点可用命令、参数填写方式和权限要
 | `/axs map list` | 列出已配置的世界 |
 | `/axs map anchors [世界ID]` | 列出已配置的锚点，可按世界过滤 |
 | `/axs map unlock <玩家> <锚点ID>` | 为在线玩家免费解锁锚点（跳过付费/距离门槛） |
+| `/axs map unlock-review <预约编号> inspect` | 查看待核对预约的玩家、锚点、原服和时间 |
+| `/axs map unlock-review <预约编号> confirm` | 确认原预约费用已扣除，并为玩家完成解锁 |
+| `/axs map unlock-review <预约编号> cancel` | 确认费用未扣除或已全额退回后，撤销原预约 |
 | `/axs map refresh <世界ID>` | 刷新该世界的预加载版本号，客户端下次同步时自动重拉地形 |
 
 ### Tab 补全
 
 | 参数位置 | 补全内容 |
 |---|---|
-| 第 2 参数 | `help` / `status` / `open` / `list` / `anchors` / `unlock` / `refresh` |
+| 第 2 参数 | `help` / `status` / `open` / `list` / `anchors` / `unlock` / `unlock-review` / `refresh` |
 | 第 3 参数（`open` / `unlock`） | 在线玩家名 |
 | 第 3 参数（`anchors` / `refresh`） | 已配置的世界 ID 列表 |
 | 第 4 参数（`open`） | 已配置的世界 ID 列表 |
 | 第 4 参数（`unlock`） | 已配置的锚点 ID 列表 |
+| 第 4 参数（`unlock-review`） | `inspect` / `confirm` / `cancel` |
+
+### 按预约编号核对付费解锁
+
+请先向玩家索取提示里的预约编号，用 `inspect` 核对玩家、锚点和交易时间。确认费用已扣除，在发起解锁的游戏服执行 `confirm`。确认未扣费或费用已全额退回时，在原服执行 `cancel`。结案只处理该编号的预约，费用仍无法确认时保留预约。
 
 ### status 输出
 
@@ -68,8 +76,9 @@ description: "地图与传送锚点可用命令、参数填写方式和权限要
 |---|---|---|
 | `arcartxsuite.map.use` | 所有玩家 | 使用 `/map` 玩家命令的权限 |
 | `arcartxsuite.map.admin` | OP | 路径点/标记点上限提升等管理权限 |
+| `arcartxsuite.admin` | OP | 使用付费解锁预约的查询与结案命令 |
 
-> 管理命令通过 `/axs` 主命令的权限控制，无需额外权限节点。锚点的使用权限通过锚点定义的 `permission` 字段单独控制。
+> 管理命令通过 `/axs` 主命令的权限控制。锚点的使用权限通过锚点定义的 `permission` 字段单独控制。
 
 ## 客户端 Mod 要求
 

@@ -30,6 +30,8 @@ public interface MapAnchorUnlockable {
 
     @NotNull CompletableFuture<Boolean> unlock(@NotNull Player player, @NotNull String anchorId);
 
+    @NotNull CompletableFuture<Boolean> ensureUnlocked(@NotNull Player player, @NotNull String anchorId);
+
     @NotNull CompletableFuture<Boolean> tryUnlock(@NotNull Player player, @NotNull String anchorId);
 }
 ```
@@ -40,9 +42,12 @@ public interface MapAnchorUnlockable {
 | --- | --- | --- | --- |
 | `unlock` | 免费强制解锁锚点（跳过付费与距离门槛，仍校验锚点存在性/已解锁态）。 适用：任务完成奖励、活动发放、管理指令等"系统授予"场景。 不消耗 `unlock.currencies`/`unlock.items`。 | `player`：目标玩家（须在线）；`anchorId`：锚点 id | 解锁结果 future：`true` 本次新解锁；`false` 已解锁/锚点不存在/玩家离线 |
 | `tryUnlock` | 走完整正常解锁流程（等价玩家在地图菜单点击"解锁"）。 校验 permission、`unlock.radius` 三维距离门槛，并收取 `unlock.currencies`/`unlock.items`。失败时玩家会收到原因消息。 | `player`：目标玩家（须在线）；`anchorId`：锚点 id | 解锁结果 future：`true` 本次新解锁 |
+| `ensureUnlocked` | 免费确保玩家拥有指定锚点，适合可重试的任务奖励。 | `player`：在线玩家；`anchorId`：锚点 ID | `true` 表示已经拥有或本次解锁已保存；`false` 表示无法完成 |
 
 ## 调用注意事项
 
 返回 `CompletableFuture` 的方法使用回调处理结果，不要在 Bukkit 主线程调用 `join()` 或 `get()`。回调中如需操作 Bukkit 玩家、世界或物品，将相应操作切回主线程。
 
-先配置锚点 ID，再调用接口。Future 完成后再判断结果，返回 true 表示本次新解锁已完成。返回 false 时保留原业务状态，并处理已解锁、条件不符、玩家离线、操作繁忙或存储失败等情况。调用方也应处理 Future 异常。
+先配置锚点 ID，再调用接口。`unlock` 和 `tryUnlock` 的 `true` 表示本次新解锁；`ensureUnlocked` 的 `true` 也包括已拥有锚点。奖励请求需要重试时使用 `ensureUnlocked`，避免把已拥有误判为发奖失败。返回 `false` 或异常时保留待处理记录，并按实际原因处理玩家离线、条件不符、操作繁忙或存储失败。
+
+付费解锁在费用确认并保存解锁后才返回成功。锚点已有待核对申请时，等待管理员核对原申请再继续。 [锚点解锁条件](/docs/map/anchors#解锁条件)

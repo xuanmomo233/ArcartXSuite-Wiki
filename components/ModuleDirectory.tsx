@@ -1,12 +1,12 @@
 'use client';
 import { useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Search, X, Palette, PackageOpen, Megaphone, LogIn, Gift, Swords, Workflow, Wand2, Wrench, MapPin, Coffee, MessageSquareText, Award, MessagesSquare, Mail, Warehouse, Navigation, Map, ShoppingBag, Users, PanelsTopLeft, Fish, Sparkles, Flag, List, Pickaxe, Skull, type LucideIcon } from 'lucide-react';
+import { ArrowUpRight, Search, X, PackageOpen, Megaphone, LogIn, Gift, Swords, Workflow, Wand2, Wrench, MapPin, Coffee, MessageSquareText, Award, MessagesSquare, Mail, Warehouse, Navigation, Map, ShoppingBag, Users, PanelsTopLeft, Fish, Sparkles, Flag, List, Pickaxe, Skull, type LucideIcon } from 'lucide-react';
 import { modules, taskGroups } from '@/lib/modules';
 import { searchTerms } from '@/lib/wiki-search';
 
 const moduleIcons: Record<string, LucideIcon> = {
-  rgb: Palette, pickup: PackageOpen, announcer: Megaphone, loginview: LogIn,
+  pickup: PackageOpen, announcer: Megaphone, loginview: LogIn,
   onlinerewards: Gift, combateffect: Swords, eventpacket: Workflow, prop: Wand2,
   essentials: Wrench, regions: MapPin, afkreward: Coffee, tooltip: MessageSquareText,
   title: Award, conversation: MessagesSquare, mail: Mail, warehouse: Warehouse,

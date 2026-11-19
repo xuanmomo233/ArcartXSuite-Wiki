@@ -15,6 +15,8 @@ description: "邮箱可用命令、参数填写方式和权限要求。"
 | `/mail deleteall` | `arcartxsuite.mail.use` | 一键删除所有可删除邮件 |
 | `/mail cdk <兑换码>` | `arcartxsuite.mail.use` | 兑换 CDK |
 
+领取期间需要重新验证身份时，本次领取会暂停。完成验证后，可继续领取剩余内容，已执行的步骤继续记录领取进度。
+
 > **CDK 兑换权限**：当 `cdk.require-permission` 设为 `true` 时，CDK 兑换还需 `arcartxsuite.mail.cdk` 权限。
 
 > **写信权限**：当 `player-send.require-permission` 设为 `true` 时，写信还需 `arcartxsuite.mail.send` 权限。

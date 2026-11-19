@@ -15,6 +15,8 @@ description: "面向 Bukkit 插件作者的接入教程、调用示例与公开 
 
 ## 按业务找接口
 
+外部聊天连接器可使用 [ChatExternalRelay](/docs/api/ChatExternalRelay) 提交审核与投递；管理面板可使用 [ChatModerationAccess](/docs/api/ChatModerationAccess) 查询审核回执和举报。
+
 | 接口 | 提供模块 | 用途 |
 | --- | --- | --- |
 | [副本队伍管理接口](/docs/api/AbyssPartyAccess)<br />`AbyssPartyAccess` | abyss | 管理副本队伍、成员与自定义组队模式 |
@@ -52,14 +54,15 @@ description: "面向 Bukkit 插件作者的接入教程、调用示例与公开 
 | [在线奖励与签到接口](/docs/api/OnlineRewardsQueryable)<br />`OnlineRewardsQueryable` | onlinerewards | 查询与操作签到、在线奖励 |
 | [拾取拦截接口](/docs/api/PickupInterceptor)<br />`PickupInterceptor` | pickup | 查询拾取处理方式 |
 | [拾取提示接口](/docs/api/PickupNotifiable)<br />`PickupNotifiable` | pickup | 推送拾取提示 |
-| [快捷道具接口](/docs/api/PropAccessible)<br />`PropAccessible` | prop | 查询道具并应用到主手物品 |
+| [快捷道具接口](/docs/api/PropAccessible)<br />`PropAccessible` | prop | 查询道具并绑定玩家的主手物品 |
 | [账号绑定接口](/docs/api/BindingService)<br />`BindingService` | Suite 宿主 | 查询与管理 QQ 绑定 |
 | [群消息播报接口](/docs/api/QQBotBroadcastable)<br />`QQBotBroadcastable` | qqbot | 向配置的群发送消息 |
 | [群消息投递回执接口](/docs/api/QQBotDelivery)<br />`QQBotDelivery` | qqbot | 获取群通知的异步回执与部分发送结果 |
 | [群事件订阅接口](/docs/api/QQBotNotifiable)<br />`QQBotNotifiable` | qqbot | 接收群消息通知 |
 | [任务接取与追踪接口](/docs/api/QuestGpsNavigable)<br />`QuestGpsNavigable` | questgps | 打开任务菜单、接取与追踪任务 |
-| [区域规则查询接口](/docs/api/RegionQueryable)<br />`RegionQueryable` | regions | 查询位置所在区域与区域规则 |
-| [渐变文本渲染接口](/docs/api/RgbRenderable)<br />`RgbRenderable` | rgb | 渲染渐变文字 |
+| [区域范围查询接口](/docs/api/RegionQueryable)<br />`RegionQueryable` | regions | 枚举命中的有界区域与直接所有者数量 |
+| [区域保护判定接口](/docs/api/RegionProtectionQueryable)<br />`RegionProtectionQueryable` | regions | 查询有效旗标、来源和稳定区域边界 |
+| [区域聊天判定接口](/docs/api/RegionChatAccess)<br />`RegionChatAccess` | regions | 检查公共聊天发送者和接收者的区域规则 |
 | [事件信号接口](/docs/api/SignalDispatchable)<br />`SignalDispatchable` | eventpacket | 触发配置的业务信号 |
 | [字幕播放接口](/docs/api/SubtitlePlayable)<br />`SubtitlePlayable` | announcer | 向玩家播放字幕组 |
 | [在线列表刷新接口](/docs/api/TabRefreshable)<br />`TabRefreshable` | tab | 刷新在线列表 |

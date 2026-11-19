@@ -33,7 +33,7 @@ description: "设置满背包自动入库，处理工作台剩余材料和异常
 
 ## 异常取料怎样处理
 
-使用[配方填入](/docs/vanilla/recipe-book)从仓库取材料时，系统保存材料转移记录。中断后，能够确认尚未交付的材料会尝试退回仓库；无法确认是否已经放入工作台或熔炉的记录会保留待管理员核对，不自动补发。
+使用[配方填入](/docs/vanilla/recipe-book)或 [NPC 兑换](/docs/market/npc-exchange)从仓库取材料时，系统保存材料转移记录。仍在进行的交易会继续保留材料预留。交易中断后，能够确认尚未交付的材料会尝试退回仓库，交付结果不明的记录会保留待管理员核对。
 
 | 状态 | 管理员查看时的含义 |
 | --- | --- |
@@ -56,7 +56,7 @@ description: "设置满背包自动入库，处理工作台剩余材料和异常
 /axs warehouse material-confirm <玩家UUID或在线名> <凭证UUID> confirm
 ```
 
-1. 使用 `material-transfers` 查询待处理记录，列表最多显示 50 条。
+1. 使用 `material-transfers` 查询待处理记录，列表最多显示 50 条。已记录交付的 `APPLIED` 凭证在转为 `REVIEW` 后会出现在列表中。已知凭证 UUID 时可直接导出详情。
 2. 选定凭证 UUID，使用 `material-evidence` 导出详情。文件位于 `plugins/ArcartX-Suite/data/warehouse/material-transfer-evidence/`，包含材料、数量、目标容器和相关槽位的变化。
 3. 核对玩家背包、仓库与对应容器中的实际物品。需要补偿时，由管理员另行处理，避免重复发放。
 4. 处理完成后，对 `REVIEW` 记录执行 `material-confirm ... confirm` 结案。**结案命令不会发放或退回物品。**

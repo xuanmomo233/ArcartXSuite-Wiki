@@ -35,10 +35,17 @@ Chat 模块支持四种频道模式：
 | 全局 | `global` | `true` | 全服公共频道，跨服广播 |
 | 私聊 | `private` | `false` | 一对一私聊，`/msg` 与 `/reply` 复用此频道格式 |
 | 管理 | `staff` | `true` | 管理员内部频道，仅限有权限的玩家发送与接收 |
+| 小队 | `party` | `false` | 同一 Abyss 小队成员收发。默认频道 ID 为 `party` |
 
 <Callout type="info">
-`cross-server` 字段未显式配置时，`global` 和 `staff` 模式默认开启跨服同步，`normal` 和 `private` 模式默认关闭。无法识别的 `mode` 值按 `normal` 处理。
+`cross-server` 字段未显式配置时，`global` 和 `staff` 模式默认开启跨服同步。带距离范围的附近频道和小队频道仅在本服收发。拼错模式、管理频道缺少收发权限或填写非法距离时，服务器会跳过该频道并记录原因。
 </Callout>
+
+## 区域禁发与禁收
+
+启用 Regions 时，公共频道发送前检查发送者当前位置的 `send-chat`，投递给本服接收者前检查其当前位置的 `receive-chat`。频道收发权限、范围和其他聊天限制仍按频道配置检查。
+
+配置示例见[世界规则的公共聊天说明](/docs/regions/world-rules#禁发与禁收公共聊天)。自定义公共聊天接入可调用[区域聊天判定接口](/docs/api/RegionChatAccess)。
 
 ## 频道定义字段
 
@@ -114,11 +121,20 @@ spy-format: "&5[监听 {player_name} -> {target_name}] &r{message}"
 
 ## 跨服同步
 
-频道配置 `cross-server: true` 后开启跨服消息转发，私聊与频道消息均可跨服送达，消息自动去重不会重复展示。
+1. 将参与跨服的游戏服接入同一个 MySQL 数据库。在各自的 Suite 主配置中为 `cross-server.node-id` 设置不同的值，例如 `lobby` 和 `survival`。 [MySQL 配置](/docs/guide/first-run#使用-mysql)
+2. 在各服 `plugins/ArcartX-Suite/data/chat/config.yml` 中合并以下设置。
 
-<Callout type="info">
-跨服转发需要Suite `config.yml` 的 `cross-server` 节配置 Redis 或 Proxy 后端，单服无需开启。详见 [跨服部署](/docs/guide/cross-server-setup)。
-</Callout>
+```yaml
+storage:
+  shared: true
+cross-server:
+  enabled: true
+```
+
+3. 在各服 `chat/channels/Global.yml` 中设置 `enabled: true` 和 `cross-server: true`。需要跨服私聊时，在 `Private.yml` 中也启用这两个字段。各节点的频道 ID、模式和接收条件应一致。附近频道和小队频道在本服收发。
+4. 重启后，让两个账号各进一台游戏服。用 `/chat channel global` 切换到全服频道后双向发消息，再测试 `/msg <玩家> <消息>` 和 `/reply <消息>`。
+
+普通消息、私聊及红包同步可使用共享 MySQL。序列化后超过 32,767 字节的聊天消息需要通过 Redis 投递。 [Redis 配置](/docs/guide/cross-server-setup#用-redis-连接两台服)
 
 ## 频道切换
 

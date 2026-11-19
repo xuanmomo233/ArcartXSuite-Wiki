@@ -39,6 +39,13 @@ Chat 模块提供完整的管理与审核工具链，包括禁言管理、社交
 - 被禁言玩家发言时会收到系统提示（聊天卡片或文本消息），显示剩余时间与原因
 - 禁言记录包含操作者、原因与过期时间，过期后自动解除
 - 其他模块（如 Essentials）可委托 Chat 执行禁言/解禁与查询
+- 禁言和解禁成功后会返回处置回执。使用 `/axs chat receipt <回执ID>` 查看节点、操作者及时间，或使用 `/axs chat mutehistory <玩家>` 查看最近处置
+
+## 举报消息
+
+玩家先用 `/chat history [频道]` 查看本次会话中最近可见的消息，再用 `/chat report <编号> <原因>` 提交。举报记录会保留相关消息和原因，供有审核权限的人员处理。
+
+管理员用 `/axs chat reports` 列出待处理举报，附上举报 ID 可以看详情。处理完成后执行 `/axs chat closereport <举报ID>`。已启用 Essentials 时也可通过 `/axs essentials chatreview <mutehistory|receipt|reports|closereport> [参数]` 使用相同的审核入口。
 
 ## 社交监听
 

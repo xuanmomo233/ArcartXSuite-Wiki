@@ -199,6 +199,8 @@ trial_chest_click:
 
 自动奖励和已确认领取的宝箱物品由 Suite 宿主保存到待发放服务，再执行到账。已经保存的奖励可由宿主重试补发。玩家结算前离线时，仍要先判断该玩家是否有资格并登记奖励，待发放服务只处理已登记的记录。
 
+数据库暂时不可用且控制台提示奖励已保存到恢复日志时，请保留这笔记录。数据库恢复后，玩家回到登记奖励的子服触发补发。
+
 结算统计、终局凭据和到账状态分别记录。章节等外部模块可通过 `AbyssRunResultAccess.result(runId)` 查询终局，或用 `committedResults(owner, afterSequence, limit)` 按提交顺序补查。收到 `axs.abyss.result_committed` 时也应按 ID 回查凭据，外部账本按业务规则判定资格。 [终局结果接口](/docs/api/AbyssRunResultAccess)
 
 AXS 模块可通过公开的待发放奖励服务 `PendingRewardService`，使用 `savePendingBatchConfirmed(requestKey, rewards)` 登记完整批次。建议以「结果 ID、玩家 UUID、奖励类型」构造稳定操作键，并保存抽取后的内容。重试时复用同一键和同一内容，避免重抽。返回 `true` 表示宿主已持久接受该批奖励，实际到账仍由宿主处理。返回 `false` 时，发放责任仍由调用方保留。

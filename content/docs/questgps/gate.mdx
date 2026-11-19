@@ -100,14 +100,7 @@ EventPacket 模块在触发规则前，可调用 `QuestGpsNavigable.eventRuleLoc
 
 ### 规则 ID 约定
 
-`blocked-event-rule-ids` 中的 ID 与 `data/eventpacket/rules/*.yml` 的根键一致，示例：
-
-| 规则 ID | 规则文件 | 说明 |
-|---|---|---|
-| `first_join_offer_mainline` | `rules/examples.yml` | 首次进服推送主线任务 |
-| `kill_zombie_trigger_encounter` | `rules/examples.yml` | 击杀僵尸累计触发奇遇 |
-
-> 规则 ID 由 EventPacket 模块定义，QuestGPS 仅负责存储和查询。
+`blocked-event-rule-ids` 填 EventPacket 主配置 `rules` 下的规则 ID，例如 `trial-open-message`。 [规则配置](/docs/eventpacket/configuration)
 
 ## 拦截提示
 

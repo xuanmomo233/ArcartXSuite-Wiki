@@ -21,7 +21,7 @@ description: "通过封禁、禁言、踢出、警告等命令管理玩家。"
 
 ### 永久封禁（ban）
 
-`/ess ban <玩家> [原因]` 记录永久封禁，踢出在线玩家并广播。踢出界面使用 `moderation.ban-message`。开启 `moderation.record-ban-ip` 时会同时记录在线玩家 IP。
+`/ess ban <玩家名或 UUID> [原因]` 按 UUID 记录永久封禁，踢出在线玩家并广播。已知离线玩家也可封禁，历史玩家名对应多个账号时请指定 UUID。封禁提示使用 `moderation.ban-message`。开启 `moderation.record-ban-ip` 时会同时记录在线玩家 IP。
 
 ### 临时封禁（tempban）
 
@@ -29,9 +29,11 @@ description: "通过封禁、禁言、踢出、警告等命令管理玩家。"
 
 ### 解除封禁（unban）
 
-`/ess unban <玩家>` 删除封禁记录。命令仅对在线玩家生效，离线玩家需通过管理员面板的 unban 操作（按 UUID 解除）。
+`/ess unban <玩家名或 UUID>` 删除封禁记录，支持离线玩家。输入封禁记录中的玩家名即可，遇到同名记录时请使用 UUID。管理员面板按 UUID 解封。临时封禁到期后玩家可再次连接。
 
-这组命令记录封禁并处理当前在线连接。需要拦截玩家再次连接时，由服务器的封禁准入功能处理。
+### 处罚历史
+
+用 `/ess banhistory <玩家名或 UUID> [页码]` 查询永久封禁、临时封禁、解封、到期、警告和自动封禁，需要 `axs.essentials.banhistory`。管理面板封禁行的「历史」按钮会在聊天栏显示记录。历史从启用此功能后的操作开始记账。
 
 ## 禁言系统
 
@@ -63,7 +65,7 @@ moderation:
 
 ## 强制执行（sudo）
 
-`/ess sudo <玩家> <命令>` 强制目标玩家执行命令，命令以 `/` 开头时自动去除前缀：
+`/ess sudo <玩家> <命令>` 以目标玩家的身份执行命令。玩家对其他人使用时，还需要 `axs.essentials.sudo.others`。服务端记录执行者、目标和命令名。
 
 ```text
 /ess sudo Steve /spawn
@@ -72,7 +74,7 @@ moderation:
 
 ## 背包查看（inv）
 
-`/ess inv <玩家>` 打开目标玩家背包界面，支持实时双向同步修改，详见 [玩家管理](/docs/essentials/player-management)。
+`/ess inv <玩家>` 打开只读背包界面。需要修改时，使用 `/ess inv <玩家> edit` 并授予 `axs.essentials.inv.edit`。详见[玩家管理](/docs/essentials/player-management)。
 
 > 仅对在线玩家生效，且需要执行者为玩家。
 
@@ -88,7 +90,7 @@ moderation:
 | `s` | 秒 | `45s` = 45 秒 |
 | 无后缀 | 秒 | `3600` = 3600 秒 |
 
-> 解析失败时回退为 1 小时。
+时长必须为正整数。格式无效、时长为零或数值超出范围时，命令会拒绝操作。
 
 ## 管理员面板
 
@@ -99,5 +101,7 @@ moderation:
 | 玩家列表 | 踢出 | `axs.essentials.kick` |
 | 封禁列表 | 封禁 / 解除（按 UUID） | `axs.essentials.ban` / `axs.essentials.unban` |
 | 禁言列表 | 禁言 / 解除 | `axs.essentials.mute` / `axs.essentials.unmute` |
+| 传送点 | 设置 / 删除 | `axs.essentials.setwarp` / `axs.essentials.delwarp` |
+| 世界管理 | 时间 / 天气 / 设置出生点 | `axs.essentials.time` / `axs.essentials.weather` / `axs.essentials.setspawn` |
 
 > 更多关于 UI 配置文件编写与图标显示，请参考 [图标配置](/docs/guide/icons)。

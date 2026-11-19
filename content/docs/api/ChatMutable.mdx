@@ -29,15 +29,15 @@ if (api == null) {
 public interface ChatMutable {
 
     @NotNull
-    String mutePlayer(@NotNull String playerName, @Nullable Instant expiresAt, @Nullable String reason, @Nullable String mutedBy);
+    CompletionStage<String> mutePlayer(@NotNull String playerName, @Nullable Instant expiresAt, @Nullable String reason, @Nullable String mutedBy);
 
     @NotNull
-    String unmutePlayer(@NotNull String playerName);
+    CompletionStage<String> unmutePlayer(@NotNull String playerName, @NotNull String operator);
 
-    boolean isMuted(@NotNull UUID playerUuid);
+    @NotNull CompletionStage<Boolean> isMuted(@NotNull UUID playerUuid);
 
     @NotNull
-    List<MuteInfo> listMutes();
+    CompletionStage<List<MuteInfo>> listMutes(int limit, int offset);
 
     record MuteInfo(
         @NotNull UUID playerUuid,
@@ -46,7 +46,9 @@ public interface ChatMutable {
         @Nullable String reason,
         @Nullable Instant createdAt,
         @Nullable Instant expiresAt
-    ) {}
+    ) {
+        public boolean isPermanent() { return expiresAt == null; }
+    }
 }
 ```
 
@@ -54,11 +56,13 @@ public interface ChatMutable {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
-| `mutePlayer` | 禁言指定玩家。 | `playerName`：目标玩家名称；`expiresAt`：过期时间，null 表示永久禁言；`reason`：禁言原因，可为 null；`mutedBy`：执行者名称，可为 null | 操作结果消息（成功或失败原因） |
-| `unmutePlayer` | 解除指定玩家的禁言。 | `playerName`：目标玩家名称 | 操作结果消息（成功或失败原因） |
-| `isMuted` | 查询玩家是否当前处于禁言状态。 | `playerUuid`：目标玩家 UUID | 是否被禁言 |
-| `listMutes` | 列出当前所有处于生效状态的禁言记录。 仅返回缓存中未过期的禁言记录。离线玩家的禁言可能不在缓存中， 调用方不应将此结果视为完整的持久化禁言列表。 | 无参数 | 禁言信息列表，无禁言时返回空列表 |
+| `mutePlayer` | 禁言指定玩家。 | `playerName`：目标玩家名称；`expiresAt`：过期时间，null 表示永久禁言；`reason`：禁言原因，可为 null；`mutedBy`：执行者名称，可为 null | 异步返回操作结果消息（成功或失败原因） |
+| `unmutePlayer` | 解除指定玩家的禁言。 | `playerName` 为目标玩家名称，`operator` 为执行者 | 异步返回操作结果消息（成功或失败原因） |
+| `isMuted` | 从数据库查询玩家是否当前处于禁言状态 | `playerUuid`：目标玩家 UUID | 异步返回是否被禁言 |
+| `listMutes` | 按玩家 UUID 分页查询生效禁言，包含离线玩家 | `limit`：1–100 条。 `offset`：从 0 开始的偏移量 | 异步返回禁言信息列表，到末页后返回空列表 |
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+禁言状态和列表读取返回异步结果。查询失败会使结果异常完成。禁言和解禁在 Bukkit 主线程提交，回调操作 Bukkit 对象时切回主线程。主线程不能用 `join()` 或 `get()` 等待结果。
+
+`MuteInfo.isPermanent()` 判断是否永久禁言；离线玩家的名称可能为 `null`，展示列表时可使用 UUID。`listMutes` 查询持久化的有效记录，不应按在线玩家数量判断是否还有下一页。

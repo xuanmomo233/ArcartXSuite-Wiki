@@ -15,8 +15,8 @@ description: "调整伤害与治疗飘字的样式、合并效果和最小显示
 | MythicLib 属性伤害 | `mythiclib` | 仅使用 MythicLib/MMOItems 伤害事件 |
 | CraneAttribute 属性伤害 | `craneattribute` | 仅使用 CraneAttribute 伤害事件 |
 | AttributePlus | `attributeplus` | 仅使用 AttributePlus 伤害事件 |
-| Symphony 属性伤害 | `symphony` | 仅使用 Symphony 伤害事件 |
-| Bukkit 原版 | `bukkit` | 仅使用 Bukkit 原版伤害事件 |
+| Symphony 属性伤害 | `symphony` | 使用 Symphony 确认伤害及独立的闪避反馈 |
+| 普通样式 | `bukkit` | 使用普通样式显示宿主结算后的有效伤害 |
 
 ### 自动检测优先级
 
@@ -30,7 +30,7 @@ description: "调整伤害与治疗飘字的样式、合并效果和最小显示
 | 4 | Symphony | 插件可用 + `symphony.enabled=true` |
 | 5 | Bukkit 原版 | `original.enabled=true` 或 `player.enabled=true` |
 
-> 所有来源均不可用时伤害飘字不启用。选择了属性插件来源时原版伤害不重复显示。
+Symphony 飘字使用结算后的数值，按事务 ID 去重。开启 `source.fallback` 时，Symphony 未接管的 Bukkit 与 TaCZ 有效伤害使用普通样式。闪避样式由 `dodged.enabled` 控制，可与伤害合并同时使用。
 
 ### 回退策略
 

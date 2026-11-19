@@ -4,8 +4,6 @@
     "index",
     "configuration",
     "commands",
-    "cross-server",
-    "sorting-filtering",
-    "visual-style"
+    "cross-server"
   ]
 }

@@ -1,6 +1,6 @@
 ---
-title: "区域规则查询接口"
-description: "查询位置所在区域与区域规则"
+title: "区域范围查询接口"
+description: "枚举命中的区域、世界区域和直接所有者数量。"
 ---
 
 | 项目 | 说明 |
@@ -14,50 +14,46 @@ description: "查询位置所在区域与区域规则"
 import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.RegionQueryable;
 
-RegionQueryable api = AxsCapabilities.get(RegionQueryable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
+var api = AxsCapabilities.get(RegionQueryable.class);
+if (api != null) {
+    var matches = api.regionsAt("world", 120, 65, -32);
 }
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+在 Bukkit 主线程调用，并在业务操作时重新获取接口。模块不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
 
 ## 方法声明
 
 ```java
 public interface RegionQueryable {
-
-    @NotNull List<RegionInfo> regionsAt(@NotNull String world, int x, int y, int z);
-
-    @NotNull List<RegionInfo> regionsInWorld(@NotNull String world);
-
-    @NotNull List<RegionInfo> allRegions();
-
-    int countRegionsByOwner(@NotNull UUID owner);
+    List<RegionInfo> regionsAt(String world, int x, int y, int z);
+    List<RegionInfo> regionsInWorld(String world);
+    List<RegionInfo> allRegions();
+    int countRegionsByOwner(UUID owner);
 
     record RegionInfo(
-        @NotNull String id,
-        @NotNull String world,
+        String id, String world,
         int minX, int minY, int minZ,
         int maxX, int maxY, int maxZ,
-        int priority,
-        @Nullable String parentId,
-        @NotNull Set<UUID> owners,
-        @NotNull Set<UUID> members
+        int priority, String parentId,
+        Set<UUID> owners, Set<UUID> members
     ) {}
 }
 ```
 
 ## 参数与返回值
 
-| 方法 | 用途 | 参数 | 返回值 |
-| --- | --- | --- | --- |
-| `regionsAt` | 查询指定坐标命中的全部区域（按优先级排序）。 | `world` 世界名称（`String`）；`x` 方块坐标 X（`int`）；`y` 方块坐标 Y（`int`）；`z` 方块坐标 Z（`int`） | `List<RegionInfo>` 命中的区域，按优先级排序 |
-| `regionsInWorld` | 查询指定世界中的全部区域。 | `world` 世界名称（`String`） | `List<RegionInfo>` 该世界的区域列表 |
-| `allRegions` | 查询全部区域。 | 无参数 | `List<RegionInfo>` 全部区域列表 |
-| `countRegionsByOwner` | 统计某玩家作为 owner 的区域数量。 | `owner`：调用方插件（`UUID`） | `int` 统计某玩家作为 owner 的区域数量。 |
+| 方法 | 参数 | 返回值 |
+| --- | --- | --- |
+| `regionsAt` | 世界名和整数方块坐标 `x/y/z` | 命中的有界区域列表，按数值优先级降序排列 |
+| `regionsInWorld` | 世界名 `world` | 此世界全部有界区域 |
+| `allRegions` | 无 | 全部世界的有界区域 |
+| `countRegionsByOwner` | 玩家 UUID `owner` | 玩家直接列在所有者中的区域数，权限组身份另行计算 |
+
+`RegionInfo` 返回区域名、世界、包含边界的三维坐标、优先级、可空的父区 ID，以及直接列出的所有者和成员 UUID。权限组列表和旗标结果通过相应功能查询。
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+几何命中与保护许可分别查询。需要检查玩家是否能执行某项操作时，使用[区域保护判定接口](/docs/api/RegionProtectionQueryable)获取合并规则和实际来源。
+
+需要稳定 UUID 或绘制区域边界时，可使用 `RegionProtectionQueryable.boundaries`。每次查询后按当前业务使用结果，区域可能在管理员保存或重载后改变。

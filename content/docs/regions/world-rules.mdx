@@ -1,116 +1,92 @@
 ---
 title: "世界规则"
-description: "为整个世界设置游戏规则，并与局部区域规则配合使用。"
+description: "配置整个世界的默认旗标，并为局部区域设置飞行、交互、传送、拾取和聊天例外。"
 ---
 
-世界规则提供独立于区域系统的世界级限制。与区域标志不同，世界规则不依赖区域选区，而是按世界名直接生效，覆盖飞行、活塞、物品交互三类限制。世界规则可通过管理员 UI 在线修改，修改自动保存到主配置文件。
+打开 `/rg admin`，选择左侧「世界」和目标世界，即可编辑整世界的默认旗标。「规则开关」与区域使用同一套允许、禁止和继承操作，保存后在 `regions.yml` 中形成 `type: global` 记录。
 
-## 概述
+`global` 默认 ID 是 `__global__`。局部区域和其父区没有提供规则时，才使用对应世界的默认值。所有位置均未配置该旗标时，Regions 返回默认状态。
 
-世界规则与区域标志是两套独立的保护机制，各有适用场景：
+## 禁飞世界中的局部飞行区
 
-| 特性 | 区域标志 | 世界规则 |
-|---|---|---|
-| 依赖选区 | 是，需要划定区域范围 | 否，按世界名直接生效 |
-| 粒度 | 区域级（精确坐标范围） | 世界级（整个世界） |
-| 三态系统 | `ALLOW` / `DENY` / `NONE` | 开关式（启用/禁用） |
-| 继承 | 支持父子继承 | 不支持继承 |
-| 成员豁免 | 支持 | 不支持（仅权限绕过） |
-| 管理方式 | 命令 + UI | UI 面板 + 配置文件 |
-
-### 禁飞世界
-
-在指定世界中禁止玩家飞行。进入禁飞世界时自动取消飞行状态，阻止飞行切换。
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `world-rules.no-fly-worlds` | `list` | `["world_pvp"]` | 禁止飞行的世界名列表 |
-| `world-rules.no-fly-action` | `string` | `cancel` | 进入禁飞世界的处理方式 |
-| `world-rules.no-fly-message` | `string` | `&c此世界禁止飞行。` | 禁飞提示消息（支持 `&` 颜色码） |
-
-### 禁活塞世界
-
-在指定世界中阻止活塞推动（含活塞伸出与收回）。
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `world-rules.no-piston-worlds` | `list` | `[]` | 禁止活塞推动的世界名列表 |
-
-### 禁交互物品
-
-在指定世界中禁止玩家与特定物品/方块交互。配置为世界名到 MATERIAL 列表的映射。
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `world-rules.disabled-interactions` | `map` | `{}` | 按世界配置禁止交互的物品/方块类型 |
-
-```yaml
-world-rules:
-  disabled-interactions:
-    world_spawn:
-      - ENDER_CHEST
-      - ANVIL
-    world_creative:
-      - CRAFTING_TABLE
+```text
+/rg worlddefault world
+/rg flag world:__global__ fly deny
+/rg flag world:arena fly allow
 ```
 
-## 运行时管理
+该示例要求 `arena` 已存在。世界默认禁飞，`arena` 中允许玩家使用已有的飞行能力。`fly` 允许规则用于保护判定，飞行能力本身由游戏模式或提供飞行的功能授予。
 
-世界规则通过管理员面板（`/rg admin`）的 `world_rules` 页面在线管理：
+开启飞行、进入禁飞位置或保存影响飞行的规则后，模块会检查飞行状态。具有 `axs.regions.bypass` 的玩家可绕过飞行限制。
 
-- 切换各世界的禁飞 / 禁活塞状态
-- 按世界增删禁交互物品
-- 修改自动保存，无需手动编辑配置文件或执行重载命令
+## 活塞与爆炸保护
 
-### 最小配置
-
-```yaml
-world-rules:
-  no-fly-worlds: []
-  no-fly-action: cancel
-  no-fly-message: "&c此世界禁止飞行。"
-  no-piston-worlds: []
-  disabled-interactions: {}
+```text
+/rg flag world:__global__ pistons deny
+/rg flag world:workshop pistons allow
+/rg flag world:__global__ tnt deny
+/rg flag world:__global__ creeper-explosion deny
+/rg flag world:__global__ other-explosion deny
 ```
 
-### 完整配置
+活塞会检查活塞本身、前方以及每个被移动方块的起点和终点。移动路径上有位置被禁止时，整次伸出或收回会取消。
+
+爆炸规则按每个受影响方块的位置判断，保护被禁止区域的方块。玩家所受伤害由伤害相关旗标另外处理。
+
+## 方块交互与材质列表
+
+在「世界」中进入「交互限制」，填写 Bukkit 方块材质名，加入禁用列表。例如铁砧使用 `ANVIL`，末影箱使用 `ENDER_CHEST`。对应文件内容如下。
 
 ```yaml
-world-rules:
-  no-fly-worlds:
-    - "world_pvp"
-    - "world_nether"
-  no-fly-action: cancel
-  no-fly-message: "&c此世界禁止飞行。"
-  no-piston-worlds:
-    - "world_spawn"
-  disabled-interactions:
-    world_spawn:
-      - ENDER_CHEST
-      - ANVIL
-      - CRAFTING_TABLE
-    world_creative:
-      - ENCHANTING_TABLE
+version: 2
+regions:
+  - id: __global__
+    world: world
+    type: global
+    blocked-interactions: [ANVIL, ENDER_CHEST]
+    flags:
+      use: true
 ```
 
-## 与区域标志的协作
+这个配置允许其他普通交互，禁用列出的两种方块。某个管理区域明确设置 `use: true` 时，可以覆盖普通交互的世界默认限制。
 
-世界规则与区域标志可以同时生效，互不冲突：
+交互按局部规则、世界默认两层判断。每层中，重生锚先检查 `respawn-anchors`，其余普通交互检查 `use`；普通世界交互还先检查材质禁用列表。容器操作另需通过 `chest-access`。用 `use: false` 限制访客时，适用规则的成员可享受成员豁免。
 
-| 场景 | 世界规则 | 区域标志 | 效果 |
-|---|---|---|---|
-| 禁飞世界中的飞行区域 | 禁飞 | `fly` = `allow` | 世界规则优先，禁止飞行 |
-| 禁活塞世界中的活塞区域 | 禁活塞 | `pistons` = `allow` | 世界规则优先，禁止活塞 |
-| 禁交互世界中的交互区域 | 禁交互 | `use` = `allow` | 世界规则优先，禁止交互 |
+## 传送与出入边界
 
-<Callout type="warn">
-世界规则的限制优先于区域标志。若需要在特定区域内允许被世界规则禁止的操作，需通过绕过权限（`axs.essentials.fly.bypass` 等）实现。
-</Callout>
+```text
+/rg flag world:__global__ teleport deny
+/rg flag world:__global__ enderpearl allow
+/rg flag world:spawn entry allow
+```
 
-## 相关页面
+该示例默认禁止普通传送，并为末影珍珠设置允许规则。一次传送按起点和终点分别判断，每一端先查局部旗标，再取世界默认值。末影珍珠和紫颂果在各层先查 `enderpearl`、`chorus-fruit`，缺省时查 `teleport`。
 
-- [标志系统](/docs/regions/flags) — 50 个区域标志的完整参考
-- [选区工具](/docs/regions/selection) — 选区工具与粒子可视化
-- [配置](/docs/regions/configuration) — 世界规则配置字段
-- [命令与权限](/docs/regions/commands) — 命令与管理员界面操作。
-- [区域规则使用说明](/docs/regions) — Essentials 模块集成与权限联动
+跨越边界还需满足目的地的 `entry` 和出发地的 `exit`。例如局部允许珍珠传送，但目的地 `entry: false`，跨入仍会被拒绝。行走和传送门同样检查边界出入。
+
+## 禁止拾取物品
+
+```text
+/rg flag world:__global__ item-pickup deny
+```
+
+拾取时同时检查玩家与掉落物所在位置。规则适用于贴近物品时的自动拾取、Pickup 菜单点击收取、快捷键收取和一键全收。
+
+被禁止的物品会留在地面。拾取操作可分批处理，某一实体收取时会按当时的位置与规则重新检查。若规则来源区域设置了成员，成员豁免和 `axs.regions.bypass` 按同一套规则生效。
+
+## 禁发与禁收公共聊天
+
+```text
+/rg flag world:quiet_zone send-chat deny
+/rg flag world:quiet_zone receive-chat deny
+```
+
+`send-chat` 按发送者当前位置判断能否发送，`receive-chat` 按每个接收者当前位置过滤。Suite Chat 和原版公共聊天事件会使用这些规则。
+
+接入自定义公共聊天的插件可调用[区域聊天判定接口](/docs/api/RegionChatAccess)，按发送者与各接收者分别检查。具体发送方式也决定私聊、公告和系统消息的处理范围。
+
+## 查清实际结果
+
+在目标位置打开 `/rg menu` 的「当前位置」，查看生效规则及来源。管理员用 `/rg why fly Alex` 查询 Alex 当前所在位置的飞行判定。
+
+检查跨边界行为时同时核对起点和终点，检查交互时核对目标方块及 `use`、`chest-access` 或专用旗标。完整[旗标参考](/docs/regions/flags#旗标参考)与[文件字段](/docs/regions/configuration#区域与世界数据)可用于对照。

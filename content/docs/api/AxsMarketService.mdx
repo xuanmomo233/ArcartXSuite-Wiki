@@ -57,6 +57,8 @@ public interface AxsMarketService {
     boolean openOwnStoreEditor(@NotNull Player player);
     boolean openRecycleProtection(@NotNull Player player);
     boolean openTradeManagement(@NotNull Player player);
+    @NotNull CompletionStage<String> describeChatLink(@NotNull Player viewer, @NotNull String type, @NotNull String key);
+    @NotNull CompletionStage<String> openChatLink(@NotNull Player viewer, @NotNull String type, @NotNull String key);
 
     @NotNull CompletableFuture<Boolean> createAuctionListing(@NotNull Player player, @NotNull ItemStack item,
                               double startingBid, @Nullable String currency, long durationSeconds);
@@ -86,8 +88,10 @@ public interface AxsMarketService {
 | `openOwnStoreEditor` | 打开玩家自己的店铺编辑器 | `player` 为店主 | `true` 表示玩家商店已启用并发起打开 |
 | `openRecycleProtection` | 打开玩家自己的回收保护界面 | `player` 为目标玩家 | `true` 表示回收功能已启用并发起打开 |
 | `openTradeManagement` | 打开交易管理页面 | `player` 为具有 `arcartxsuite.market.admin` 的操作者 | `true` 表示通过权限检查并发起打开 |
-| `createAuctionListing` | 上架玩家当前主手的物品，成功后由市场扣除。物品类型和元数据须与主手匹配，数量不得超过主手持有量 | `player` 为卖家，`item` 为待上架物品，`startingBid` 为起拍价，`currency` 为空时使用默认货币 ID，`durationSeconds` 为持续秒数 | 已完成的 `CompletableFuture<Boolean>`，`true` 表示上架成功 |
-| `cancelListing` | 取消玩家的一条拍卖挂单 | `player` 为卖家，`listingId` 为拍卖编号 | 已完成的 `CompletableFuture<Boolean>`，`true` 表示取消成功 |
+| `describeChatLink` | 查询可公开分享的目标描述 | `type` 为 `auction`、`listing`、`store` 或 `shop`。 `key` 分别为拍品编号、商品编号、店主 UUID 或商店 ID | 异步返回描述，不可用时返回 `null` |
+| `openChatLink` | 打开公开分享的市场目标 | 参数与 `describeChatLink` 相同 | 异步返回打开时的最新描述，无法打开时返回 `null` |
+| `createAuctionListing` | 上架玩家当前主手的物品。物品类型和元数据须与主手匹配，数量不得超过主手持有量 | `player` 为卖家，`item` 为待上架物品，`startingBid` 为起拍价，`currency` 为空时使用默认货币 ID，`durationSeconds` 为持续秒数 | `CompletableFuture<Boolean>` 在背包扣除经自然存档确认且挂单发布后返回 `true` |
+| `cancelListing` | 取消玩家的一条拍卖挂单 | `player` 为卖家，`listingId` 为拍卖编号 | `CompletableFuture<Boolean>` 在撤单事务提交后返回 `true`，请求被拒绝时返回 `false`，结果无法确认时异常完成 |
 | `searchAuction` | 请求打开拍卖界面并搜索 | `player` 为目标玩家，`keyword` 为关键词，可为 `null` | 已完成的 `CompletableFuture<Boolean>`，`true` 表示已发起搜索 |
 | `auctionCount` | 当前活跃拍卖挂单总数。 | 无参数 | `int` 当前活跃拍卖挂单总数。 |
 | `shopCount` | 系统商店条目数。 | 无参数 | `int` 系统商店条目数。 |
@@ -97,3 +101,7 @@ public interface AxsMarketService {
 ## 调用注意事项
 
 在 Bukkit 主线程调用。上架或撤单后读取对应结果，再更新调用方的业务状态。界面请求的布尔值反映服务端的处理结果，客户端展示以玩家实际看到的页面为准。
+
+分享卡片接口返回异步结果。点击时直接调用 `openChatLink` 即可得到最新描述。避免在主线程使用 `join()` 或 `get()`，操作 Bukkit 对象前回到主线程。
+
+`createAuctionListing` 和 `cancelListing` 的结果可能在后台线程完成。通过回调读取结果，操作玩家或界面前切回主线程。

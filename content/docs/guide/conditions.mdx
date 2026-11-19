@@ -15,7 +15,7 @@ Suite 的多个模块使用本页的条件写法，但不能把所有名为 `con
 | Mail | 预设 `claim-conditions` | 领取附件前检查，不是邮件发送前的限制 |
 | Prop | 道具 `conditions`、支持该结构的自动触发条件 | 道具使用或自动触发；还需通过使用方式、权限与冷却等检查 |
 | Market | 商品支持的条件配置 | 结合购买、查看等商品流程使用，具体位置按商品配置 |
-| EventPacket | 规则 `conditions`、PAPI 监听服务条件 | 触发后判断，部分上下文条件依赖当前事件提供的变量 |
+| EventPacket | 规则 `when` | 精确匹配事件字段值。 |
 | Abyss | 进入要求的 `conditions`、`leader-conditions`，以及交互等支持的条件 | 队员、队长与具体交互对象分别判断，脚本动作中的条件还需按副本语法填写 |
 
 BattlePass 的玩家状态、事件载荷等任务条件，以及各模块自己的物品费用和区域条件，另有字段与解析规则。不要直接复制本页示例替换它们。某种条件类型能被解析，也不代表该场景一定提供所需的玩家或上下文数据。
@@ -67,7 +67,7 @@ BattlePass 的玩家状态、事件载荷等任务条件，以及各模块自己
 
 ### 上下文变量条件（CONTEXT）
 
-从上下文字典中取值进行比较，主要用于 EventPacket 事件规则等场景。事件触发时会携带一个上下文字典（payload），CONTEXT 条件从中取值与期望值比较。
+从上下文字典中取值进行比较。事件触发时会携带一个上下文字典（payload），CONTEXT 条件从中取值与期望值比较。
 
 语法示例：
 
@@ -166,7 +166,7 @@ use-conditions:
 | `requirements` | 通用前置条件 |
 | `open-conditions` / `open-requirements` | 打开 UI 前置条件 |
 | `claim-conditions` | 领取条件（如邮件、奖励领取） |
-| `conditions` | 事件规则条件（如 EventPacket） |
+| `when` | EventPacket 的事件字段精确匹配 |
 
 > 这些配置节的语法完全一致，只是命名随模块语义不同。配置时按模块文档选择对应节名即可。
 

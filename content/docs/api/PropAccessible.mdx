@@ -1,6 +1,6 @@
 ---
 title: "快捷道具接口"
-description: "查询道具并应用到主手物品"
+description: "查询 Prop 道具定义并绑定玩家的主手物品。"
 ---
 
 | 项目 | 说明 |
@@ -40,9 +40,22 @@ public interface PropAccessible {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
-| `propIds` | 已注册的道具 id 列表。 | 无参数 | `List<String>` 已注册的道具 ID |
-| `applyPropToMainHand` | 将指定道具效果应用到玩家主手物品上。 | `player`：目标玩家；`propId`：道具 id | 应用结果（成功/失败原因） |
+| `propIds` | 查询已加载的道具 ID | 无参数 | `List<String>` |
+| `applyPropToMainHand` | 将目标玩家主手的整叠物品绑定为该道具 | 目标 `player` 和道具 `propId` | `PropApplyResult` 包含成功状态与提示 |
+
+## 绑定物品
+
+下例要求玩家主手持有物品，并且 Prop 已加载 `props/field_ration.yml`。
+
+```java
+var result = api.applyPropToMainHand(player, "field_ration");
+player.sendMessage(result.message());
+if (!result.success()) {
+    return;
+}
+// 主手物品已绑定，可继续发放流程。
+```
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+在 Bukkit 主线程查询和绑定。绑定成功后，玩家可通过定义允许的主手右键、快捷键或自动触发使用道具。需要监听实际使用时，订阅 `axs.prop.prop_used`。 [事件字段](/docs/prop/effects#使用事件联动)

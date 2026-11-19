@@ -5,34 +5,30 @@ description: "快捷道具可用命令、参数填写方式和权限要求。"
 
 ## 命令
 
-Prop 模块通过Suite通用命令 `/axs` 提供管理功能。命令 ID 为 `prop`，子命令通过 `args[1]` 指定。
-
-### 玩家命令
-
-Prop 模块没有独立的玩家命令。玩家通过以下方式使用道具：
-
-| 方式 | 说明 |
-|------|------|
-| 手持右键 | 将物品绑定为道具后，手持右键空气或方块即可触发 |
-| 客户端按键 | 在 ArcartX 客户端按键设置中绑定按键，按下即触发对应槽位的道具 |
-
-### 管理命令
-
 | 命令 | 权限 | 说明 |
 |------|------|------|
 | `/axs prop help` | `arcartxsuite.admin` | 查看可用子命令列表 |
-| `/axs prop status` | `arcartxsuite.admin` | 查看模块运行状态（道具数、按键数、属性桥接状态） |
+| `/axs prop status` | `arcartxsuite.admin` | 查看已加载道具数、已注册按键数与各属性桥接状态 |
 | `/axs prop set <道具ID>` | `arcartxsuite.admin` | 将玩家主手物品绑定为指定道具 |
+| `/axs reload prop` | `arcartxsuite.admin` | 重新加载 Prop |
 
-> `/axs prop set` 只能由玩家执行。执行时主手必须持有真实物品（非空气），道具 ID 必须已存在于 `data/prop/props/` 目录中。
+玩家直接右键或按槽位绑定键使用已发放的道具。自动触发由服务端根据配置执行。 [使用方式](/docs/prop/keybinds#三种使用方式)
 
-### Suite通用命令
+## 绑定道具并发放
 
-| 命令 | 说明 |
-|------|------|
-| `/axs reload prop` | 重载 Prop 模块（Suite通用重载命令） |
+`/axs prop set` 需要玩家执行。手持要绑定的物品，填写 `props/` 下去掉扩展名的相对路径。比如定义在 `props/supplies/first_aid.yml` 时执行：
 
-> 重载会重新读取配置文件、按键映射、语言文件和道具定义，并重新注册按键绑定。
+```text
+/axs prop set supplies/first_aid
+```
+
+命令会给主手整叠物品写入道具 ID 和冷却标签。绑定好后即可把这叠物品发给玩家。再次执行 `set` 可以把手中物品改为另一种道具。道具定义中的 `name` 用于使用提示，物品原本的显示名可在物品来源中设置。
+
+## 查看状态和重载
+
+- 道具数用于确认文件加载结果，按键数用于确认客户端按键注册结果。
+- 属性桥接状态会分别显示 AttributePlus、CraneAttribute、MythicLib、Symphony 和 Mod Attributes。用到某一种属性时核对对应一项。
+- 重载会重新读取模块配置、按键、语言和道具定义，重新注册按键，并清除 Prop 仍在计时的临时属性。已绑定的物品按其道具 ID 使用重载后的定义。
 
 ## 权限
 
@@ -41,38 +37,6 @@ Prop 模块没有独立的玩家命令。玩家通过以下方式使用道具：
 | `arcartxsuite.admin` | OP | 访问 `/axs prop` 管理命令 |
 | `<道具定义中的 permission>` | 自定义 | 道具使用权限，在道具 YAML 的 `permission` 字段配置 |
 
-> 道具的 `permission` 字段留空时表示无权限限制。配置后玩家必须拥有该权限节点才能使用对应道具。
+道具的 `permission` 留空时，满足其他条件的玩家均可使用。填写权限后，手持、按键和自动触发都要求玩家拥有该权限。
 
-### 按键绑定注册
-
-| 参数 | 说明 |
-|------|------|
-| `bindingId` | 绑定唯一标识（来自 `key.yml` 的顶层键名） |
-| `category` | 按键分类名（来自 `key.yml` 的 `category` 字段） |
-| `defaultKey` | 默认按键（来自 `key.yml` 的 `defaultKey` 字段） |
-
-注册成功后，玩家在 ArcartX 客户端按键设置中可以看到对应分类和按键，可以自行修改绑定。
-
-### 额外槽位操作
-
-通过 `PropPlayerHandle` 操作客户端额外槽位：
-
-| 方法 | 说明 |
-|------|------|
-| `getSlotItemStack(slotId)` | 读取指定额外槽位的物品 |
-| `setSlotItemStack(slotId, itemStack)` | 设置指定额外槽位的物品 |
-| `removeSlotItemStackOnlyClient(prefix, recursive)` | 仅客户端移除指定前缀的槽位物品 |
-| `syncSlotCacheToClient()` | 同步槽位缓存到客户端 |
-
-> 按键触发使用道具后，若物品被消耗或冷却标签变更，模块会调用 `syncSlotCacheToClient()` 同步槽位状态到客户端，确保客户端显示与服务端一致。
-
-### 冷却管理
-
-冷却通过客户端标签系统管理，按冷却组共享：
-
-| 方法 | 说明 |
-|------|------|
-| `setTagCooldown(tag, millis)` | 设置标签冷却（毫秒） |
-| `getTagCooldown(tag)` | 获取标签冷却剩余时间（毫秒） |
-
-> 冷却存储在客户端标签中，玩家重新上线后会从客户端同步冷却状态。按键触发时若冷却未结束，会同步槽位缓存到客户端以保持显示一致。
+插件接入时可使用[快捷道具接口](/docs/api/PropAccessible)查询道具 ID 和绑定目标玩家的主手物品。

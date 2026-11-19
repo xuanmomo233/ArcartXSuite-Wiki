@@ -45,6 +45,14 @@ description: "识别鱼饵物品，设置鱼类吸引倍率、宝藏概率与饵
 | `fish-attract-modifiers` | map | - | 鱼类吸引倍率映射（鱼种 ID → 修正系数） |
 | `treasure-chance-boost` | double | `0.0` | 宝藏概率额外加成 |
 | `max-durability-bonus` | int | `0` | 鱼竿最大耐久度加成 |
+| `fight-effects` | list | - | 按目标鱼种和动作配置首次回稳加成 |
+
+下面的饵料让鲶鱼第一次下潜后多回稳 8 步，每场仅触发一次。
+
+```yaml
+fight-effects:
+  - { fish: catfish, action: sinker, recovery-extra-ticks: 8 }
+```
 
 ### 鱼类吸引倍率（fish-attract-modifiers）
 

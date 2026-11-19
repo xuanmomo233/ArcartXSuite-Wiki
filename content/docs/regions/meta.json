@@ -2,10 +2,11 @@
   "title": "区域规则",
   "pages": [
     "index",
+    "management",
     "configuration",
-    "commands",
     "flags",
+    "world-rules",
     "selection",
-    "world-rules"
+    "commands"
   ]
 }

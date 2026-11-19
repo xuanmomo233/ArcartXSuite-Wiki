@@ -26,6 +26,8 @@ if (api == null) {
 ## 方法声明
 
 ```java
+import java.util.concurrent.CompletableFuture;
+
 public interface FishingAccess {
 
     boolean isInMinigame(@NotNull UUID playerUuid);
@@ -42,7 +44,7 @@ public interface FishingAccess {
 
     void setFatigue(@NotNull UUID playerUuid, int value);
 
-    boolean claimReward(@NotNull Player player, @NotNull String rewardId);
+    @NotNull CompletableFuture<Boolean> claimReward(@NotNull Player player, @NotNull String rewardId);
 
     @NotNull String sellAllFish(@NotNull Player player);
 }
@@ -59,9 +61,11 @@ public interface FishingAccess {
 | `giveXp` | 为玩家增加钓鱼经验。 | `playerUuid`：玩家 UUID（`UUID`）；`amount`：数量或数值（`int`） | 无返回值 |
 | `fatigue` | 查询玩家当前疲劳值。 | `playerUuid`：玩家 UUID（`UUID`） | `int` 查询玩家当前疲劳值。 |
 | `setFatigue` | 设置玩家疲劳值。 | `playerUuid`：玩家 UUID（`UUID`）；`value` 设置后的疲劳值（`int`） | 无返回值 |
-| `claimReward` | 为玩家领取指定赛季奖励。 | `player`：目标玩家（`Player`）；`rewardId`：对应条目的 ID（`String`） | 是否成功领取 |
+| `claimReward` | 在 Bukkit 主线程提交赛季奖励领取请求。 | `player`：当前在线玩家（`Player`），`rewardId`：奖励条目 ID（`String`） | `CompletableFuture<Boolean>`，为 `true` 时宿主已持久接收奖励 |
 | `sellAllFish` | 卖出玩家背包内全部鱼获。 | `player`：目标玩家（`Player`） | 结果提示消息 |
 
 ## 调用注意事项
 
 涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+
+`claimReward` 提交后会在后台完成数据库和待发队列操作。回调里需要更新 Bukkit 界面时，把界面操作调度回主线程。

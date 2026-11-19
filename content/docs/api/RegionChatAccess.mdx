@@ -1,0 +1,55 @@
+---
+title: "区域聊天判定接口"
+description: "在自定义公共聊天中检查发送者禁发和接收者禁收规则。"
+---
+
+| 项目 | 说明 |
+| --- | --- |
+| 提供模块 | [regions](/docs/regions) |
+| 完整类型 | `xuanmo.arcartxsuite.api.capability.RegionChatAccess` |
+
+## 获取接口
+
+```java
+import xuanmo.arcartxsuite.api.AxsCapabilities;
+import xuanmo.arcartxsuite.api.capability.RegionChatAccess;
+
+var rules = AxsCapabilities.get(RegionChatAccess.class);
+if (rules != null && !rules.canSendPublic(sender)) {
+    sender.sendMessage("当前位置禁止发送公共聊天。");
+    return;
+}
+for (var recipient : recipients) {
+    if (rules == null || rules.canReceivePublic(recipient)) {
+        recipient.sendMessage(message);
+    }
+}
+```
+
+示例在 Bukkit 主线程执行，`sender`、`recipients`、`message` 由接入插件提供。每次发送重新获取接口，模块不可用时返回 `null`。基础接入见[快速开始](/docs/api/quick-start)。
+
+## 方法声明
+
+```java
+public interface RegionChatAccess {
+    boolean canSendPublic(Player sender);
+    boolean canReceivePublic(Player recipient);
+}
+```
+
+## 参数与返回值
+
+| 方法 | 参数 | 返回值 |
+| --- | --- | --- |
+| `canSendPublic` | 非空发送者 `sender` | 按发送者当前位置的 `send-chat` 判断，`true` 表示 Regions 允许发送 |
+| `canReceivePublic` | 非空接收者 `recipient` | 按接收者当前位置的 `receive-chat` 判断，`true` 表示 Regions 允许接收 |
+
+两项判断均包含重叠区域、继承、世界默认值及适用的玩家绕过权限。未设置对应规则时返回 `true`。
+
+## 调用注意事项
+
+发送者和每个接收者分别判断，不能用发送者的区域规则代替整组接收者的规则。异步聊天事件接入时，将涉及玩家位置和权限的检查安排到 Bukkit 主线程。
+
+Suite Chat 和原版公共聊天遵循这些规则。自定义插件直接向玩家发送消息时，由接入方选择需要遵循区域限制的消息类型，再在实际发送前检查。
+
+本接口处理区域公共聊天许可。聊天频道自身的收发权限、禁言和消息审核由聊天功能另行检查。规则配置见[世界规则的聊天示例](/docs/regions/world-rules#禁发与禁收公共聊天)。

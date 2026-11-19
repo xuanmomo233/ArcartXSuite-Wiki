@@ -1,296 +1,274 @@
 ---
 title: "效果系统"
-description: "为快捷道具设置即时效果、属性加成、持续时间与效果组合。"
+description: "配置快捷道具的即时效果、药水和分组属性加成，包括 TaCZ 模组属性。"
 ---
 
->
-> Prop 模块属于 Suite 付费模块，需在Suite `config.yml` 中开启 `modules.prop.enabled` 并完成授权后生效。
+每个道具定义都需包含一个 `effects` 配置节。在里面按字段填写即时效果、药水和属性。药水和属性组各自设置 `duration`，单位为秒。若重载日志提示 `effects 必须为配置节`，请检查 `effects` 是否按下面的 YAML 结构填写。
 
-效果系统是 Prop 模块的核心能力。每个道具定义中的 `effects` 列表以 `type|payload` 格式编写，模块按行解析并分类执行。效果分为两大类：
-
-- **即时效果**：命令、消息、饱食度、生命值、经验、百分比生命、药水——使用后立即生效
-- **属性效果**：AttributePlus、MythicLib、Symphony——聚合后批量提交，在 `Duration` 秒后自动移除
-
-## 效果类型一览
-
-### 先用消息确认道具能触发
-
-复制一份已能获得和使用的默认道具定义，先把 `effects` 改为下例。保持原来的物品来源、快捷槽和获得方式，确认效果链后再增加属性。
-
-```yaml
-coolDownGroup: trial_food
-coolDownTime: 10
-Duration: 5
-remove: true
-hand: true
-key: false
-permission: ""
-conditions: []
-effects:
-  - "msg|&a补给已使用"
-  - "food|2"
-```
-
-这是一份使用参数与效果片段，合并进道具定义。`hand` 允许手持右键，`key: false` 暂时关闭按键入口，`remove` 表示成功使用后消耗道具。同一 `coolDownGroup` 的道具共享冷却。
-
-重载后先让测试玩家处于非满饥饿状态，手持对应道具使用。检查消息、增加的饱食度、消耗数量和 10 秒冷却。再单独开启按键使用，按[按键绑定](/docs/prop/keybinds)配置真实槽位。
-
-`Duration` 不能当作所有效果的回退时间。消息、命令、经验和已恢复的生命值属于即时结果，持续药水和临时属性才按各自规则结束。对同一数值同时使用命令和属性效果前，先确认不会重复增加。
-
-| 类型标识 | 格式 | 分类 | 说明 |
-|----------|------|------|------|
-| `cmd` | `cmd\|<命令>` | 即时 | 以控制台身份执行命令，支持 `{player}` 变量 |
-| `msg` | `msg\|<消息>` | 即时 | 给玩家发送消息，支持 `&` 颜色码和 `{player}` 变量 |
-| `food` | `food\|<数量>` | 即时 | 恢复饱食度，上限 20 |
-| `health` | `health\|<数量>` | 即时 | 恢复生命值，上限为玩家最大生命值 |
-| `exp` | `exp\|<数量>` | 即时 | 增加经验值 |
-| `healthPercent` | `healthPercent\|<百分比>` | 即时 | 按最大生命值百分比恢复生命值 |
-| `potion` | `potion\|<效果>:<等级>` | 即时 | 附加药水效果，持续 `Duration` 秒 |
-| `ap` | `ap\|<属性>:<值>` | 属性 | 附加 AttributePlus 属性词条 |
-| `ml` | `ml\|<属性>:<值>` | 属性 | 附加 MythicLib 临时属性 modifier |
-| `mythiclib` | `mythiclib\|<属性>:<值>` | 属性 | 同 `ml`，完整前缀写法 |
-| `sy` | `sy\|<属性>:<值>` | 属性 | 附加 Symphony 属性修改 |
-| `symphony` | `symphony\|<属性>:<值>` | 属性 | 同 `sy`，完整前缀写法，支持百分比 |
-
-> 类型标识不区分大小写，解析时会转为小写后匹配。格式无效的行会被跳过，调试模式下会输出警告日志。
-
-## 生效方式
-
-- **即时效果**逐行执行
-- **属性效果**先聚合再一次性提交给对应属性插件——同属性多行值会累加
-
-### 命令（`cmd`）
-
-以控制台身份执行任意 Bukkit 命令。`{player}` 占位符替换为玩家名（经安全校验）。
+## 即时效果
 
 ```yaml
 effects:
-  - "cmd|say {player} 使用了治疗药水"
-  - "cmd|give {player} diamond 1"
-  - "cmd|lp user {player} parent add vip"
+  health:
+    points: 4
+    max-health-percent: 10
+  food: 2
+  experience: 5
+  messages:
+    - "&a{player} 已获得补给。"
+  commands:
+    - "say {player} 使用了补给"
 ```
 
-### 消息（`msg`）
+| 字段 | 值 |
+|------|----|
+| `health.points` | 固定生命值。2 点等于 1 颗心，计算后的生命值限制在 0 到最大生命值 |
+| `health.max-health-percent` | 按最大生命值百分比计算。10 表示 10%，可和 `points` 相加 |
+| `food` | 改变饱食度，结果限制在 0 到 20 |
+| `experience` | 增加经验点数，使用非负整数 |
+| `commands` | 按顺序派发的控制台命令列表。用 `{player}` 代入玩家名，例如 `"give {player} minecraft:bread 1"` |
+| `messages` | 玩家消息列表。支持 `{player}` 和 `&` 颜色码 |
 
-向玩家发送消息，支持 `&` 颜色码和 `{player}` 变量替换。
+一次使用先检查能否使用及属性数值，确认后处理物品消耗和冷却。即时效果依次处理生命值、饱食度、经验、药水、命令和消息，临时属性最后施加。只填写道具用到的字段即可。
+
+## 药水
 
 ```yaml
 effects:
-  - "msg|&a你获得了力量加成！"
-  - "msg|&6{player} &e感受到了神圣的庇护"
+  potions:
+    - id: minecraft:speed
+      level: 2
+      duration: 15
+      particles: false
+    - id: minecraft:regeneration
+      level: 1
+      duration: 5
+      icon: false
 ```
 
-### 饱食度（`food`）
+| 字段 | 值 |
+|------|----|
+| `id` | 命名空间药水效果 ID |
+| `level` | 显示等级，1 至 256，默认 1 |
+| `duration` | 持续秒数，至少 1 秒 |
+| `ambient` | 是否使用环境效果显示，默认 `false` |
+| `particles` | 是否显示粒子，默认 `true` |
+| `icon` | 是否显示图标，默认 `true` |
 
-恢复玩家饱食度，数值会与当前饱食度相加，上限为 20。负数表示减少饱食度。
+## 属性组
+
+在 `effects.attributes` 下填写提供方和自定义组名。每组配置自己的持续秒数及属性修饰器。同一组内每个属性 ID 写一次。要给同一属性配置两种运算或不同持续时间，可以把它分别放在两个组里。
+
+| 提供方 | 配置方式 |
+|--------|----------|
+| `mod` | `modifiers` 列表，填写模组注册的命名空间属性 ID。需开启本体 `mod-attributes.enabled`，并使用支持该桥接的 Forge 混合端 |
+| `symphony` | `modifiers` 列表，填写 Symphony 中已定义的命名空间属性 ID |
+| `mythiclib` | `modifiers` 列表，填写 MythicLib 属性 ID，如 `ATTACK_DAMAGE`。支持加算 |
+| `attributeplus` | `lines` 列表，填写 AttributePlus 能读取的词条 |
+| `craneattribute` | `lines` 列表，填写 CraneAttribute 能读取的词条 |
+
+对接属性插件时，在 Suite 本体 `config.yml` 的 `attribute-bridges` 下启用同名开关，再用 `/axs prop status` 查询桥接状态。一份道具使用多个提供方时，每个提供方都需要可用。每个组的 `duration` 必须为正整数，并且至少包含一条 `modifiers` 或 `lines`。
+
+### 修饰器字段
+
+每条修饰器指定 `id`、`amount` 和可选的 `operation`。Forge 模组属性和 Symphony 支持以下运算。
+
+| 运算 | 含义 |
+|------|------|
+| `add` | 默认值，直接加上 `amount` |
+| `multiply-base` | 按基础值乘以 `amount` 计算加成 |
+| `multiply-total` | 总值乘以 `1 + amount` |
+
+倍率填写比例，例如 `0.2` 表示 20%。属性数值的单位和实际计算顺序由对应提供方定义。
+
+### 用 Aria、Symphony 属性与 PAPI 计算数值
+
+`modifiers[].amount` 可以填数字，也可以直接填一行 Aria 公式。比如将玩家当前 Symphony 物理伤害的 20% 转成枪械弹片伤害，最多提高 20 点。
+
+```yaml
+- id: gunsmithlib:bullet_damage
+  operation: add
+  amount: "math.min(20, global.stats.symphony('physical_damage') * 0.2)"
+```
+
+`global.stats.symphony('physical_damage')` 读取玩家当前结算后的属性。省略命名空间时使用 `symphony:`，自定义命名空间请传完整 ID。 [Symphony 属性 API](https://wiki.arcartx.com/docs/symphony/29_attribute_api)
+
+`global.stats.papi('%player_world_time%')` 读取数值型占位符，`global.level` 是玩家的原版经验等级。两者都可以直接参与计算。PAPI 需要对应扩展，返回值必须是数字。 [PlaceholderAPI Player 扩展](https://github.com/PlaceholderAPI/Player-Expansion/blob/master/src/main/java/com/extendedclip/papi/expansion/player/PlayerExpansion.java)
+
+```yaml
+amount: "5 + global.level * 0.2 + global.stats.papi('%player_world_time%') / 24000"
+```
+
+较长的公式可以用 YAML 的 `>-` 换行。需要给输入取别名时，可将 `amount` 写成带 `aria` 字段的配置节，在 `papi` 或 `symphony` 下映射变量名，公式里用 `global.<变量名>` 读取。`level` 和 `stats` 是内置变量名。
+
+```yaml
+amount:
+  aria: "math.min(20, global.power * 0.2 + global.xp_level * 0.5)"
+  symphony:
+    power: symphony:physical_damage
+  papi:
+    xp_level: "%player_level%"
+```
+
+别名由英文字母、数字和下划线组成，首字符使用字母或下划线。`papi` 和 `symphony` 中的别名应各不相同。`symphony` 映射中的属性填完整命名空间 ID。
+
+同一次使用的公式共用一份 Symphony 快照，在消耗道具和施加本次效果前计算。快照包含当时仍生效的属性来源，包括尚未到期的道具效果。如果公式读取它自己要提高的属性，重复使用时会按当时的总值重新计算。加成期间使用本次计算的数值。
+
+依赖不可用、属性缺失、占位符解析失败或公式未返回有限数值时，本次使用会被取消。开启 `settings.debug` 可在控制台查看出错的属性组和字段。
+
+### TaCZ 强化剂
+
+#### Symphony 为什么会覆盖枪械伤害
+
+GunsmithLib 在 TaCZ 处理子弹命中时读取玩家的 `gunsmithlib:bullet_damage`。TaCZ 算出的伤害随后经混合端交给 Bukkit 伤害事件。Symphony 开启战斗接管后，也会处理这个事件。在没有为该伤害原因指定通道、攻击者拥有 Symphony 属性来源、且能算出正值伤害通道时，Symphony 会用这些通道重建伤害输入，再把结算结果写回事件。默认物理通道读取 `symphony:physical_damage`。因此，枪械属性即使从 7 提高到 12，只要这一击被替换成以 20 点 Symphony 物理攻击为输入，枪械的 5 点增益就不会进入最终扣血。 [Symphony 伤害结算](https://wiki.arcartx.com/docs/symphony/15_damage_pipeline)
+
+接管取决于具体命中和实体拥有的属性来源。装备、状态或外部插件登记的修饰器都可能成为来源。仅受击者拥有 Symphony 来源时，Symphony 可以读取事件原伤害作为输入，再计算防御、格挡和护盾。
+
+#### 由 TaCZ 结算枪械伤害
+
+使用 `effects.attributes.mod` 写入 GunsmithLib 注册在玩家实体上的枪械属性。以下道具增加 15 秒弹片伤害和 8 秒换弹速度。 [GunsmithLib 属性文档](https://github.com/ChloePrime/GunsmithLib/blob/c5a0180a87d21def1f446c04b81c487aad71969c/src/main/resources/docs/attributes.md)
+
+```yaml
+name: "枪械强化剂"
+coolDownGroup: "枪械增益"
+coolDownTime: 45
+effects:
+  attributes:
+    mod:
+      gun-damage:
+        duration: 15
+        modifiers:
+          - id: gunsmithlib:bullet_damage
+            amount: 5
+      fast-reload:
+        duration: 8
+        modifiers:
+          - id: gunsmithlib:reload_speed
+            amount: 0.2
+            operation: multiply-total
+```
+
+也可以把弹片伤害的 `amount` 写成单行公式，按当前 Symphony 物理攻击和 PAPI 原版经验等级计算。此例需要 PlaceholderAPI 的 Player 扩展。
+
+```yaml
+amount: "global.stats.symphony('physical_damage') * 0.2 + global.stats.papi('%player_level%') * 0.5"
+```
+
+若希望由 TaCZ 结算枪械伤害，可以在 `plugins/Symphony/config.yml` 中将 `combat.enabled` 设为 `false` 后重启。这个开关会关闭 Symphony 的战斗结算，Prop 仍可读取 Symphony 属性参与公式。 [Symphony 配置参考](https://wiki.arcartx.com/docs/symphony/26_config_reference)
+
+#### 由 Symphony 接管伤害
+
+使用 `effects.attributes.symphony` 给实际参与结算的通道加属性。下面按默认物理通道配置，临时增加 5 点物理攻击。结算时，这 5 点作为物理通道输入的一部分，继续受目标的物防、格挡和护盾影响。
+
+```yaml
+name: "力量强化剂"
+coolDownGroup: "物理增益"
+coolDownTime: 45
+effects:
+  attributes:
+    symphony:
+      physical-boost:
+        duration: 45
+        modifiers:
+          - id: symphony:physical_damage
+            operation: add
+            amount: 5
+```
+
+如果服务器自定义了伤害通道，请查看 Symphony 的 `damage/*.yml`，将 `id` 改为该通道的 `damage-attribute` 所对应的完整属性 ID。这种加成会影响所有读取该属性的攻击，包括近战。若要只强化 TaCZ，同时保留 Symphony 的减伤和护盾，则需要在伤害结算入口识别 TaCZ 命中并使用枪械伤害作为通道输入。
+
+### 自定义 Symphony 属性和插件词条
+
+下面的 `server:focus` 是示例 ID，请替换为 Symphony 配置中定义的属性。AttributePlus、CraneAttribute 的词条名称按对应插件的服务器配置填写。只有启用了所用的提供方，这份道具才可使用。
 
 ```yaml
 effects:
-  - "food|10"   # 恢复 10 点饱食度
-  - "food|-5"   # 减少 5 点饱食度
+  attributes:
+    symphony:
+      focus:
+        duration: 12
+        modifiers:
+          - id: server:focus
+            amount: 3
+    mythiclib:
+      attack:
+        duration: 10
+        modifiers:
+          - id: ATTACK_DAMAGE
+            amount: 5
+    attributeplus:
+      strength:
+        duration: 10
+        lines: ["物理伤害:10"]
+    craneattribute:
+      defense:
+        duration: 6
+        lines: ["防御:5"]
 ```
 
-### 生命值（`health`）
+## 时长与重复使用
 
-恢复玩家生命值，数值与当前生命值相加，上限为玩家最大生命值（兼容属性插件修改的最大生命值）。负数表示扣血。
+同一份道具可以同时有 10 秒药水和 30 秒临时属性。每组属性按自己的 `duration` 到期。再次使用同一道具时，各组会按此次计算的数值重新施加并重新计时。要让玩家能提前刷新，应把冷却设得短于效果时长。
 
-```yaml
-effects:
-  - "health|10"   # 恢复 10 点生命值
-  - "health|-5"   # 扣除 5 点生命值
-```
+到期、死亡、退出、模块重载或停用时会清除对应的 Prop 临时属性。不同道具、不同组及称号的属性来源独立计时。药水交由原版药水规则处理，命令、发消息、增加经验和已恢复的生命值在使用时生效。
 
-### 经验（`exp`）
+## 使用事件联动
 
-增加玩家经验值，负数表示减少经验。
+成功使用道具会发布 `axs.prop.prop_used`。BattlePass 的「道具专家」任务已订阅，EventPacket 可以用 `event-bus` 触发器监听。事件携带以下文本字段。
 
-```yaml
-effects:
-  - "exp|100"   # 增加 100 点经验
-```
+| 字段 | 值 |
+|------|----|
+| `prop_id` | 道具定义 ID |
+| `trigger` | 手持为 `hand`，按键为 `key`，自动触发为 `auto` |
+| `consumed` | 是否消耗物品，`true` 或 `false` |
+| `cooldown_group` | 道具冷却组 |
+| `max_duration_seconds` | 药水和属性组中最长的持续秒数。纯即时效果为 `0` |
 
-### 百分比生命（`healthPercent`）
+### BattlePass 只统计指定道具的消耗
 
-按玩家最大生命值的百分比恢复生命值。
-
-```yaml
-effects:
-  - "healthPercent|10"   # 恢复最大生命值的 10%
-  - "healthPercent|50"   # 恢复最大生命值的 50%
-```
-
-> 无法获取最大生命值属性时跳过执行（不报错）。
-
-### 药水（`potion`）
-
-附加药水效果，格式为 `<效果名>:<等级>`。持续时间由道具的 `Duration` 字段决定（秒）。当前等级从 1 开始（1 = I 级，2 = II 级），与称号药水等级写法一致。
+在对应 BattlePass 任务定义中使用以下字段。示例只统计实际消耗了 `field_ration` 的使用事件，手持、按键和自动使用都可计入。若只统计一种入口，可再按 `trigger` 加一条事件载荷条件。 [BattlePass 任务条件](/docs/battlepass/tasks)
 
 ```yaml
-Duration: 30
-
-effects:
-  - "potion|SPEED:2"           # 速度 II，持续 30 秒
-  - "potion|REGENERATION:1"     # 生命恢复 I，持续 30 秒
-  - "potion|STRENGTH:1"         # 力量 I，持续 30 秒
-  - "potion|JUMP_BOOST:1"       # 跳跃提升 I，持续 30 秒
-```
-
-## 属性效果详解
-
-属性效果通过Suite属性桥接对接三个属性插件。对应插件未安装或未启用桥接时，效果静默跳过（调试模式有日志）。
-
-### AttributePlus 属性加成（`ap`）
-
-属性行列表（如 `物理伤害:10`）作为来源添加到玩家属性数据中，持续 `Duration` 秒后自动移除。
-
-```yaml
-name: "力量卷轴"
-Duration: 30
-
-effects:
-  - "ap|物理伤害:10"
-  - "ap|暴击伤害:5"
-  - "ap|移动速度:2"
-```
-
-> 来源 ID 由道具显示名生成。多个道具若显示名处理结果相同，会共享同一个来源 ID，后添加的覆盖前者。
-
-### MythicLib 属性加成（`ml` / `mythiclib`）
-
-附加 MythicLib 临时 modifier，持续 `Duration` 秒后自动关闭。**同属性多行的值会累加**。
-
-```yaml
-# config.yml
-mythiclib:
-  source-prefix: "AXS_PROP"
-
-# 道具定义
-name: "力量卷轴"
-Duration: 30
-
-effects:
-  - "ml|ATTACK_DAMAGE:5"
-  - "mythiclib|critical_damage:8"
-  - "ml|ATTACK_DAMAGE:3"   # 同属性多行，值会累加为 8
-```
-
-> 仅处理已注册的 MythicLib 属性，未注册的属性记录警告并跳过。
-
-### Symphony 属性加成（`sy` / `symphony`）
-
-附加 Symphony 属性修改，持续 `Duration` 秒后自动移除并重算。payload 以 `%` 结尾时为百分比修饰。
-
-```yaml
-name: "力量卷轴"
-Duration: 30
-
-effects:
-  - "sy|ATTACK_DAMAGE:5"        # 数值修饰
-  - "symphony|ATTACK_SPEED:10%" # 百分比修饰
-```
-
-> 玩家下线时自动清除全部活跃属性并重新计算。
-
-## 持续时间与下线清理
-
-- 属性效果的持续时间由道具的 `Duration` 字段控制（秒），到期自动移除
-- `Duration: 0` 时立即移除
-- 玩家退出服务器时，全部活跃临时属性自动清除；重新上线需再次使用道具才能获得加成
-
-### 综合增益道具
-
-```yaml
-name: "神圣祝福"
-coolDownGroup: "祝福冷却组"
-coolDownTime: 120
-Duration: 60
-remove: true
-hand: false
-key: true
-permission: "arcartxsuite.prop.blessing"
-
+event-topic: "axs.prop.prop_used"
 conditions:
-  - "%player_level% >= 20"
-  - "%player_health% > 0"
-
-effects:
-  # 即时效果
-  - "msg|&6你获得了神圣祝福！"
-  - "cmd|say {player} 获得了神圣祝福"
-  - "health|20"
-  - "food|10"
-  - "exp|500"
-  # 药水效果（持续 60 秒）
-  - "potion|REGENERATION:2"
-  - "potion|DAMAGE_RESISTANCE:1"
-  # 属性效果（持续 60 秒）
-  - "ap|物理伤害:15"
-  - "ap|魔法防御:10"
-  - "ml|ATTACK_DAMAGE:10"
-  - "ml|MOVEMENT_SPEED:5"
-  - "sy|ATTACK_SPEED:15%"
-  - "symphony|LUCK:5"
+  - type: event_payload
+    key: prop_id
+    operator: equals
+    value: "field_ration"
+  - type: event_payload
+    key: consumed
+    operator: equals
+    value: "true"
 ```
 
-### 纯药水道具
+### EventPacket 按道具使用触发动作
+
+将规则加入 EventPacket 主配置 `data/eventpacket/config.yml` 的 `rules`，保留已有规则。示例在玩家自动使用 `first_aid` 后发送一条消息。
 
 ```yaml
-name: "隐身药水"
-coolDownGroup: "药水冷却组"
-coolDownTime: 30
-Duration: 15
-remove: true
-hand: true
-key: true
-permission: ""
-
-conditions: []
-
-effects:
-  - "potion|INVISIBILITY:0"
-  - "potion|SPEED:1"
-  - "msg|&7你进入了隐身状态"
+rules:
+  first-aid-used:
+    enabled: true
+    trigger: event-bus
+    topic: axs.prop.prop_used
+    when:
+      prop_id: "first_aid"
+      trigger: "auto"
+      consumed: "true"
+    actions:
+      - type: message
+        text: "&a已自动消耗一份急救包。"
 ```
 
-### 纯命令道具
+## 排错
 
-```yaml
-name: "传送卷轴"
-coolDownGroup: "传送冷却组"
-coolDownTime: 60
-Duration: 0
-remove: true
-hand: false
-key: true
-permission: "arcartxsuite.prop.teleport"
+| 现象 | 检查位置 |
+|------|----------|
+| 重载后找不到道具 ID | 查看重载日志中的文件路径和字段。确认 `effects` 为配置节，同一 ID 只对应一个定义 |
+| 提示依赖的提供方不可用 | 用 `/axs prop status` 检查对应桥接，再核对插件安装、Suite 本体开关和模组环境 |
+| 提示当前角色属性不可用 | Forge 属性要挂载在目标玩家实体上，MythicLib 属性要先在对应插件中注册 |
+| 提示属性数值无法计算 | 核对 Aria 表达式、Symphony 属性 ID 和 PAPI 展开结果。打开 `settings.debug` 查看对应属性字段 |
+| 显示有枪械属性加成，实际掉血未变化 | 检查 [Symphony 是否接管枪械伤害](#symphony-为什么会覆盖枪械伤害) |
+| 无法确认道具槽位已更新 | 检查 ArcartX 额外槽位的实际内容、ID 与更新脚本，再尝试使用 |
 
-conditions:
-  - "%player_world% != world_nether"
-
-effects:
-  - "cmd|spawn {player}"
-  - "msg|&a你已被传送回主城"
-```
-
-## 调试与排错
-
-启用 `config.yml` 中的 `settings.debug: true` 后，效果执行过程中会输出以下调试日志：
-
-| 日志内容 | 触发条件 |
-|----------|----------|
-| `ArcartXProp 检测到未知效果类型: <行>` | 效果行的 type 不在 10 种已知类型中 |
-| `Prop MythicLib 效果格式无效，已跳过: <行>` | MythicLib 效果行解析失败（格式错误或数值无法解析） |
-| `Prop Symphony 效果格式无效，已跳过: <行>` | Symphony 效果行解析失败 |
-| `Prop MythicLib 属性未注册，已跳过: <statId>` | MythicLib 属性 ID 未在插件中注册（仅警告一次） |
-| `ArcartXProp AP 效果已跳过 -> hooked=false` | AttributePlus 未挂钩，AP 效果被跳过 |
-| `ArcartXProp MythicLib 效果已跳过 -> hooked=false` | MythicLib 未挂钩，效果被跳过 |
-| `ArcartXProp Symphony 效果已跳过 -> hooked=false` | Symphony 未挂钩，效果被跳过 |
-
-## 延伸阅读
-
-- [配置](/docs/prop/configuration) — 完整配置字段说明与效果格式速查
-- [按键绑定系统](/docs/prop/keybinds) — 客户端按键注册与槽位绑定
-- [快捷道具使用说明](/docs/prop) — 属性桥接状态查询与跨模块集成
-- [条件系统](/docs/guide/conditions) — 使用条件的完整语法（PAPI / ARIA / JS / CONTEXT）
-- [物品库匹配](/docs/guide/item-sources) — 统一物品来源系统
-- [图标系统](/docs/guide/icons) — UI 图标配置
+桥接、属性或数值计算未通过时，本次使用在消耗物品和启动冷却前中止。自动触发会静默跳过，可以临时启用同一道具的主手或按键入口查看对应提示。
