@@ -12,6 +12,8 @@ description: "手动触发信号、查看已注册的主题和规则处理状态
 | `/axs eventpacket topics` | 列出实时主题和副本规则 ID。 |
 | `/axs eventpacket fire <信号> <玩家> [key=value...]` | 向指定在线玩家触发信号，可附加字段和取值。 |
 
+副本结果查不到时，系统会稍后重试补记。Mail 和数据库可用时，已经登记的邮件会继续发送。
+
 ### 测试信号
 
 ```text
