@@ -79,9 +79,13 @@ maintenance:
 
 手动广播展示时长为 `between-entry-interval-ms`，不触发轮播冷却，队列消费完毕后恢复自动轮播。
 
+每台服最多保留 128 条待播的队列广播。收到队列已满提示时，等待正在播放的公告消费后重试。`/axs announcer status` 可查看待播数量和丢弃计数。
+
 ## 点击命令
 
 条目配置非空 `click-command` 时，HUD 显示可点击区域。玩家点击后以控制台身份执行命令。
+
+自定义公告 HUD 使用 `packetHandler.display` 接收公告状态。包中的 `id` 用于回传本次点击令牌，`entryId` 用于显示条目标识。每个令牌只对当前玩家连接和当前公告有效，可使用一次。
 
 ```yaml
 welcome:
