@@ -10,21 +10,24 @@ description: "开始使用可用命令、参数填写方式和权限要求。"
 | 命令 | 用途 |
 | --- | --- |
 | `/axs help` | 查看帮助 |
-| `/axs status` | 查看模块加载状态 |
-| `/axs reload <模块ID>` | 重载单个模块配置 |
-| `/axs reload all` | 重载全局配置与模块 |
-| `/axs sync` | 同步已装备模块 |
-| `/axs update <模块ID>` | 更新指定模块，操作前先阅读发行说明 |
+| `/axs status` | 查看本体和模块状态 |
+| `/axs reload <模块ID>` | 重载已加载的模块，例如 `/axs reload announcer` |
+| `/axs reload all` | 读取可重载的本体配置，按本地开关启停模块并重载其余已启用模块。提示需重启的设置见[生效方式](/docs/guide/first-run#保存后怎样生效) |
+| `/axs sync` | 同步当前服务器的模块装备，按本地开关和前置条件加载新装备的模块，卸下已取消装备的模块 |
+| `/axs update <模块ID或all>` | 更新已加载的云端模块，操作前先阅读发行说明 |
 
-管理操作需要 `arcartxsuite.admin` 权限。普通玩家的功能权限见各模块的「命令与权限」页。
+可在控制台运行本页的管理命令，游戏内需要 `arcartxsuite.admin`，该权限默认授予 OP。重载、同步或更新时，等控制台显示操作结果，再执行 `axs status` 核对模块状态。普通玩家的功能权限见各模块的「命令与权限」页。
 
 ## 配置检查
 
 | 命令 | 用途 |
 | --- | --- |
-| `/axs config diagnose <模块ID>` | 检查配置 |
-| `/axs config preview <模块ID>` | 查看建议 |
-| `/axs config apply <模块ID>` | 应用已确认的修复建议 |
+| `/axs config diagnose [模块ID或all]` | 检查已注册的配置，省略参数时检查全部 |
+| `/axs config status` | 查看当前会话的诊断结果概况 |
+| `/axs config preview <模块ID或all>` | 查看诊断发现的问题和建议值 |
+| `/axs config apply <模块ID>` | 将该模块已确认的修复建议写入配置 |
+
+在控制台先执行 `axs config diagnose`，再执行 `axs config preview all` 核对报告。确有建议需要应用时，将 `<模块ID>` 换成报告中的 ID，应用后按模块文档重载并重新诊断。
 
 ## 查找某个功能的命令
 

@@ -11,7 +11,7 @@ LoginView 显示登录状态，并在身份验证后引导玩家完成服务器�
 | --- | --- | --- | --- |
 | 本机离线直连 | `online-mode=false`，`server-ip=127.0.0.1` 或 `::1` | `standalone` + `password` | 在 LoginView 注册或输入本服密码。[配置方法](/docs/loginview/configuration) |
 | 微软在线直连 | `online-mode=true` | `standalone` + `online` | Minecraft 使用微软会话验证，通过后进入准入步骤。[配置方法](/docs/loginview/configuration#微软在线直连) |
-| 混合在线直连 | `online-mode=true` | `standalone` + `local-mixed` | 微软和 LittleSkin 照常登录。Suite AuthCenter 账号可由启动器兑换 Minecraft 会话，直接完成握手。[配置方法](/docs/loginview/mixed-login#加入-suite-authcenter) |
+| 混合在线直连 | `online-mode=true` | `standalone` + `local-mixed` | 使用微软或已配置的第三方账号完成 Minecraft 握手。可按需加入 Suite AuthCenter 作为会话来源。[配置方法](/docs/loginview/mixed-login#单服混合认证) |
 | 在线进服后由中心准入 | `online-mode=true` | `center` + `external` | 玩家完成游戏在线握手后，在原连接确认网页或启动器授权。[配置方法](/docs/loginview/center) |
 | 可信代理后的子服 | 子服通常为 `online-mode=false`，由代理完成在线身份验证 | `standalone` + `signed-proxy` | 子服校验代理对本次连接的签名。[配置方法](/docs/loginview/mixed-login#代理转发认证) |
 
@@ -21,10 +21,10 @@ LoginView 显示登录状态，并在身份验证后引导玩家完成服务器�
 
 ## 部署流程
 
-1. 在 Suite 的 `config.yml` 中设置 `modules.loginview.enabled: true`。
+1. 为当前服务器装备 LoginView，在 Suite 的 `config.yml` 中设置 `modules.loginview.enabled: true`。
 2. 按所选教程修改 `authentication.yml` 和必要的服务器配置，重启相关进程。
 3. 在控制台执行 `axs status`，确认 LoginView 已启用。
-4. 使用所选入口的测试账号进服。分别确认身份验证、条款、QQ 绑定和准入状态。在验证完成前，玩家应无法移动或交互。
+4. 使用所选入口的测试账号进服。核对进服身份和已开启的条款、QQ 绑定等准入要求。存在待完成的要求时，先确认移动和交互受限，完成后再确认恢复。
 
 登录入口和认证策略在 `plugins/ArcartX-Suite/authentication.yml`。界面延迟在 `data/loginview/config.yml`，外观在 `ui/auth_v1.yml`，两者都相对于 Suite 数据目录。
 

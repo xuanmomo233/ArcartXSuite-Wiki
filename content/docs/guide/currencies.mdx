@@ -25,7 +25,7 @@ currencies:
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `enabled` | boolean | `true` | 设为 false 则跳过该货币 |
+| `enabled` | boolean | `true` | 是否采用这项自定义定义。没有启用的 `money` 或 `points` 定义时，会分别补入 Vault 和 PlayerPoints 的内置定义 |
 | `provider` | string | `"vault"` | 提供者类型 |
 | `display-name` | string | 货币 ID | 显示给玩家的名称 |
 | `scale` | int | `2` | 小数精度位数。0 = 整数，2 = 保留两位小数 |
@@ -33,6 +33,8 @@ currencies:
 | `balance-placeholder` | string | — | PAPI 占位符，返回纯数字余额（command 类型必填） |
 | `withdraw-command` | string | — | 扣款时执行的控制台命令（command 类型必填） |
 | `deposit-command` | string | — | 入账时执行的控制台命令（command 类型必填） |
+
+修改或删除已经注册的货币定义后重启服务器。执行 `/axs reload all` 可以注册此前未使用的货币 ID，已有定义在本次运行中保留。
 
 ## 支持的 Provider 类型
 
@@ -151,7 +153,7 @@ currencies:
 
 1. 测试玩家进服后，用 `essentials:eco set WikiTester 100` 在控制台设置余额。用实际测试玩家名替换 `WikiTester`。
 2. 在控制台执行 `essentials:eco take WikiTester 5` 和 `essentials:eco give WikiTester 5`。每条命令后运行 `essentials:balance WikiTester`，应依次读到 95、100。PAPI 的查询值也应一致。
-3. 将上面的定义合并到本体 `config.yml` 后执行 `/axs reload all`。将[商店与回收示例](/docs/market/shops#购买和回收示例)中两个文件的 `currency` 都设为 `money_command_test`，用同一玩家实际买、回收一个苹果。读回余额应依次为 90、92。
+3. 将上面的定义合并到本体 `config.yml`。将[商店与回收示例](/docs/market/shops#购买和回收示例)中两个文件的 `currency` 都设为 `money_command_test`。重启后用同一玩家实际买、回收一个苹果。读回余额应依次为 90、92。
 4. 使用余额只有 5 的测试玩家尝试购买。确认余额和苹果数量都没有变化。若界面、流水和实际余额不一致，以经济插件的读回结果排查命令、账户和余额限制。
 
 此示例和 `vault` 类型读取同一个 Vault 余额。用于正常交易时可直接使用 `vault`。 [EssentialsX 命令定义](https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/main/resources/plugin.yml)

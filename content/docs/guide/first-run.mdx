@@ -13,17 +13,17 @@ Suite 支持多种 Minecraft 版本。先确定游戏服使用的 Minecraft 版�
 
 | 组件 | 如何选择 | 获取和安装 |
 | --- | --- | --- |
-| Minecraft 服务端与 Java | 选择 Suite 和 ArcartX 均支持的 Minecraft 版本及服务端类型，按所选服务端和插件发行版的要求准备 Java。 | 从所选服务端的官方渠道获取。 [Paper 下载](https://papermc.io/downloads/paper) · [Paper 的 Java 要求](https://docs.papermc.io/paper/getting-started/#requirements) |
+| Minecraft 服务端与 Java | Suite 主线的服务端基线为 Minecraft 1.20.1 及以上的 Spigot / Paper，Java 至少为 17。选择 Suite 和 ArcartX 均支持的组合，Java 同时满足所选服务端的要求。 | 在游戏服实际使用的启动环境执行 `java -version`；使用面板时，核对实例选择的 Java。 [Paper 的 Java 要求](https://docs.papermc.io/paper/getting-started/#requirements) |
 | ArcartX 服务端 | 选择支持当前 Minecraft 版本和服务端类型的 ArcartX 发行版。 | 将 ArcartX 服务端插件放入 `plugins/`。 [ArcartX 下载](https://arcartx.com/resources/16/) |
 | Suite 本体 | 支持 Windows x86_64 和 Linux x86_64。按游戏服的系统选择对应 JAR。 | 在云端下载中心的「游戏服本体」下载 `ArcartX-Suite` JAR。 [Suite 云端下载中心](https://cloud.021209.xyz/download) |
 | 玩家客户端 | 按游戏服的入服版本要求，从 ArcartX 版本表选择可用的 Minecraft 版本与加载器组合，再核对客户端构建与 ArcartX 服务端的兼容性。 | 将对应的 ArcartX 客户端 Mod 及该构建要求的前置 Mod 放入所用游戏实例的 `mods/`。 [ArcartX 版本表](https://wiki.arcartx.com/docs/arcartx_v2) |
 
-使用地图或物品提示时，按对应模块页的要求选择客户端扩展。其他模块的前置插件可从模块目录查阅。 [地图客户端](/docs/map/client-mod) · [物品提示客户端](/docs/tooltip/client-mod) · [模块目录](/docs#按功能找模块)
+使用地图或物品提示时，按对应模块页的要求选择作者发放的客户端扩展。 [地图客户端](/docs/map/client-mod) · [物品提示客户端](/docs/tooltip/client-mod)
 
 ## 安装本体
 
 1. 停服后，将 ArcartX 服务端插件和 Suite 本体放入游戏服的 `plugins/`。
-2. 启动服务器。在控制台确认 ArcartX 与 Suite 启用，找到生成的 `plugins/ArcartX-Suite/config.yml`。
+2. 启动服务器，在控制台确认 ArcartX 启用。如果 Suite 提示正在准备运行库，等启动完成后再执行 `axs status`。确认命令能返回状态，并找到生成的 `plugins/ArcartX-Suite/config.yml`。
 3. 停服后按下方步骤填写云端账号信息，启动后装备公告模块。
 
 启动服务器前，请确认游戏服可以通过 HTTPS 访问 Suite 云端。
@@ -99,17 +99,27 @@ cloud:
 modules:
   announcer:
     enabled: true
-  fishing:
-    enabled: false
 ```
 
-本例开启公告、关闭钓鱼；修改时保留其他模块的设置。
+本例开启公告，修改时保留其他模块的设置。
 
 - `true`：允许启用，不代表模块已经成功加载。
 - `false`：关闭模块，其功能不可用；开关不是删除玩家数据的操作。
 - 名称使用 `announcer`、`onlinerewards` 等模块 ID，不改成中文。
 
-首次修改开关后重启，再执行 `/axs status`。未加载时依次检查装备状态、前置插件、启动错误。各模块的功能与使用方法见[模块目录](/docs#按功能找模块)。
+修改开关后执行 `/axs reload all` 或重启。等操作完成再执行 `/axs status`。模块未加载时，依次检查当前服务器的装备状态、前置插件和启动日志。
+
+### 模块前置依赖
+
+启用模块前，确认它要求的前置插件在每台运行该模块的游戏服上均已成功启用。本体统一要求 ArcartX 服务端，以下是模块额外要求的插件。
+
+| 前置插件 | 模块 ID |
+| --- | --- |
+| PlaceholderAPI | `abyss`、`afkreward`、`battlepass`、`chat`、`entitytracker`、`essentials`、`fishing`、`lottery`、`mail`、`market`、`onlinerewards`、`qqbot`、`title`、`warehouse` |
+| Chemdah、Adyeshach | `conversation` |
+| Chemdah | `questgps` |
+
+其他模块没有额外的强制插件前置。单项功能可能另有要求，例如 [Market 的 NPC 商店](/docs/market/npc-exchange)需要 Adyeshach，[Tab 的跨服名单](/docs/tab/cross-server)需要 Suite Velocity。各模块的使用条件见[模块目录](/docs#按功能找模块)。
 
 ## 全局货币
 
@@ -134,7 +144,7 @@ currencies:
 | 字段 | 功能与填写建议 |
 | --- | --- |
 | `money` / `points` | 货币 ID；改名后必须检查商品、奖励和费用中的引用 |
-| `enabled` | 是否启用该货币定义；没有使用的货币可以关闭 |
+| `enabled` | 是否采用这一项自定义定义；`money` 和 `points` 缺少启用的定义时会补入内置定义 |
 | `provider` | 余额由哪个经济插件或命令方式提供，必须与实际环境对应 |
 | `display-name` | 给玩家看的名称，改为“金币”“代币”等不会改变货币 ID |
 | `scale` | 小数位数；`0` 为整数，`2` 保留两位小数 |
@@ -145,9 +155,9 @@ currencies:
 
 `vault` 需要 Vault 和提供经济功能的插件；`playerpoints` 需要 PlayerPoints。配置货币不会自动安装插件，也不会自动创建经济系统。
 
-如果只有 Vault 金币，可以保留 `money`，将 `points.enabled` 改为 `false`，并确保模块没有继续引用 `points`。XConomy、Rondo 及命令方式的写法见[货币系统](/docs/guide/currencies)。
+如果只有 Vault 金币，将商品、奖励和费用设为 `money`，核对模块示例中是否仍有 `points`。XConomy、Rondo 及命令方式的写法见[货币系统](/docs/guide/currencies)。
 
-修改后执行 `/axs reload all`，检查状态中的货币信息，用小额测试确认余额展示、扣款和入账。
+修改货币定义后重启游戏服，检查状态中的货币信息，再用小额测试确认余额展示、扣款和入账。全量重载可以注册新 ID，已有 ID 的定义保留到重启。
 
 ## 数据存储
 
@@ -164,7 +174,7 @@ storage:
 
 ### 使用 MySQL
 
-有数据库或群组服数据需求时，再填写连接信息：
+有数据库或群组服数据需求时，先创建数据库，再填写连接信息。所填账号需要能访问该库，并能创建 Suite 使用的表、读写数据。
 
 ```yaml
 storage:
@@ -312,7 +322,8 @@ potion-aura:
 | `node-id` | 当前子服唯一名称，各子服应不同，不要都保留 `default` |
 | `redis.enabled` | 是否使用 Redis 进行跨服互通 |
 | `redis.host` / `redis.port` | 地址与端口，默认 `127.0.0.1:6379` |
-| `redis.password` / `redis.database` | 连接密码与数据库编号，默认空密码、`0` |
+| `redis.username` / `redis.password` | Redis ACL 用户名与密码，默认留空；用户名留空时使用 Redis 默认用户 |
+| `redis.database` | Redis 数据库编号，默认 `0` |
 | `redis.channel` | 同组子服使用的频道，默认 `AXS:CROSS` |
 | `redis.connect-timeout-ms` | 连接等待时间，默认 `5000` 毫秒 |
 | `proxy.enabled` | 启用代理服转发方式，需要代理环境配合 |
@@ -335,8 +346,10 @@ potion-aura:
 
 | 修改内容 | 生效方式 | 如何验证 |
 | --- | --- | --- |
-| 货币、属性插件选择、持续药水效果、模组属性、内容过滤、默认按键 | `/axs reload all` | 小额经济测试、装备效果、文字输入或客户端按键检查 |
-| 模块启用开关、首次云端账号绑定 | 首次配置建议重启 | `/axs status`，核对后台装备状态 |
+| 属性插件选择、持续药水效果、模组属性、内容过滤、默认按键 | `/axs reload all` | 装备效果、文字输入或客户端按键检查 |
+| 已有货币定义的修改或删除 | 重启服务器 | 用小额交易核对余额、扣款和入账 |
+| 模块启用开关 | `/axs reload all` 或重启 | 操作完成后运行 `/axs status`，核对后台装备状态 |
+| 首次云端账号绑定 | 保存后启动服务器 | 核对后台服务器记录，再执行 `axs sync` |
 | 数据存储、跨服连接、枪械伤害兼容、奖励命令执行速度 | 重启服务器 | 检查连接日志、功能结果和数据读回 |
 | 某个模块自己的配置 | `/axs reload <模块ID>` | 按模块文档实际操作 |
 

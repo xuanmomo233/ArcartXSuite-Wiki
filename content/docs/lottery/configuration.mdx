@@ -3,7 +3,7 @@ title: "抽奖与开箱配置"
 description: "调整pools/ 奖池、奖品权重、消耗与保底参数；附字段解释、修改示例与重载步骤。"
 ---
 
-主配置为 `plugins/ArcartX-Suite/data/lottery/config.yml`。修改后执行 `/axs reload lottery`。奖池文件放在 `pools/`。`CASE` 使用箱子物品触发开箱，`GACHA` 提供单抽、十连和保底。
+主配置为 `plugins/ArcartX-Suite/data/lottery/config.yml`。修改后执行 `/axs reload lottery`。默认奖池文件放在该文件同级的 `lottery/pools/`。`CASE` 使用箱子物品触发开箱，`GACHA` 提供单抽、十连和保底。
 
 ### 物品 ID 与匹配条件分别填写
 
@@ -54,7 +54,7 @@ Lottery 模块涉及以下配置文件：
 
 | `type` | 说明 | 必填字段 |
 |---|---|---|
-| `CURRENCY` | 货币，按 `id` 扣除对应货币 | `id`、`amount` |
+| `CURRENCY` | 货币，`id` 对应本体 `currencies` 中已配置的货币，例如需要 Vault 及经济插件的 `money` | `id`、`amount` |
 | `ITEM` | 物品，用 `matcher` 匹配背包物品，禁止填 `id` | `matcher`、`amount` |
 | `POINT` | 积分，`id` 对应奖池 `points` 块定义的积分点 ID | `id`、`amount` |
 
@@ -64,7 +64,7 @@ Lottery 模块涉及以下配置文件：
 cost:
   single:
     - type: CURRENCY
-      id: "gold"
+      id: "money"
       amount: 160
       display-name: "金币"
       icon:
@@ -85,7 +85,7 @@ cost:
           lottery: "intertwined_fate"
   ten:
     - type: CURRENCY
-      id: "gold"
+      id: "money"
       amount: 1600
       display-name: "金币"
       icon:
@@ -260,13 +260,13 @@ up-item-desc: "五星角色「星辰」获取概率大幅提升"
 cost:
   single:
     - type: CURRENCY
-      id: "gold"
+      id: "money"
       amount: 160
       display-name: "金币"
       icon: { material: DIAMOND, name: "金币" }
   ten:
     - type: CURRENCY
-      id: "gold"
+      id: "money"
       amount: 1600
       display-name: "金币"
       icon: { material: DIAMOND, name: "金币" }

@@ -7,24 +7,41 @@ description: "创建抽奖池、开箱动画、保底规则与积分兑换。"
 | --- | --- |
 | 模块 ID | `lottery` |
 | 主配置 | `plugins/ArcartX-Suite/data/lottery/config.yml` |
-| 主要调整内容 | pools/ 奖池、奖品权重、消耗与保底参数 |
+| 主要调整内容 | `lottery/pools/` 中的奖池、奖品权重、消耗与保底参数 |
 | 重载 | `/axs reload lottery` |
 
 ## 开始前
 
-安装 `PlaceholderAPI`，用 `/axs status` 确认模块已加载。
+安装并启用 `PlaceholderAPI`，用 `/axs status` 确认模块已加载。验收用普通玩家需要 `arcartxsuite.lottery.use`，该权限默认开启。
 
 ## 第一次使用
 
-1. 复制一个默认奖池。
-2. 设置测试奖品与消耗。
-3. 执行 `/lottery open <奖池ID>`。
+在测试服打开 `plugins/ArcartX-Suite/data/lottery/lottery/pools/`。如果改过 `pools-directory`，使用实际配置的目录。
+
+1. 复制 `genshin_vanilla_event.yml` 为 `wiki_trial.yml`，将 `id` 改为 `wiki_trial`，并将 `gacha.shared-pity-group` 改为 `wiki_trial`。保留原文件的奖品和权重。
+2. 将整个 `cost` 小节换成以下配置，单抽消耗 1 个原版黏土球。
+
+```yaml
+cost:
+  single:
+    - type: ITEM
+      amount: 1
+      display-name: "黏土球"
+      icon:
+        material: CLAY_BALL
+      matcher:
+        material-ids:
+          - CLAY_BALL
+```
+
+3. 在控制台执行 `axs reload lottery`，等确认重载后执行 `axs lottery status`，确认列表有 `wiki_trial`。
+4. 用背包有空位的普通玩家准备 1 个黏土球，进服执行 `/lottery open wiki_trial`，进行一次单抽。
 
 ## 检查是否配置成功
 
-完成一次测试抽奖，核对消耗、奖品和记录。
+抽奖后应扣除 1 个黏土球并获得奖品。执行 `/lottery history wiki_trial` 应能看到这次记录。再次尝试单抽时，应提示材料不足，背包和记录保持原样。
 
-找不到奖池时，检查 `pools/` 中的 `id`。奖池可打开却无法抽取时，核对 `cost.single`、箱子、钥匙和余额。 [奖池配置](/docs/lottery/configuration)
+找不到奖池时，核对 `pools-directory`、奖池的 `id` 和 `enabled`。奖池可打开却无法抽取时，按奖池类型检查消耗、箱子、钥匙和余额。 [奖池配置](/docs/lottery/configuration)
 
 ## 可以配置的功能
 
