@@ -1,9 +1,9 @@
 ---
-title: "单服密码认证"
-description: "配置游戏内账号注册、密码验证、服务器条款和 QQ 绑定要求。"
+title: "本机离线密码与微软在线直连"
+description: "配置本机断网密码测试或微软在线免密直连，调整条款、QQ 绑定和登录界面。"
 ---
 
-本模式由游戏服管理账号并验证密码。玩家首次连接时注册账号，后续连接使用已登记的密码登录。
+单服由游戏服保存账号。只有本机离线直连可输入游戏内密码；微软在线直连通过 Minecraft 的在线握手验证。两种入口都可以启用条款和 QQ 绑定。
 
 ## 模块启用
 
@@ -15,15 +15,18 @@ modules:
     enabled: true
 ```
 
-单服密码认证要求玩家直连启用了 Minecraft 在线验证的游戏服。将游戏服根目录的 `server.properties` 设为以下值。
+## 本机离线密码
+
+本入口用于单机断网测试。将游戏服根目录的 `server.properties` 设为以下值，客户端使用 `127.0.0.1` 直连。
 
 ```properties
-online-mode=true
+online-mode=false
+server-ip=127.0.0.1
 ```
 
-玩家先通过 Minecraft 在线验证，再输入本服密码。使用代理的子服按[代理转发认证](/docs/loginview/mixed-login#代理转发认证)配置。`online-mode=false` 的游戏服会拒绝加载本页的密码入口。
+关闭 `spigot.yml` 的 `settings.bungeecord`；使用 Paper 时，同时关闭 `config/paper-global.yml` 的 `proxies.velocity.enabled`。留空监听地址、使用非回环地址或开启转发时，游戏内密码入口不会启用。
 
-## 认证配置
+### 密码与准入配置
 
 将以下完整配置保存到 `plugins/ArcartX-Suite/authentication.yml`。样例启用服务器条款，关闭 QQ 绑定，适合验证基础密码流程。
 
@@ -79,11 +82,11 @@ open-delay-ticks: 20
 
 `open-delay-ticks` 控制进服后尝试打开界面的延迟，范围为 0 至 600 tick。样例值 20 约为 1 秒，认证要求由 `authentication.yml` 控制。
 
-## 启动与验证
+### 启动与验证本机密码
 
 在测试服用匹配的 ArcartX 客户端和一名未登记的普通玩家验收。
 
-1. 重启游戏服，控制台执行 `axs status`，确认 `loginview` 已启用。若出现「游戏内密码认证要求直连」或 LoginView 加载失败，按日志修正配置再启用 LoginView。未启用 LoginView 时，游戏服继续使用常规准入。
+1. 重启游戏服，控制台执行 `axs status`，确认 `loginview` 已启用。若提示「本机直连服」，核对在线模式、监听地址和代理开关，再重启。未启用 LoginView 时，游戏服继续使用常规准入。
 2. 首次连接后应打开注册界面。提交两次不同的密码，应提示不一致。未完成认证时尝试走动和使用方块，两项都应受限。
 3. 用两次相同的合规密码注册并确认条款。界面应关闭，玩家可以移动和使用方块。
 4. 重新连接后应打开登录界面。输错一次密码，确认仍在登录界面且无法操作。随后输入正确密码，确认界面关闭、玩家可正常操作。
@@ -91,9 +94,22 @@ open-delay-ticks: 20
 
 界面外观或打开延迟改变后，可以用 `/axs reload loginview` 重载。修改认证后端、密码策略、条款或入口后，重启游戏服。
 
+## 微软在线直连
+
+将 `server.properties` 中的 `online-mode` 设为 `true`，并关闭 BungeeCord、Velocity 转发。保留原生微软会话服务。启用了 authlib-injector 或要接入其他会话来源时，使用[混合账号认证](/docs/loginview/mixed-login)。
+
+在上面的 `authentication.yml` 基础上，将 `ingress` 改为：
+
+```yaml
+ingress:
+  type: online
+```
+
+重启后用微软账号直连。Minecraft 握手验证通过时，玩家无需输入本服密码。如果服务器启用了条款或 QQ 绑定，LoginView 会展示这些要求。核对 `%axsauth_provider%` 为 `microsoft`，完成全部要求后 `%axsauth_admitted%` 为 `true`。
+
 ## QQ 绑定要求
 
-完成 QQBot 的连接和群内绑定验证后，将 `requirements.qq-binding` 设为 `true` 并重启。玩家通过密码认证后，须在群内申请验证码并回到登录界面确认，完成绑定后才允许操作。[QQ 绑定流程](/docs/qqbot/binding-whitelist)
+完成 QQBot 的连接和群内绑定验证后，将 `requirements.qq-binding` 设为 `true` 并重启。玩家验证身份后，须在群内申请验证码并回到登录界面确认，完成绑定后才允许操作。[QQ 绑定流程](/docs/qqbot/binding-whitelist)
 
 ## 界面加载排查
 
