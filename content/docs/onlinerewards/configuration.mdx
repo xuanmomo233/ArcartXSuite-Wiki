@@ -3,15 +3,7 @@ title: "在线奖励与签到配置"
 description: "调整sign-in.yml 签到奖励、rewards.yml 时长奖励；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-sign-in.yml 签到奖励、rewards.yml 时长奖励。先使用默认示例完成一次测试，再按本页逐项调整。
-
-配置位置：`plugins/ArcartX-Suite/data/onlinerewards/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload onlinerewards`；涉及插件安装或全局设置的变更请重启后验证。
-
-OnlineRewards 模块的配置由三个文件组成：主配置 `config.yml`、签到配置 `sign-in.yml` 和在线阶段奖励配置 `rewards.yml`。模块启动时自动导出默认文件，修改后执行 `/axs reload onlinerewards` 生效。
+配置目录为 `plugins/ArcartX-Suite/data/onlinerewards/`。在 `sign-in.yml` 设置签到，在 `rewards.yml` 设置在线奖励。修改后执行 `/axs reload onlinerewards`。
 
 ### 基础设置（settings）
 

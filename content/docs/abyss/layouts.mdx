@@ -31,7 +31,7 @@ description: "搭建固定楼层、配置房间触发，复用可保存和粘贴
 
 先用一间房测试偏移。原点为 `100,0,0` 且刷怪点写 `5,64,5` 时，实际生成点应在 `105,64,5`。不要同时给原点和局部坐标都加一次房间偏移。
 
-`config.yml` 设 `mode: floors` 后启用：地牢由若干**层（floor）**组成，每层是**房间图**——房间在世界里真实互连（走廊物理可走），玩家自由探索/回退，不必按 rooms 列表顺序访问（类元气骑士迷宫结构）。房间 `region`/`doors` 定义边界和物理门洞，拓扑由 world-init 的建筑布局决定——门洞后接走廊=真通路，挖死=假门/装饰。
+在 `config.yml` 设置 `mode: floors`。用 `region` 定义房间边界，用 `doors` 定义门洞，并在 `world-init` 建造连通走廊。玩家可自由探索，`rooms` 的顺序不限制路线。
 
 ### 楼层布局（floors.yml）
 
@@ -100,7 +100,7 @@ rooms:
 
 ### 运行规则
 
-- **房间图遍历**：引擎每 tick 扫描层内**全部**房间做进出检测——进任意房触发 on-enter/锁门，可回退/绕支线/走回头路；`rooms` 列表只是集合而非路线
+- **探索房间**：玩家可自由选择路线。进入房间会触发该房的 `on-enter` 和锁门规则，`rooms` 的顺序不限制探索。
 - **终点语义**：`boss-room` 显式指定层终点——终点房清完 → 层清 → 进下一层；**非终点房**清完只解锁自家门，不自动传送
 - **多门洞**：`doors` 是列表，一房可配任意多个门洞（锁门时全部填塞、清完还原原方块）；门洞是否通向真房间由 world-init 的建筑布局决定——封死=假门/装饰，通走廊=真通路
 - 房间物化：进本时按层生成房间链；pool 房沿轴粘贴，一切坐标（region/spawn/doors/groups/exit）自动按锚点偏移为绝对值
@@ -109,7 +109,7 @@ rooms:
 - 脚本变量：`{floor}` `{floor_name}` `{floors_total}` `{room}` 写入实例变量
 - 脚本动作：`floor_next`（强制推层）/ `room_lock <房>` / `room_unlock <房>` / `room_status <房> <变量>`
 - 无怪组的安全房进房即清（不广播"肃清"）；最终层终点房清完自动 `complete_dungeon`
-- Boss 之门模式：world-init 把终点房门洞封死 → 战斗房 `on-clear` 累加 `fN_cleared` 变量 → 首个肃清房触发 `fN_gate` 段 `fillblocks AIR` 开门（example 副本的实现方式，纯脚本无引擎依赖）
+- **按清房进度开门**：在 `world-init` 封闭终点房入口。战斗房可通过 `on-clear` 累加 `fN_cleared`，再由 `fN_gate` 使用 `fillblocks AIR` 打开门洞。
 
 ## 内置示例：元气试炼之地（example）
 

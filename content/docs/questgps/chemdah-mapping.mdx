@@ -45,7 +45,7 @@ suite_demo_hunt:
 
 可使用 QuestGPS 数据目录的 `examples/chemdah-quest.yml` 测试任务界面。 [奖励预览](#奖励预览)
 
-## QuestGPS 读取哪些 Chemdah 数据
+## Chemdah 数据与显示项
 
 | 数据 | 原生来源与取值顺序 |
 | --- | --- |
@@ -187,7 +187,7 @@ addon:
       style-id: default
 ```
 
-明确配置的展示目的地优先；未配置时使用原生追踪。坐标不再额外嵌套一层，世界坐标需要填写完整的有限数值。NPC 动态目的地可用 `npc`；其他导航与到达设置见[导航系统](/docs/questgps/navigation)。
+填写展示目的地后，导航优先使用该位置。留空时使用 Chemdah 原生追踪。世界坐标请按上例填写，NPC 动态目的地使用 `npc`。其他导航与到达设置见[导航系统](/docs/questgps/navigation)。
 
 关闭整个任务导航使用任务级 `navigation.enabled: false`。这不改变任务逻辑，也不会删除任务。目标级 `navigation` 使用相同的目的地字段。`enabled` 只在任务级填写。
 
@@ -201,7 +201,7 @@ addon:
 
 ## 生命周期信号
 
-`hooks` 用于把任务事件交给 EventPacket 处理。例如接取时播放字幕，完成时发送提示。QuestGPS 决定**何时发送**，EventPacket 的 `actions` 决定**收到后做什么**。只需要任务列表、进度和导航时，整个 `hooks` 都可以省略。只有信号、没有启用的同名规则时，联动动作不会执行。
+通过 `hooks` 将任务事件发送给 EventPacket，再用同名规则的 `actions` 配置字幕或提示。只使用任务列表、进度和导航时可省略 `hooks`。
 
 | 字段 | 发送时机 | 可用于 |
 | --- | --- | --- |
@@ -223,6 +223,6 @@ BattlePass 和 Abyss 通过 `axs.questgps.quest_completed` 接收任务完成事
 
 ## 保存与重载
 
-保存 Chemdah 任务文件后执行 `/chemdah reload`。QuestGPS 会重新读取任务、更新菜单、清理当前追踪，并为在线玩家重建符合显示条件的地图任务标记。使用 `/questgps` 检查任务和目标，需要继续导航时重新选择追踪。修改 QuestGPS 全局样式或 UI 时执行 `/axs reload questgps`。
+修改 Chemdah 任务后执行 `/chemdah reload`，用 `/questgps` 核对任务和目标。重载会清除当前追踪，请重新选择导航目标。修改 QuestGPS 全局样式或 UI 时执行 `/axs reload questgps`。
 
-未知字段、错误开关类型或无效坐标会输出带任务或目标 ID 的提示，对应展示选项无法使用时按日志修正后重载。先验证原生任务，再逐个添加展示选项。
+配置项无效时，按日志中的任务或目标 ID 核对字段、开关和坐标，修正后重载。

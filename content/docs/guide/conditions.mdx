@@ -5,7 +5,7 @@ description: "用占位符、比较表达式与条件列表控制功能的可用
 
 ## 概述
 
-Suite 的多个模块使用本页的条件写法，但不能把所有名为 `conditions` 的字段都视为同一种格式。任务进度、物品匹配、区域进入要求和界面展示可能使用不同的判断入口。
+条件格式以对应功能的配置说明为准。
 
 ## 已核对的使用位置
 
@@ -18,7 +18,7 @@ Suite 的多个模块使用本页的条件写法，但不能把所有名为 `con
 | EventPacket | 规则 `when` | 精确匹配事件字段值。 |
 | Abyss | 进入要求的 `conditions`、`leader-conditions`，以及交互等支持的条件 | 队员、队长与具体交互对象分别判断，脚本动作中的条件还需按副本语法填写 |
 
-BattlePass 的玩家状态、事件载荷等任务条件，以及各模块自己的物品费用和区域条件，另有字段与解析规则。不要直接复制本页示例替换它们。某种条件类型能被解析，也不代表该场景一定提供所需的玩家或上下文数据。
+BattlePass 任务、物品费用和区域条件使用各自的字段。配置前核对该功能支持的条件类型和上下文。
 
 系统支持 **4 种条件类型**：
 
@@ -29,7 +29,7 @@ BattlePass 的玩家状态、事件载荷等任务条件，以及各模块自己
 | **JS** | 通过 JavaScript 引擎判断 | JVM 上的 JS ScriptEngine |
 | **CONTEXT** | 从上下文字典取值比较 | 无 |
 
-条件可在以下配置节中使用：`use-conditions`、`requirements`、`open-requirements`、`claim-conditions`、`conditions` 等。同一列表内的多条条件为 **AND（且）** 关系——必须全部通过才算满足。如需实现 OR / NOT 等复杂逻辑，请将其写在一条 ARIA 或 JS 脚本条件中。
+`use-conditions`、`requirements`、`open-requirements`、`claim-conditions` 和 `conditions` 使用本页格式时，列表各项须同时满足。或、非逻辑写在单条 Aria 或 JS 表达式中。
 
 > ARIA 由 ArcartX 内置提供，Suite 硬依赖 ArcartX，正常启动后 Aria 随之可用，无需额外安装插件，推荐优先使用。JS 条件需要 JVM classpath 上有 JS 引擎（Java 15 起已移除 Nashorn），无引擎时 JS 条件恒为 `false`。
 

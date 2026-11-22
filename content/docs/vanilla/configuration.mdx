@@ -3,16 +3,6 @@ title: "原版界面与背包配置"
 description: "调整需要替换的容器类型与配方书显示；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-先只启用一种需要替换的容器，用普通玩家打开并完成一次实际制作或取放，再开启其他类型。界面能打开后，才调整配方书、图标与展示位置。
-
-调整后同时检查物品数量、配方消耗和关闭界面后的材料去向。配方浏览与填入步骤见[配方书与材料填入](/docs/vanilla/recipe-book)。通常保留默认布局并修改需要的开关即可。
-
-配置位置：`plugins/ArcartX-Suite/data/vanilla/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload vanilla`；涉及插件安装或全局设置的变更请重启后验证。
-
 ## 配置文件位置
 
 配置位于 `plugins/ArcartX-Suite/data/vanilla/`。修改界面开关或提示文本后执行 `/axs reload vanilla`；只修改配方时可执行 `/axs vanilla recipes reload`。
@@ -43,7 +33,7 @@ UI 统一配置节，管理所有界面的 ID 与覆盖策略。
 
 `dispenser` 同时控制发射器和投掷器。普通箱子、木桶和末影箱使用 `container`。配置中已有 `push-interval-ticks` 的工作区可在各自配置节调整刷新间隔。
 
-随身背包使用独立的 [`backpack` 配置节](/docs/vanilla/backpack)。在 [`backpack.mmoitems-attribute-slots`](/docs/vanilla/backpack#mmoitems-饰品属性) 中指定参与 MMOItems 属性结算的饰品槽，在 [`backpack.presentation`](/docs/vanilla/backpack#转场与角色动作) 中配置开包转场、待机和随机动作。自定义配方默认启用，关闭时将 `recipes.enabled` 设为 `false`。配方定义和编辑器使用方式见[自定义合成配方](/docs/vanilla/custom-recipes)。
+在[随身背包](/docs/vanilla/backpack)的 `backpack.mmoitems-attribute-slots` 指定饰品槽，用 `backpack.presentation` 配置转场与动作。`recipes.enabled: false` 关闭[自定义配方](/docs/vanilla/custom-recipes)。
 
 ### 工作台界面（crafting）
 
@@ -158,7 +148,7 @@ furnace:
 
 ## 背包与箱柜整理
 
-随身背包顶栏提供“整理背包”，整理玩家的 27 格储物栏，快捷栏、装备和副手保留原位。箱子、木桶、末影箱与潜影盒的顶栏提供“整理容器”，只整理当前打开的真实容器。两者使用权限 `arcartxsuite.vanilla.sort`。
+「整理背包」只处理 27 格储物栏；「整理容器」只处理当前打开的箱子、木桶、末影箱或潜影盒。两者都需要 `arcartxsuite.vanilla.sort`。
 
 ```yaml
 inventory-sort:

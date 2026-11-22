@@ -213,4 +213,4 @@ public interface MapNavigationDelegate {
 }
 ```
 
-自定义导航结束时更新目标的导航状态，并清理你创建的显示内容。地图重新启用时用 `isActive()` 判断是否恢复来源回调。来源模块停用后应返回 `false`，并注销注册过的来源回调或委托。 [地图导航接口](/docs/api/MapNavigable)
+导航结束时更新状态并清除自定义显示。地图恢复时通过 `isActive()` 检查来源。模块关闭时注销已注册的来源回调或委托，并让来源返回 `false`。 [导航接口](/docs/api/MapNavigable)

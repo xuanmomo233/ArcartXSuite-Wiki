@@ -7,9 +7,22 @@ description: "识别自定义鱼竿，设置绿条高度、经验、耐久等钓
 
 ## 鱼竿识别机制
 
-鱼竿物品由外部物品库（NeigeItems/MythicMobs 等）生成，配置文件仅用于**识别物品**和**设置效果**。识别方式：
+鱼竿定义用来识别手持的原版钓竿，并为它设置加成。系统先检查各定义的 `match` 规则，再读取物品的 PDC 字符串 `arcartx-suite:axs_fishing_rod_id`。字符串的值应等于鱼竿定义的 `id`。
 
-1. **优先用 ItemMatcher 匹配**：通过 `match` 块配置的匹配规则识别玩家手持物品
+发放轻盈钓竿时，由物品插件或服务器的发放流程写入这个字符串，值为 `light_rod`。物品的显示名可按服内风格设置。
+
+使用外部物品配置工具时，将该键设为字符串类型。如果通过 Bukkit 插件发放，可在交付前为钓竿写入这个键。
+
+```java
+var rod = new ItemStack(Material.FISHING_ROD);
+var meta = rod.getItemMeta();
+meta.getPersistentDataContainer().set(
+    NamespacedKey.fromString("arcartx-suite:axs_fishing_rod_id"),
+    PersistentDataType.STRING,
+    "light_rod"
+);
+rod.setItemMeta(meta);
+```
 
 当玩家手持物品不匹配任何鱼竿定义时，使用默认鱼竿（`RodDefinition.DEFAULT`，无任何加成）。
 
@@ -63,7 +76,7 @@ match:
     "rod_id": "jade_rod"
 ```
 
-它同时要求材质为鱼竿且标签值正确。标签名不是显示名称，此片段也不会给物品新增数据。如何获取真实标签、正则如何加引号，以及哪些写法会误匹配，见[物品匹配教程](/docs/guide/item-matching#nbtpdc-标签从哪里获取)。
+该匹配条件要求物品是鱼竿且已有对应标签。标签写法和获取方式见[物品匹配教程](/docs/guide/item-matching#nbtpdc-标签从哪里获取)。
 
 ### 鱼竿耐久度
 

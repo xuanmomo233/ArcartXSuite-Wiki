@@ -66,4 +66,4 @@ public interface AuthRuntimeCapability {
 
 ## 调用注意事项
 
-凭据与绑定操作从游戏主线程调用，以 `CompletionStage` 返回。宿主会消耗并清理传入的密码字符数组。操作使用快照里的连接 ID，不能用玩家 UUID 代替。业务模块使用 `admitted()` 作为参与游戏的条件。`identityVerified()` 表示身份已通过验证，玩家可能仍在等待条款或绑定。
+在主线程使用快照中的连接 ID 调用凭据与绑定方法，结果通过 `CompletionStage` 返回。传入的密码字符数组会被清理。参与游戏以 `admitted()` 为准；`identityVerified()` 表示身份已验证，可能仍待条款或绑定。

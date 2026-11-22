@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.mail.AxsMailService;
 
 AxsMailService api = AxsCapabilities.get(AxsMailService.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -68,15 +65,15 @@ public interface AxsMailService {
 
 ## 调用注意事项
 
-返回 `CompletableFuture` 的方法使用回调处理结果，不要在 Bukkit 主线程调用 `join()` 或 `get()`。回调中如需操作 Bukkit 玩家、世界或物品，将相应操作切回主线程。
+使用回调接收 `CompletableFuture` 的结果。操作 Bukkit 对象前切回主线程。
 
 ## 幂等发送与重试
 
-同一份奖励保持 `sourcePlugin`、`idempotencyKey` 和收件人 UUID 不变。每位收件人的邮件、附件和发送回执在同一事务中保存；重复发送返回原邮件 ID，`duplicate()` 为 `true`。邮件被领取或清理后，相同标识也不会重新发放。
+重试同一奖励时沿用 `sourcePlugin`、`idempotencyKey` 和收件人 UUID。邮件已创建时返回原 ID，`duplicate()` 为 `true`，领取或清理邮件后仍可按原键查询。
 
 一个订单含多个邮件预设时，每项使用各自的操作键，例如订单编号加预设序号。收到正数邮件 ID 表示该项已入库。用同一个键核对已经入库的预设，即使该预设后来停用或删除，也能取得原邮件 ID。
 
-多人请求按收件人分别提交。如果请求异常结束，已有部分收件人收到邮件，可以用原请求重试，服务只补发尚未成功的收件人。`recipientCount()` 是本次新建邮件的收件人数，`mailId()` 是请求中首位收件人的邮件 ID，不能用它查询其他收件人的邮件。
+多人发送异常时，用原请求重试尚未收到的收件人。`recipientCount()` 返回本次新收件人数；`mailId()` 仅是首位收件人的邮件 ID。
 
 发送回执确认邮件已入库，玩家是否领取需另行查询。保留自己的待发记录，直到收到有效回执；`isNoOp()` 为 `true` 或发生异常时，继续保留并安排重试。`send` 和 `sendDurable` 都直接尝试入库，`deliverAt` 不会延迟调用，定时发放需由调用方安排触发时间。
 

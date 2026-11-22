@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.MapAnchorUnlockable;
 
 MapAnchorUnlockable api = AxsCapabilities.get(MapAnchorUnlockable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -48,6 +45,6 @@ public interface MapAnchorUnlockable {
 
 返回 `CompletableFuture` 的方法使用回调处理结果，不要在 Bukkit 主线程调用 `join()` 或 `get()`。回调中如需操作 Bukkit 玩家、世界或物品，将相应操作切回主线程。
 
-先配置锚点 ID，再调用接口。`unlock` 和 `tryUnlock` 的 `true` 表示本次新解锁；`ensureUnlocked` 的 `true` 也包括已拥有锚点。奖励请求需要重试时使用 `ensureUnlocked`，避免把已拥有误判为发奖失败。返回 `false` 或异常时保留待处理记录，并按实际原因处理玩家离线、条件不符、操作繁忙或存储失败。
+填写已配置的锚点 ID。`unlock` 和 `tryUnlock` 的 `true` 仅表示新解锁。奖励重试使用 `ensureUnlocked`，其 `true` 也包含已拥有。失败时保留待处理记录并核对原因。
 
 付费解锁在费用确认并保存解锁后才返回成功。锚点已有待核对申请时，等待管理员核对原申请再继续。 [锚点解锁条件](/docs/map/anchors#解锁条件)

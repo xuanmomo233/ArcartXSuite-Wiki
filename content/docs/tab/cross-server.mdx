@@ -14,8 +14,10 @@ tab-list:
   max-remote-entries: 80
 ```
 
-`max-remote-entries` 是每个名单额外显示的远端玩家上限，可填 1～80，默认 80。代理只有在确认远端玩家已通过准入且可见时才会展示该玩家。跨服传递隐身状态需要各参与子服使用 Paper 的 Velocity modern forwarding，并启用 Suite Essentials 和 Tab。
+`max-remote-entries` 限制远端名单人数，可设为 1～80，默认 80。名单只显示已通过进服验证且可见的远端玩家。跨服隐身要求各子服启用 Paper 的 Velocity modern forwarding，以及 Suite Essentials 和 Tab。
+
+在启用跨服名单的子服，`/vanish` 经代理确认后生效。请等隐身状态更新再切服，在切服完成后再开启隐身。
 
 ## 检查显示与隐身
 
-用两个账号分别进入不同子服，按 Tab 检查是否能看到对方。让其中一个账号隐身并切服，另一个账号重新查看名单，确认该账号仍处于隐藏状态。
+用两个账号分别进入不同子服，按 Tab 核对名单，再让其中一人隐身并切服，确认另一人的名单仍隐藏该玩家。

@@ -3,7 +3,7 @@ title: "连击追踪与触发器"
 description: "设置连击阈值、按键触发与状态触发的战斗提示。"
 ---
 
-连击追踪、死亡缓冲、按键触发器与状态/控制器触发器是 CombatEffect 模块的高级战斗特效子系统。它们在基础击杀/攻击特效之上，提供连击里程碑、死亡可视化缓冲、按键驱动特效和 Chronos 状态联动等能力。所有子系统可独立开关，互不依赖。
+连击、死亡缓冲、按键特效和 Chronos 状态联动可分别启用。
 
 ## 子系统概览
 
@@ -231,7 +231,7 @@ execute:
       packet-id: "charge-release"
 ```
 
-处理器把包发给施放者，可独立于规则列表使用。调用需要处于当前技能动作的状态中。包模板可引用 `{skill_id}`、`{skill_level}`、`{profession_id}`、`{slot_id}`、`{action_instance_id}` 和 `{state_id}`。时间点触发还提供 `{state_instance_id}`、`{execution_id}` 和 `{execution_index}`，同一动作内遵循包的 `cooldown`。清理包提供 `{end_reason}`，模块停用和重载使用 `shutdown`。
+在当前技能动作中调用处理器，即可向施放者发送特效包。包模板可用 `{skill_id}`、`{skill_level}`、`{profession_id}`、`{slot_id}`、`{action_instance_id}` 和 `{state_id}`。时间点触发另提供 `{state_instance_id}`、`{execution_id}` 和 `{execution_index}`，并遵循包的 `cooldown`。清理包可读取 `{end_reason}`，停用或重载时为 `shutdown`。
 
 保存后执行 `/axs reload combateffect`。重载时正在施放的技能会清理旧效果，下次施放使用新配置。
 

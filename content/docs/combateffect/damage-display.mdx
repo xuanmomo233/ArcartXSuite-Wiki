@@ -30,7 +30,7 @@ description: "调整伤害与治疗飘字的样式、合并效果和最小显示
 | 4 | Symphony | 插件可用 + `symphony.enabled=true` |
 | 5 | Bukkit 原版 | `original.enabled=true` 或 `player.enabled=true` |
 
-Symphony 飘字使用结算后的数值，按事务 ID 去重。开启 `source.fallback` 时，Symphony 未接管的 Bukkit 与 TaCZ 有效伤害使用普通样式。闪避样式由 `dodged.enabled` 控制，可与伤害合并同时使用。
+Symphony 飘字显示结算后的伤害。开启 `source.fallback` 后，其他 Bukkit 与 TaCZ 有效伤害也会显示普通飘字。使用 `dodged.enabled` 控制闪避样式，可与伤害合并同时启用。
 
 ### 回退策略
 

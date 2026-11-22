@@ -70,7 +70,7 @@ Windows 使用 `start-mixed-auth.bat`，Linux 使用 `start-mixed-auth.sh`。主
 
 ### 验证身份与准入
 
-用微软账号和 LittleSkin 账号各测试一次。验证通过后，界面应进入条款步骤或直接关闭，玩家可以操作游戏。若提示握手回执过期，先重新连接，再检查脚本、网关端口和实际启动参数。
+分别用微软和 LittleSkin 账号验证登录。通过后，玩家应进入条款步骤或直接进入游戏。握手回执过期时，重新连接并核对网关端口、脚本和启动参数。
 
 ## 代理转发认证
 
@@ -81,7 +81,7 @@ BungeeCord 或 Velocity 验证玩家身份，子服校验代理传入的认证�
 在代理的 `servers` 中登记子服。下文使用子服名称 `lobby`。两种代理的子服都在 `server.properties` 中设置 `online-mode=false`，并在网络上限制只有代理可以连接子服。
 
 - **Velocity** 在 `velocity.toml` 中设置 `online-mode=true` 和 `player-info-forwarding-mode="modern"`。Paper 子服在 `config/paper-global.yml` 中开启 `proxies.velocity.enabled`，设置 `proxies.velocity.online-mode: true`，并使 `proxies.velocity.secret` 与代理一致。子服的 `spigot.yml` 使用 `settings.bungeecord: false`。 [Velocity 转发说明](https://docs.papermc.io/velocity/player-information-forwarding/#configuring-modern-forwarding-for-paper)
-- **BungeeCord** 在代理自己的 `config.yml` 中设置 `online_mode: true` 和 `ip_forward: true`。子服的 `spigot.yml` 使用 `settings.bungeecord: true`。Paper 子服还需在 `config/paper-global.yml` 中设置 `proxies.bungee-cord.online-mode: true`，并关闭 `proxies.velocity.enabled`。 [BungeeCord 配置源码](https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/conf/Configuration.java) · [Paper 代理配置](https://docs.papermc.io/paper/reference/global-configuration/#proxies)
+- **BungeeCord** 在代理自己的 `config.yml` 中设置 `online_mode: true` 和 `ip_forward: true`。子服的 `spigot.yml` 使用 `settings.bungeecord: true`。Paper 子服还需在 `config/paper-global.yml` 中设置 `proxies.bungee-cord.online-mode: true`，并关闭 `proxies.velocity.enabled`。[Paper 代理配置](https://docs.papermc.io/paper/reference/global-configuration/#proxies)
 
 ### 生成代理启动脚本
 

@@ -3,15 +3,7 @@ title: "地图配置"
 description: "调整世界显示范围、锚点与传送费用；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-世界显示范围、锚点与传送费用。先使用默认示例完成一次测试，再按本页逐项调整。
-
-配置位置：`plugins/ArcartX-Suite/data/map/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload map`；涉及插件安装或全局设置的变更请重启后验证。
-
-主配置文件为 `data/map/config.yml`；每个世界一个 `data/map/worlds/<世界ID>.yml` 文件（含该世界的锚点定义）。
+主配置为 `plugins/ArcartX-Suite/data/map/config.yml`。修改后执行 `/axs reload map`。各世界的地图与锚点在 `worlds/<世界ID>.yml` 中设置。
 
 ## 顶层配置
 
@@ -166,7 +158,7 @@ anchors:
 | `waypoints.default-style-id` | `String` | `default` | 默认路径点样式 ID |
 | `waypoints.id-prefix` | `String` | `AXS-map-wp-` | 路径点在客户端的 ID 前缀 |
 | `waypoints.auto-name-prefix` | `String` | `标记点` | 自动命名前缀（玩家未命名时使用） |
-| `waypoints.default-max-count` | `int` | `50`（代码兜底 `5`） | 默认每世界路径点+标记点合计最大数量（最小 1） |
+| `waypoints.default-max-count` | `int` | `50` | 每个世界的路径点与标记点合计上限，最小为 1。缺少此项时使用 5 |
 | `waypoints.limits[].permission` | `String` | ` ` | 权限节点（留空=对所有玩家生效） |
 | `waypoints.limits[].max-count` | `int` | `50` | 每世界最大路径点+标记点合计数量 |
 

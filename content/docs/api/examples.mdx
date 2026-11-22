@@ -1,6 +1,6 @@
 ---
 title: "常用接入示例"
-description: "打开菜单、发放称号与异步查询邮件的实际用法。"
+description: "打开菜单、发放称号、查询和发送邮件。"
 ---
 
 以下片段放在你的插件业务方法中执行，前提是已按[快速开始](/docs/api/quick-start)配置依赖。
@@ -53,7 +53,7 @@ public void showUnread(JavaPlugin plugin, Player player) {
         if (!plugin.isEnabled()) return;
         Bukkit.getScheduler().runTask(plugin, () -> {
             Player online = Bukkit.getPlayer(playerId);
-            if (online == null) return;
+            if (online != player || !online.isOnline()) return;
             online.sendMessage(error == null
                 ? "未读邮件：" + count
                 : "查询失败，请稍后重试。");
@@ -62,11 +62,11 @@ public void showUnread(JavaPlugin plugin, Player player) {
 }
 ```
 
-查询完成时玩家可能已离线，所以回到主线程后重新查找玩家。[邮件接口](/docs/api/AxsMailService)还提供发送、读取、领取与删除方法；相关请求与结果类型见[数据类型](/docs/api/data-types)。
+回到主线程后只向原连接发送结果。 [邮件接口](/docs/api/AxsMailService) · [请求与结果类型](/docs/api/data-types)
 
 ## 发送活动奖励邮件
 
-以下片段在主线程准备请求。`playerId` 为收件人的 UUID，`rewardKey` 为你保存的稳定业务标识，例如活动 ID、奖励档位与玩家 UUID 的组合。同一次奖励重试时继续使用相同标识。
+在主线程准备邮件。`playerId` 为收件人 UUID，`rewardKey` 可由活动 ID、奖励档位和 UUID 组成。重试沿用原键。
 
 ```java
 import xuanmo.arcartxsuite.api.AxsCapabilities;
@@ -88,7 +88,7 @@ mail.send(request).whenComplete((receipt, error) -> {
         // 记录失败并安排重试；重试保持 rewardKey 不变。
         return;
     }
-    if (receipt.isNoOp()) {
+    if (receipt.mailId() <= 0) {
         // 邮件服务暂不可用，保留待发记录。
         return;
     }
@@ -97,4 +97,4 @@ mail.send(request).whenComplete((receipt, error) -> {
 });
 ```
 
-`rewardItem` 是你准备好的 Bukkit `ItemStack`。先在测试服确认邮件、附件和重复请求的结果，再接入正式奖励流程。
+`rewardItem` 是准备好的 `ItemStack`。通过 `mailId()` 确认邮件创建后，更新活动发奖记录。

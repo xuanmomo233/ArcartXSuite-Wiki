@@ -50,7 +50,7 @@ onebot:
 ~~~
 
 1. 保存后 /axs reload qqbot。
-2. 执行 /axs qqbot snowluma install，等待完整发行包下载结束。完整包自带 Node，不要混用 Lite 或其他架构包。
+2. 执行 `/axs qqbot snowluma install`，等待与服务器环境匹配的完整包下载完成。完整包自带 Node.js。
 3. 执行 /axs qqbot snowluma start，再执行 /axs qqbot snowluma password 查询 WebUI 初始登录信息。
 4. 本机打开 http://127.0.0.1:5099/，按引导确认协议并设置密码；在桌面 QQ 窗口扫码登录。
 5. 在 WebUI 配置该账号的 Universal 正向 WS，复制 token 填回 QQBot 并重载。auto-start: true 会在重载后重新启动托管进程。
@@ -83,7 +83,7 @@ onebot:
 
 重载后执行 /axs qqbot snowluma install。它会拉取镜像、创建并启动容器。snowluma logs 查看 noVNC 提示，snowluma password 查询 WebUI 初始密码。
 
-默认所有端口仅映射宿主 127.0.0.1，VPS 无需开放 5099 和 6081 公网入站。在自己的电脑执行 SSH 转发后再打开浏览器；将“你的用户”和“服务器地址”换成真实 SSH 登录信息，并保持这个终端运行：
+默认端口只绑定服务器 `127.0.0.1`。在自己的电脑用下例建立 SSH 转发，填入实际 SSH 登录信息，保持终端运行后再访问。
 
 ~~~powershell
 ssh -N -L 5099:127.0.0.1:5099 -L 6081:127.0.0.1:6081 你的用户@服务器地址
@@ -93,7 +93,7 @@ ssh -N -L 5099:127.0.0.1:5099 -L 6081:127.0.0.1:6081 你的用户@服务器地�
 
 本地 5099/6081 已被占用时，把 SSH 命令左侧端口改为 15099/16081（例如 -L 15099:127.0.0.1:5099），浏览器对应打开 http://127.0.0.1:15099/。完成后关闭 SSH 转发终端即可断开本机入口，容器继续运行。
 
-需要直接发布到非回环地址时，明确设置 docker.bind-address 为宿主 IP 或 0.0.0.0，同时设置非空 vnc-password，配置防火墙、访问范围和 OneBot token，再执行 snowluma install 重建托管容器。缺少 VNC 密码会拒绝启动。默认教程使用 SSH 转发，浏览器访问的是自己电脑的 127.0.0.1。
+非回环访问须将 `docker.bind-address` 设为服务器 IP 或 `0.0.0.0`，填写 `vnc-password` 并设置防火墙和 OneBot token。执行 `snowluma install` 后应用。使用 SSH 转发时，从浏览器访问本机 `127.0.0.1`。
 
 配置挂在 /app/data，QQ 配置及登录数据使用另外两个命名卷。更新不删除这些卷。已有同名外部容器不会被停止、删除或接管；为新托管容器换名，或继续按原方式维护外部容器。
 
@@ -130,9 +130,9 @@ admin:
   qq-list: []
 ~~~
 
-只同步消息和普通签到时，管理总开关保持 false、可信名单保持为空。需要群内维护白名单、踢/封、发邮件、公告或黑名单时，设置 admin.enabled:true，把你明确授权的真实 QQ 号加入 admin.qq-list，然后重载并用该账号测试。仍保持 admin.remote-console-enabled:false，单独关闭 #cmd 远程控制台。
+只用群消息和签到时，保留 `admin.enabled: false` 及空可信名单。使用白名单、踢封、发邮件、公告或黑名单时，开启 `admin.enabled`，在 `admin.qq-list` 加入授权 QQ 并重载。保持 `admin.remote-console-enabled: false` 可关闭远程 `#cmd`。
 
-QQ群管/群主不会自动获得游戏服务器管理权限。自定义 server-command 即使配置 permission:0，也要求管理总开关开启且命中可信名单。先只加入自己的 QQ 核对权限，再按实际职责添加其他受信任人员。
+群管理身份与游戏授权分别设置。自定义 `server-command` 即使填 `permission: 0`，也须开启管理模式，并在可信名单中授权该 QQ。
 
 ## 检查是否配置成功
 

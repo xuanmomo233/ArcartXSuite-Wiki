@@ -15,7 +15,7 @@ Suite 可让称号、道具等功能使用属性插件、持续药水效果及�
 
 主配置 `attribute-bridges` 分别控制 AttributePlus、CraneAttribute、MythicLib、Symphony。开关不会安装插件或自动创建属性，具体属性名和单位由所用插件定义。
 
-## 哪些模块实际使用
+## 适用模块
 
 | 模块 | 实际用途 | 配置与限制 |
 | --- | --- | --- |
@@ -36,7 +36,7 @@ display-effects:
   speed: 1
 ```
 
-表示装备该称号期间提供一级速度效果。当前按已装备且可访问的各组称号汇总，不只是聊天里选中的主展示称号。此处等级从 `1` 开始，不要把命令中可能使用的零起始等级照搬。具体位置见[称号定义](/docs/title/title-definitions)。
+示例为已装备称号提供一级速度。系统汇总所有可用且已装备的分组，等级从 `1` 起算。 [称号配置](/docs/title/title-definitions)
 
 本体主配置控制持续效果的总体表现：
 
@@ -57,7 +57,7 @@ potion-aura:
 
 称号的 `display-attributes` 在装备时使用，`collection-attributes` 在拥有且满足称号状态条件时使用。仅编辑 `display-attribute-lines` 等展示文字，不会自动得到同名数值加成。
 
-隐藏称号不等于回收称号，收藏属性是否仍生效，应按[称号状态规则](/docs/title/player-state)检查。测试时分别记录未拥有、已拥有未装备、已装备与过期状态，避免把几种来源相加后的结果误认为单项配置值。
+隐藏称号后，按[称号状态规则](/docs/title/player-state)核对收藏属性。验证单项配置时，分别检查未拥有、持有未装备、已装备和过期状态。
 
 快捷道具的效果类型与触发方式另有格式，不能把称号的 `display-effects` 直接放到道具配置。应从[道具功能配置](/docs/prop/configuration)选择所需效果。
 
@@ -87,7 +87,7 @@ apply_potion @trigger SPEED 30 1
 
 模组属性仅在相应服务端环境中有意义，属性 ID 必须为实际存在的注册名称。普通插件服务端不会因为开启开关就支持 Forge 属性。
 
-称号的 `permanent-display-bonuses` 当前只对**永久拥有且已装备**的有效称号汇总，不是拥有一个限时称号也能得到永久模组加成。“永久”是此类配置的生效条件，不表示卸下称号后加成仍然保留。
+`permanent-display-bonuses` 只对永久拥有且已装备的有效称号生效。卸下称号后效果结束。
 
 `tacz-compat` 用于识别 TACZ 枪械伤害，以便相关战斗和追踪功能正确统计；它不是全局伤害倍率。修改此兼容设置需重启，具体字段见[本体安装与配置](/docs/guide/first-run#属性插件与模组兼容)。
 

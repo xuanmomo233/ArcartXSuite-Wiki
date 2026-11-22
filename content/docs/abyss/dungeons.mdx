@@ -20,7 +20,7 @@ abysses/
 
 除 `config.yml` 外，可按玩法添加需要的定义文件。`external/chemdah/` 保存配套对话和任务，模板加载时按需部署到 Chemdah。目标文件已存在时保留原文件。任务展示随 Chemdah 任务重载更新。修改已部署的任务时，编辑实际 Chemdah 文件并主动重载。
 
-## 先选模式，再填坐标
+## 副本模式与坐标
 
 | 模式 | 适用场景 | 下一步 |
 | --- | --- | --- |
@@ -126,14 +126,17 @@ entrances:
 - **实例变量**：进本后 `{plan}`=方案 id、`{plan_name}`=显示名，可在脚本/消息文本中引用
 - **事件**：`axs.abyss.enter` / `axs.abyss.player_enter` 的 payload 附带 `plan`
 
-**方案怎么影响玩法**（两条路，可混用）：
+**方案设置**
 
 1. **怪组过滤**——`monsters.yml` 和 `rooms.yml` 的怪物组加 `plans: [方案id]` 字段后，只有该方案进本才注册此组。不同方案刷完全不同的怪群：
    ```yaml
    wave_assault:              # 只在"强攻"方案出现
      plans: [strong]
      spawn-timing: AUTO_START
-     monsters: [...]
+     monsters:
+       - mob-id: "vanilla:zombie"
+         location: "20,61,19"
+         amount: 3
    ```
 2. **脚本分支**——`{plan}` 变量配合 `check` 动作分流奖励/机制：
    ```yaml

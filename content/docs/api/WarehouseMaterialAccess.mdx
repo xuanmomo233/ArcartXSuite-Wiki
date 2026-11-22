@@ -30,7 +30,7 @@ api.materialsAsync(player, snapshot -> {
 });
 ```
 
-使用包含本接口的配套 API 与模块。每次业务操作时重新获取接口，未加载时返回 `null`；不要在模块重载后继续使用缓存实例。依赖声明见[快速开始](/docs/api/quick-start)。
+每次取料前获取接口。返回 `null` 时服务不可用。 [依赖配置](/docs/api/quick-start#准备依赖)
 
 ## 库存与数量
 
@@ -53,6 +53,8 @@ public interface WarehouseMaterialAccess {
     void completeDelivery(Player player, String operationId, Consumer<Boolean> callback);
     void recordUncertain(Player player, String operationId, String reason);
     void cancelPrepared(Player player, String operationId);
+    void cancelPrepared(Player player, String operationId, Consumer<Boolean> restored);
+    void cancelUndelivered(Player player, String operationId, Consumer<Boolean> restored);
 }
 ```
 
@@ -66,7 +68,8 @@ public interface WarehouseMaterialAccess {
 | `authorizeDelivery(Player, String, Consumer<Boolean>)` | 条件转换 HELD → APPLYING，成功回调后才允许改目标库存 |
 | `recordApplied(Player, String)` | 记录内存中已经应用的交付，调用方无需等待回调 |
 | `completeDelivery(Player, String, Consumer<Boolean>)` | 记录本轮内存落槽结果，不等于原版跨存档已确认 |
-| `cancelPrepared(Player, String)` | 只在未授权的 HELD 阶段尝试条件回仓 |
+| `cancelPrepared` | 授权前取消取料并尝试回仓。可传回调确认是否退回 |
+| `cancelUndelivered` | 仅在已授权且确认从未修改库存时取消。回调报告是否退回 |
 | `recordUncertain(Player, String, String)` | 交付异常转待核对，保留凭证，不自动补发 |
 
 查询优先使用异步方法。所有接口调用和库存修改应在 Bukkit 主线程进行；异步方法的回调也回到主线程。
@@ -108,7 +111,7 @@ record Prepared(boolean success, String operationId, String message) {}
 
 ### 恢复边界
 
-普通 SQL 批量事务不是 Bukkit 背包、工作台矩阵与熔炉区块的共同存档事务。当前原版适配器遗留的交付阶段记录会在重启/热重载后保守进入 REVIEW，不自动重放。
+交付后遇到存档不明时，保留操作编号并用 `recordUncertain` 登记。重启或重载后，待核对记录请按[材料恢复](/docs/warehouse/material-recovery)处理。
 
 ## 相关文档
 

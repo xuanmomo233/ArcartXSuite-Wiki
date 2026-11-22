@@ -12,6 +12,10 @@ description: "按实时消息、信号、定时或确认的业务结果选择触
 | `first-admitted` | — | 玩家第一次通过准入时发邮件。 |
 | `auction-purchased` | — | 拍卖到期成交后向买家发邮件。 |
 
+已安装并启用 EventPacket 的服务器会保留模块启动或暂时停止期间的拍卖成交事件，模块恢复后继续按配置处理。
+
+共用 Market 拍卖库时，所有结算服须启用 EventPacket，并使用相同成交规则和同一套 EventPacket、Mail 存储。
+
 ## 钓到传奇鱼时提示
 
 ```yaml

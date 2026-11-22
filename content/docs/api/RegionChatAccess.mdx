@@ -26,7 +26,7 @@ for (var recipient : recipients) {
 }
 ```
 
-示例在 Bukkit 主线程执行，`sender`、`recipients`、`message` 由接入插件提供。每次发送重新获取接口，模块不可用时返回 `null`。基础接入见[快速开始](/docs/api/quick-start)。
+在主线程调用。`sender` 为发送者 `Player`，`recipients` 为接收玩家集合，`message` 为消息文本。每次发送前获取接口，模块不可用时返回 `null`。
 
 ## 方法声明
 
@@ -50,6 +50,6 @@ public interface RegionChatAccess {
 
 发送者和每个接收者分别判断，不能用发送者的区域规则代替整组接收者的规则。异步聊天事件接入时，将涉及玩家位置和权限的检查安排到 Bukkit 主线程。
 
-Suite Chat 和原版公共聊天遵循这些规则。自定义插件直接向玩家发送消息时，由接入方选择需要遵循区域限制的消息类型，再在实际发送前检查。
+Suite Chat 与原版公共聊天会应用区域规则。自定义消息需要套用这些限制时，在发送前查询。
 
 本接口处理区域公共聊天许可。聊天频道自身的收发权限、禁言和消息审核由聊天功能另行检查。规则配置见[世界规则的聊天示例](/docs/regions/world-rules#禁发与禁收公共聊天)。

@@ -41,4 +41,4 @@ rules:
 | `runtime.work-per-tick` | `64` | 每 tick 的处理量上限，取值 1 至 512。 |
 | `runtime.budget-micros` | `750` | 每 tick 处理预算，单位为微秒，取值 100 至 5000。 |
 
-实时事件满足至少一条规则的 `when` 条件才会入队。`/axs eventpacket status` 中，`unmatched` 是同主题但未命中条件的事件数，`dropped` 是因队列满或调度失败未能入队的事件数。
+`/axs eventpacket status` 中，`unmatched` 表示同主题事件未匹配 `when`，`dropped` 表示队列满或调度失败。

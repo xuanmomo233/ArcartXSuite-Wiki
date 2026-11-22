@@ -86,13 +86,10 @@ public interface AbyssEntryCostAccess {
 
 ## 调用示例
 
-以下片段接在获取接口后。示例中的业务对象和 ID 由接入插件提供。
+在获取接口后，传入接入方实现的 `AbyssEntryCostAccess.Participant`，保存返回的注册句柄。插件停用时调用 `registration.close()`。
 
 ```java
 var registration = api.register("my_plugin", ticketParticipant);
-// ticketParticipant 实现 Participant，并连接你自己的门票账本
-// 插件停用时释放注册
-registration.close();
 ```
 
 ## 调用注意事项

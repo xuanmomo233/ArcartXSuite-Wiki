@@ -12,11 +12,11 @@ description: "显示拾取通知，或让玩家主动扫描附近掉落物。"
 
 ## 开始前
 
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。可选插件只在使用对应功能时安装，具体要求见功能配置页。
+用 `/axs status` 确认模块已加载，再用 ArcartX 客户端检查界面。
 
 ## 第一次使用
 
-1. 使用通知模式时按[通知 HUD](/docs/pickup/notification-hud)配置。使用扫描模式时按[扫描测试](/docs/pickup/scanner-mode#先完成一次收取)设置 `settings.mode: scanner` 和对应按键。
+1. 使用通知模式时按[通知 HUD](/docs/pickup/notification-hud)配置。使用扫描模式时按[扫描测试](/docs/pickup/scanner-mode#收取示例)设置 `settings.mode: scanner` 和对应按键。
 2. 执行 `/axs reload pickup`。让具有 `arcartxsuite.pickup.use` 的普通玩家执行 `/pickup on`。
 3. 丢出铁锭和金锭并等待冷却结束。通知模式靠近后正常拾取。扫描模式用左／右键切换，F 收取当前类，J 批量收取，K 查看详情。
 
@@ -24,7 +24,7 @@ description: "显示拾取通知，或让玩家主动扫描附近掉落物。"
 
 检查物品已进入背包，并出现对应拾取提示。
 
-扫描模式中能用 `/pickup collect` 收取却无法用 F 时，检查客户端实际键位和宿主 `keybinds`。丢出的物品根本不进清单时，检查拾取冷却、扫描距离和过滤规则。滚轮与鼠标选择在 K 打开的详情面板内使用。
+`/pickup collect` 可用而 F 键无响应时，检查客户端键位和本体 `keybinds`。清单缺少物品时，核对拾取冷却、距离与过滤规则。按 K 打开详情后可用滚轮或鼠标切换。
 
 ## 可以配置的功能
 

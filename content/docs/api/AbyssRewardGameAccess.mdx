@@ -45,7 +45,7 @@ public interface AbyssRewardGameAccess {
 | `openPending` | 查询并打开该玩家尚未选完的奖励 | `player` 为目标玩家 | 无返回值，查询完成后再展示 |
 | `Strategy.present` | 展示指定玩家的选择界面 | `offer` 包含本次展示的数据，`pick` 接收玩家实际选择的 `Card.slot()` | 无返回值，提交后由 Abyss 处理 |
 
-`Offer.expiresAt()` 是到期时间的毫秒时间戳，`0` 表示未设置自动选择时间。`remaining()` 是剩余可选次数。`Card.selected()` 表示这个选项已经选择，`Card.accepted()` 表示对应奖励已被发放服务接收。界面应分别展示这两个状态，玩家可从背包、仓库或邮件核对实际到账。
+`Offer.expiresAt()` 返回毫秒时间戳，`0` 表示未设置自动选择时间。`remaining()` 返回剩余次数。界面应区分 `Card.selected()` 的已选状态与 `Card.accepted()` 的已受理状态，到账以背包、仓库或邮件为准。
 
 ## 调用注意事项
 

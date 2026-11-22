@@ -53,7 +53,7 @@ public interface MaterialContainerAdapter {
 4. 调用 `authorizeDelivery`，只有授权成功且再次检查 `unchanged()` 通过后，才调用一次 `apply()`。
 5. 写入成功后调用 `completeDelivery` 记录结果；授权后校验失败或写入异常时调用 `recordUncertain`，保留记录供核对，不重复执行 `apply()`。
 
-新的容器必须检查合法槽位、材料要求、玩家窗口与容器是否仍有效，并只修改计划涉及的槽位。容器坐标只能标识目标，不能证明物品已经写入存档；无法确认的交付不得自行重试或补发。
+修改前检查合法槽位、材料、玩家窗口与容器，只写入计划内的槽位。交付结果不明时，保留凭证供核对。
 
 Vanilla 的现有工作区见[原版界面配置](/docs/vanilla/configuration)。第三方容器在自己的填料流程中选用此接口。
 

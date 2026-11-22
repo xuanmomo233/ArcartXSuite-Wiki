@@ -12,7 +12,7 @@ description: "轮播服务器公告，或为指定玩家播放字幕。"
 
 ## 开始前
 
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。可选插件只在使用对应功能时安装，具体要求见功能配置页。
+用 `/axs status` 确认模块已加载，再用 ArcartX 客户端检查界面。
 
 ## 第一次使用
 
@@ -25,7 +25,7 @@ wiki_trial:
   click-command: ""
 ```
 
-用管理员执行 `/axs reload announcer`。再用普通玩家进服，等当前一轮播放到测试条目。默认条目之间相隔约 30 秒，另有滚动和轮间等待时间。可以在测试服暂时停用其他条目，只保留这一条。
+执行 `/axs reload announcer` 后，使用普通玩家账号查看公告。默认条目间隔约 30 秒，另计滚动和轮间等待。验证单条公告时，可暂时关闭其他条目。
 
 ## 检查是否配置成功
 
@@ -33,7 +33,7 @@ wiki_trial:
 2. 把 `wiki_trial.enabled` 改为 `false`，重载并重新进服。其他已启用公告继续播放，测试句应消失。再启用该条目并重载，应重新出现。
 3. 管理员可以另用 `/axs announcer broadcastnow 手动广播验收` 检查手动入口。能看到手动文字时，继续用第一步验证轮播文件。
 
-`/axs announcer status` 的「活跃公告」为 0 时，先查 `entries-directory`、条目 `enabled` 和 `text`。有活跃公告但只有手动广播出现时，检查 `settings.auto-play`。完全看不到 HUD 时，核对「已初始化玩家」和 ArcartX 客户端。
+用 `/axs announcer status` 查询。活跃公告为 0 时，核对 `entries-directory`、`enabled` 和 `text`。仅手动公告显示时检查 `settings.auto-play`。HUD 缺失时检查客户端和「已初始化玩家」。
 
 ## 可以配置的功能
 
@@ -46,7 +46,7 @@ wiki_trial:
 | 多 UI 支持 | 公告 HUD 与字幕 HUD 均支持字符串或列表形式的多 UI ID，同一 payload 同时发送到多个 HUD |
 | 轮播节奏控制 | 可配置检查周期（tick）、轮播冷却（毫秒）、条目间隔（毫秒） |
 | 文本宽度估算 | 服务端根据字号估算公告文本渲染宽度，驱动客户端滚动动画 |
-| 跨服广播 | 手动广播可转发到其他子服，带去重与节点过滤 |
+| 跨服广播 | 手动广播可发送到已启用跨服公告的其他子服 |
 | QQ 转发 | 公告可自动转发到 QQ 群（需 QQBot 模块启用） |
 
 ## 继续配置

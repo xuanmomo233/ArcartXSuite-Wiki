@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.PickupNotifiable;
 
 PickupNotifiable api = AxsCapabilities.get(PickupNotifiable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -47,8 +44,8 @@ public interface PickupNotifiable {
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+涉及 Bukkit 对象的操作在主线程执行。
 
-这两个通知方法不向玩家发放物品。仅在实际获得物品后调用一次，`amount` 填实际获得数量，传入物品不得由调用方在通知期间修改。预览来自同一物品时才能使用 `notifyPickupPrepared`；没有预览时使用 `notifyPickup`。
+物品实际到账后通知一次，`amount` 填到账数量。预览来自同一物品时调用 `notifyPickupPrepared`，否则调用 `notifyPickup`。在通知期间保持物品不变。
 
 拾取事件在 HUD 开关检查前发布。返回 `false` 只表示 HUD 没有排入推送，不代表拾取事件未发生，不要据此重复调用。该能力仅在通知模式注册，扫描面板模式下需处理接口不可用。

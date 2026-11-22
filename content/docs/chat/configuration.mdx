@@ -3,15 +3,7 @@ title: "聊天频道配置"
 description: "调整channels/ 频道、消息模板与频道权限；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-channels/ 频道、消息模板与频道权限。先使用默认示例完成一次测试，再按本页逐项调整。
-
-配置位置：`plugins/ArcartX-Suite/data/chat/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload chat`；涉及插件安装或全局设置的变更请重启后验证。
-
-Chat 模块的配置文件位于 `plugins/ArcartX-Suite/data/chat/config.yml`。修改后执行 `/axs reload chat` 即可生效。
+主配置为 `plugins/ArcartX-Suite/data/chat/config.yml`。修改后执行 `/axs reload chat`。
 
 ### settings 全局设置
 
@@ -52,7 +44,7 @@ Chat 模块的配置文件位于 `plugins/ArcartX-Suite/data/chat/config.yml`。
 | `cards.max-line-width` | int | `750` | 文字区最大宽度（超过此值自动换行） |
 
 <Callout type="info">
-卡片宽度与高度由 UI 侧根据 Text 控件实际渲染尺寸自适应，Java 不再计算。`char-width-*` 与 `max-line-width` 仅用于消息文本换行测算。
+卡片尺寸随显示内容调整。使用 `char-width-*` 与 `max-line-width` 调整消息文本的换行。
 </Callout>
 
 ### function 功能开关

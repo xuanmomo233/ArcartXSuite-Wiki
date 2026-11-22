@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.TitleGrantable;
 
 TitleGrantable api = AxsCapabilities.get(TitleGrantable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -29,6 +26,7 @@ if (api == null) {
 public interface TitleGrantable {
 
     boolean giveTitle(@NotNull UUID playerId, @NotNull String titleId, @NotNull String duration, @NotNull String source);
+    CompletableFuture<Boolean> grantPermanent(@NotNull UUID playerId, @NotNull String titleId, @NotNull String source);
 }
 ```
 
@@ -36,8 +34,9 @@ public interface TitleGrantable {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
-| `giveTitle` | 给予玩家称号。 | `playerId`：玩家 UUID；`titleId`：称号 id；`duration`：持续时间描述（如 "permanent", "7d"）；`source`：来源标识（如 "EventPacket"） | `true` 表示授予成功 |
+| `giveTitle` | 授予称号 | 玩家 UUID、称号 ID、时长（如 `permanent`、`7d`）、来源标识 | `true` 表示授予成功 |
+| `grantPermanent` | 异步授予永久称号 | 玩家 UUID、称号 ID、来源标识 | `CompletableFuture<Boolean>`，保存成功时返回 `true` |
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+涉及 Bukkit 对象的操作在主线程执行。

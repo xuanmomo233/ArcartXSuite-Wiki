@@ -15,7 +15,7 @@ Essentials 模块的所有功能通过 `/axs essentials <action>` 或缩写 `/es
 
 ### 默认简写别名
 
-模块默认配置在 `command-aliases` 节注册顶层命令别名。除 `/gm` 转发至 `gamemode` 外，其余默认别名转发到同名动作。权限校验和 Tab 补全沿用实际动作。已有配置可自行加入 `tptoggle: tptoggle`、`tpcancel: tpcancel` 或 `unstuck: unstuck`，也可以直接用 `/ess` 调用这些子命令。
+在 `command-aliases` 设置简写，`/gm` 对应 `gamemode`，其他默认别名对应同名动作。权限和补全沿用对应动作。`tptoggle`、`tpcancel` 和 `unstuck` 也可直接通过 `/ess` 调用。
 
 | 类别 | 别名 |
 |------|------|
@@ -29,7 +29,7 @@ Essentials 模块的所有功能通过 `/axs essentials <action>` 或缩写 `/es
 
 示例：`/gm 0` 等价于 `/ess gamemode 0`，将游戏模式切换为生存模式。
 
-> 在 `config.yml` 的 `command-aliases` 节中用 `别名: action` 增删简写，action 必须为合法子命令。别名不能包含空格或命名空间前缀。遇到同名命令时，默认优先使用 Essentials 简写。需要保留已有的无前缀命令时，开启[命令冲突保护](/docs/essentials/configuration#命令冲突保护)。
+> 在 `config.yml` 的 `command-aliases` 中设置 `别名: 动作`。别名须省略空格与命名空间。发生 `/afk` 等命令冲突时，可[启用保护](/docs/essentials/configuration#命令冲突保护)，或直接使用 `/ess afk`。
 
 用 `/ess conflicts [命令名或页码]` 查询当前命令归属、Essentials 可用的命名空间前缀，以及失效或停用的别名，需要 `axs.essentials.conflicts`。若 `/ess` 被占用，可用 `/arcartx-suite:ess conflicts`。
 

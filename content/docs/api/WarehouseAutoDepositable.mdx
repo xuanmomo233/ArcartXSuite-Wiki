@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.WarehouseAutoDepositable;
 
 WarehouseAutoDepositable api = AxsCapabilities.get(WarehouseAutoDepositable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -79,7 +76,7 @@ boolean accepted = api.depositFromGroundAsync(player, droppedItem, requested,
 // accepted 为 false 时没有接管，交回正常拾取流程。
 ```
 
-授权判定和完成回调都在主线程执行。请求受理后，来源数量和实体清理由 Warehouse 管理；调用方不要再次扣除、移除或发放这份物品。未存下的部分保留在来源实体上。处理拾取事件时还要阻止其他代码再次处理已经保留的实体。
+授权判定与回调在主线程执行。请求受理后由 Warehouse 管理来源实体和数量，未存入的部分留在原实体。接管拾取事件时须拦截同一实体的其他处理。
 
 | 结果字段 | 含义 |
 | --- | --- |
@@ -93,4 +90,4 @@ boolean accepted = api.depositFromGroundAsync(player, droppedItem, requested,
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+涉及 Bukkit 对象的操作在主线程执行。

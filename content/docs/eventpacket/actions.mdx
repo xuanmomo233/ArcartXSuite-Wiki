@@ -13,7 +13,7 @@ description: "设置字幕、任务、消息、命令和持久邮件的参数。
 | `message` | 向玩家发送聊天栏提示。 | `text: "已解锁下一阶段"` |
 | `command` | 以控制台或玩家身份执行固定命令。 | `executor: console`、`command: save-all` |
 
-字幕和任务动作分别需要 Announcer 和 QuestGPS。消息、字幕组和任务 ID 支持引用事件字段，例如 `{quest_id}`。命令使用固定参数，`executor` 可选 `console` 或 `player`。执行玩家动作时，目标玩家须在线且已通过准入。
+字幕动作需要 Announcer，任务动作需要 QuestGPS。消息、字幕组和任务 ID 可引用 `{quest_id}` 等事件字段。命令使用固定参数，`executor` 可设为 `console` 或 `player`。以玩家身份执行时，该玩家须在线并完成进服验证。
 
 ## 副本通关邮件
 
@@ -35,4 +35,4 @@ rules:
         amount: 100
 ```
 
-将副本、难度和货币 ID 换成实际配置，确认 Abyss 和 Mail 已加载后启用规则。发放奖励后保持规则 ID 和邮件动作 `id` 稳定，便于防止同一结果重复发放。只发通知时可省略 `currency` 和 `amount`。省略 `start-sequence` 时，规则从启用时的副本结果游标开始处理。需要多服发放时，EventPacket、Abyss 和 Mail 使用同一个 Suite 共享 MySQL。
+填写实际的副本、难度和货币 ID，并启用 Abyss 与 Mail。纯通知可省略 `currency` 和 `amount`。保持规则与邮件动作 `id` 稳定，避免重复发奖。省略 `start-sequence` 时，从启用规则后的结果开始处理。跨服发奖须让三个模块使用同一共享 MySQL。

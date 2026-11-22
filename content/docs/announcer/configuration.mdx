@@ -3,17 +3,11 @@ title: "公告与字幕配置"
 description: "调整announcer/ 公告文字、播放间隔与 subtitle/ 字幕组；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-announcer/ 公告文字、播放间隔与 subtitle/ 字幕组。先使用默认示例完成一次测试，再按本页逐项调整。
-
-配置位置：`plugins/ArcartX-Suite/data/announcer/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload announcer`；涉及插件安装或全局设置的变更请重启后验证。
+配置目录为 `plugins/ArcartX-Suite/data/announcer/`。修改后执行 `/axs reload announcer`。
 
 ## 配置文件结构
 
-Announcer 模块的配置由主配置文件 `config.yml`、公告条目目录 `announcer/*.yml` 和字幕组目录 `subtitle/groups/*.yml` 三部分组成。主配置文件控制 UI 注册、轮播节奏、跨服通道与字幕子设置；公告条目目录存放可轮播的公告定义；字幕组目录存放打字机字幕帧序列。
+在 `config.yml` 配置轮播、界面与跨服公告。公告条目放在 `announcer/*.yml`，字幕组放在 `subtitle/groups/*.yml`。
 
 ### UI 配置节（`ui`）
 
@@ -62,7 +56,7 @@ Announcer 模块的配置由主配置文件 `config.yml`、公告条目目录 `a
 | `subtitle.settings.groups-directory` | `string` | `subtitle/groups` | 字幕组文件目录，相对模块数据目录 |
 | `subtitle.settings.show-background` | `boolean` | `true` | 是否显示字幕底部背景板 |
 
-> 字幕 HUD 的 UI ID 从统一 `ui.subtitle-ui-id` 读取，不再在 `subtitle.settings` 中单独配置。UI 注册/覆盖开关由 `ui.register-ui-on-enable` 与 `ui.overwrite-ui-files` 统一控制。
+> 在 `ui.subtitle-ui-id` 填写字幕 HUD 的界面 ID。使用 `ui.register-ui-on-enable` 和 `ui.overwrite-ui-files` 配置界面注册及文件覆盖。
 
 ## 公告条目定义（`announcer/*.yml`）
 

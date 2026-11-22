@@ -12,7 +12,7 @@ description: "设置聊天频道、消息格式、私聊与物品展示。"
 
 ## 开始前
 
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。本模块还需要安装 `PlaceholderAPI`。可选插件只在使用对应功能时安装，具体要求见功能配置页。
+安装 `PlaceholderAPI`，用 `/axs status` 确认模块已加载。
 
 ## 第一次使用
 
@@ -24,7 +24,7 @@ description: "设置聊天频道、消息格式、私聊与物品展示。"
 
 10 格时另一人应看到带「附近」前缀的消息。40 格时，发送者仍能看到自己的消息，另一人收不到。
 
-无法切换到 `nearby` 时，核对频道文件名、`enabled` 和 `send-permission`。能发但另一个玩家收不到时，让两人先在同一世界相距 30 格以内测试，再分别检查 `receive-permission` 和距离。
+无法切换到 `nearby` 时，检查频道文件、`enabled` 和 `send-permission`。接收失败时，检查 `receive-permission`，并确认两名玩家位于同一世界且相距不超过 30 格。
 
 ## 可以配置的功能
 

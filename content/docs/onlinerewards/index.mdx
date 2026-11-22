@@ -12,7 +12,7 @@ description: "按在线时长、签到记录和全服目标发放奖励。"
 
 ## 开始前
 
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。本模块还需要安装 `PlaceholderAPI`。可选插件只在使用对应功能时安装，具体要求见功能配置页。
+安装 `PlaceholderAPI`，用 `/axs status` 确认模块已加载。
 
 ## 第一次使用
 
@@ -25,6 +25,12 @@ description: "按在线时长、签到记录和全服目标发放奖励。"
 用测试账号签到或达到一个奖励条件，检查奖励内容。
 
 奖励列表有测试档位却无法领取时，用 `/onlinerewards status` 核对当天累计时长，并查看是否已领取该档。先使用[短阶段奖励示例](/docs/onlinerewards/time-rewards#从一个短阶段开始测试)验证一次实际发放。
+
+### 邮件预设奖励
+
+在 Mail 中启用预设，并在奖励的 `mail.presets` 填写预设 ID。奖励入库后，玩家可在 `/mail` 查看邮件并领取附件。若发放结果待核对，请在控制台[核对该次奖励](/docs/onlinerewards/commands#核对奖励发放)。
+
+OnlineRewards 使用宿主共享 MySQL 时，Mail 也要使用同一套宿主共享 MySQL。使用各服独立的奖励队列并共用 Mail 时，请在各服的 `cross-server.node-id` 配置不同且固定的节点 ID。单服使用自建 MySQL 的 OnlineRewards 可以向本服 Mail 正常发放。
 
 ## 可以配置的功能
 

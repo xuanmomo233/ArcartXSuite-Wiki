@@ -5,7 +5,7 @@ description: "用两台游戏服验证 Redis 或代理转发，区分共享仓�
 
 ## 开始前
 
-用两台已完成[本体安装](/docs/guide/first-run)的游戏服开始。下例称它们为 `lobby` 和 `survival`。两边都装备并启用 Announcer，分别用 ArcartX 客户端进服，先确认两边的本服公告都能显示。
+在两台已[完成安装](/docs/guide/first-run)的游戏服启用 Announcer，下文以 `lobby` 和 `survival` 为例。配置跨服前确认两服各自能显示公告。
 
 | 目的 | 应配置的内容 |
 | --- | --- |
@@ -16,7 +16,7 @@ description: "用两台游戏服验证 Redis 或代理转发，区分共享仓�
 
 ## 用 Redis 连接两台服
 
-以下示例适用于两台游戏服与 Redis 在同一台测试机器上，Redis 仅供本机访问。在终端执行 `redis-cli -h 127.0.0.1 -p 6379 ping`，应得到 `PONG`。如果 Redis 位于另一台机器，改用各子服实际能访问的内网地址，按实际服务填密码。
+示例使用本机 Redis。执行 `redis-cli -h 127.0.0.1 -p 6379 ping`，应返回 `PONG`。远程 Redis 填写各子服可访问的内网地址和密码。
 
 在两台游戏服各自的 `plugins/ArcartX-Suite/config.yml` 中合并以下小节。大厅用 `node-id: "lobby"`，生存服改为 `node-id: "survival"`。两边使用相同的 Redis 地址、频道和共享密钥，密钥填写自建的随机值。
 
@@ -42,7 +42,7 @@ cross-server:
 
 Redis 须为 6.2 或更高版本。同一频道的子服应使用相同的留存设置，每台子服须有独立的 `node-id`。使用 Redis ACL 用户时，填写 `cross-server.redis.username`。
 
-某个模块的 Redis 通道暂未启用时，其他模块可以继续接收。已进入本服收件箱的消息会保留，通道启用后可恢复处理。恢复检查时仍未启用且超过 `cross-server.dedupe-ttl-ms` 的消息会清理。
+分别检查所需模块的跨服开关。对于支持重试的功能，通道恢复后可继续处理留存时间内的消息。留存时间由 `cross-server.dedupe-ttl-ms` 控制。
 
 ## 使用代理转发
 
@@ -60,7 +60,9 @@ cross-server:
     forward-target: "ALL"
 ```
 
-仅使用代理转发时，发送服至少需要一名在线玩家传递消息。验收时让两个测试玩家各留在一台子服，接收端才能当场看到公告。
+仅使用代理转发时，发送服须有在线玩家。验证时分别在发送服和接收服保留一名玩家。
+
+调整跨服连接方式时，保留各服自己的 `node-id`，确认所需模块已启用新通道，并检查各服的签名配置。
 
 ## 按模块开启
 
@@ -78,7 +80,7 @@ Tab 的跨服名单通过 Suite Velocity 配置。 [跨服名单](/docs/tab/cros
 1. 重启两台游戏服。在各自控制台执行 `axs announcer status`，确认「跨服通道」为「已启用」。
 2. 在大厅控制台执行 `axs announcer gbroadcastnow 双服验收：大厅发出`。大厅和生存服的在线测试玩家都应在公告 HUD 看到这段文字。
 3. 在生存服控制台执行 `axs announcer broadcastnow 双服验收：仅生存服`。只应在生存服看到它。文件中的自动轮播也只在本服显示。
-4. 通道显示开启但远端未收到时，按顺序核对接收玩家是否在线、双方 `node-id` 是否不同、所选连接方式的频道和共享密钥是否一致，以及接收服是否加载 Announcer。若本服也无显示，先跑通[本服公告轮播](/docs/announcer#第一次使用)。
+4. 远端未收到时，核对接收玩家是否在线、各服 `node-id` 是否不同、频道和密钥是否一致，以及接收服是否启用 Announcer。本服也无公告时，检查[本服轮播](/docs/announcer#第一次使用)。
 
 ## 验证共享仓库
 

@@ -26,7 +26,7 @@ description: "连接、托管、发送、群功能和存储字段参考。"
 | webui-password | 空 | 首次初始化密码，不覆盖已设置的密码 |
 | accept-agreements | false | 阅读并同意发行包协议后可启用协议确认变量 |
 
-完整包按实际系统和架构选择，不回退到其他架构或 Lite。Node 按包内 engines.node 检查，缺省要求 ^24.22.1 或 >=26.12.1；推荐内置运行时。
+请选择与服务器操作系统和处理器匹配的完整包。自行提供 Node.js 时，请按包内 `engines.node` 的要求选择版本，未指定时使用 `^24.22.1` 或 `>=26.12.1`。
 
 Docker 字段位于 onebot.snowluma.docker：
 
@@ -39,7 +39,7 @@ Docker 字段位于 onebot.snowluma.docker：
 | vnc-password | 空 | 空时由镜像生成，在 logs 中查询 |
 | auto-install | false | 模块启动时，托管容器不存在才自动安装；更新用 install 命令 |
 
-修改 ws-port 时同步修改 onebot.ws-url。修改发布地址或端口后，执行 install 重建已验证归属的托管容器。默认回环访问时使用 SSH 转发；显式非回环绑定（例如 0.0.0.0 或宿主 IP）必须配置非空 vnc-password，否则安装、启动和密码重置重启会被拒绝。非回环访问还需自己配置防火墙、访问范围及 OneBot token。bind-address 不接受 hostname、带 zone 的 IPv6、空白或命令文本。
+修改 `ws-port` 时同步更新 `onebot.ws-url`，再执行安装命令重建托管容器。回环绑定使用 SSH 转发。非回环绑定须设置非空 `vnc-password`，并配置防火墙、访问范围和 OneBot token。`bind-address` 使用 IP 地址，IPv6 地址省略 zone。
 
 容器通过本地标记和标签双重验证；更新保留 /app/data 及 QQ 命名卷。external 下安装、启动、停止、密码命令只返回说明。不要删除 .axs-qqbot-owner 或数据卷。
 
@@ -65,7 +65,7 @@ groups 默认 []。每个元素含 group-id、sync-mode、game-to-qq、qq-to-gam
 
 ## 绑定、白名单和管理
 
-binding.enabled 控制入口；bind-prefix、unbind-prefix、query-prefix 默认 #绑定、#解绑、#查绑。宿主认证固定验证码 300 秒、Realm 内一对一；旧 method、code-expire-seconds、max-bindings-per-qq 不再可调。
+`binding.enabled` 控制绑定入口。`bind-prefix`、`unbind-prefix`、`query-prefix` 分别默认为「#绑定」「#解绑」「#查绑」。验证码有效期为 300 秒，同一 Realm 内 QQ 号与游戏账号一对一绑定。
 
 whitelist.enabled、add-command、remove-command、add-prefix、remove-prefix、list-prefix 控制独立 Minecraft 白名单。绑定不自动添加，解绑不自动移除。准入要求在[宿主认证](/docs/loginview/configuration)设置。
 
@@ -294,7 +294,7 @@ moderation:
 
 该设置是“QQ群提及 → 游戏提示”，与游戏内 /qqbot at 的发送权限和冷却分别控制。
 
-messages 节集中提供各场景文字模板；可保留默认文本，仅按需要修改对应项及已有占位符。换行用双引号字符串中的 \n。不要把真实 token、密码或服务器命令执行入口写入群回复模板。常用的消息格式例子见[消息同步与群通知](/docs/qqbot/message-sync)。
+在 `messages` 修改群回复，并保留所需占位符。双引号字符串中用 `\n` 换行。回复模板应避免包含真实 token、密码或执行命令的入口。 [消息示例](/docs/qqbot/message-sync)
 
 ## 存储
 

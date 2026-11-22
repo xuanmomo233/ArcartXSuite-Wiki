@@ -14,21 +14,24 @@ description: "注册原版工作区配方、查询配方及填入材料。"
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.VanillaRecipeAccess;
 
-VanillaRecipeAccess api = AxsCapabilities.get(VanillaRecipeAccess.class);
-if (api != null) {
+public VanillaRecipeAccess.Registration registerRecipe(Plugin plugin) {
+    VanillaRecipeAccess api = AxsCapabilities.get(VanillaRecipeAccess.class);
+    if (api == null) return null;
+
     var ingredient = new VanillaRecipeAccess.Ingredient(List.of(Material.IRON_INGOT), List.of());
     var definition = new VanillaRecipeAccess.Definition(
         "demo_iron_nuggets", VanillaRecipeAccess.Station.SHAPELESS, List.of(ingredient),
         new ItemStack(Material.IRON_NUGGET, 9), "", 0, 0, null
     );
-    registration = api.register(plugin, definition);
+    return api.register(plugin, definition);
 }
 ```
 
-示例中的 `registration` 为调用插件保留的 `VanillaRecipeAccess.Registration` 字段，停用时调用 `close()` 注销配方。API 从 Bukkit 主线程调用。
+在 Bukkit 主线程调用 `registerRecipe`，保存返回的注册句柄。返回 `null` 表示接口不可用。停用插件时调用句柄的 `close()` 注销配方。
 
 ## 方法声明
 
@@ -56,4 +59,4 @@ public interface VanillaRecipeAccess {
 
 ## 调用注意事项
 
-有序合成按从左到右、从上到下提供九格，空位使用 `Ingredient.blank()`。无序合成提供一至九项。锻造依次填写模板、基材、添加物，酿造依次填写瓶中原料和酿造材料。材料类型列表与精确物品列表每项只选其一。
+有序合成按从左到右、从上到下填写九格，空格用 `Ingredient.blank()`。无序合成填写一至九项。锻造依次填写模板、基材、添加物，酿造填写瓶中原料和酿造材料。每项材料只选类型或精确物品其中一种。

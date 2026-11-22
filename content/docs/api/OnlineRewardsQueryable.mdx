@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.OnlineRewardsQueryable;
 
 OnlineRewardsQueryable api = AxsCapabilities.get(OnlineRewardsQueryable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -64,10 +61,10 @@ public interface OnlineRewardsQueryable {
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+涉及 Bukkit 对象的操作在主线程执行。
 
 在 Bukkit 主线程提交异步写入。通过回调读取提交结果，回调中如需操作玩家或界面，先切回主线程。
 
-可在 Bukkit 主线程提交查询，再通过回调接收后台读取的已提交数据。模块停用、读取队列已满或数据库读取失败时，查询结果异常完成。PAPI 展示值使用缓存，首次查到数据前可能显示默认值。
+在主线程提交查询，回调返回已保存的数据。模块停用、队列满或数据库读取失败时异常完成。占位符在首次读取前可能显示默认值。
 
 调整在线时长或补发阶段奖励时，存储结果不明会使异步结果异常完成。先核对玩家当前时长和奖励记录，再决定是否重试。

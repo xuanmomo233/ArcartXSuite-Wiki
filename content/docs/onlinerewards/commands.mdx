@@ -61,6 +61,16 @@ OnlineRewards 模块提供玩家命令和管理员命令，并通过 Placeholder
 | `/axs onlinerewards card add\|remove\|set <数量> <玩家>` | 修改玩家补签卡数量 |
 | `/axs onlinerewards savings add\|set\|reset <时长> <玩家>` | 修改玩家离线储蓄分钟数 |
 
+### 核对奖励发放
+
+1. 在服务器控制台执行 `/axs onlinerewards delivery-review <玩家UUID>`，查看奖励的批次、步骤和尝试编号。
+2. 已确认发放的步骤，在这些参数后填写 `confirmed` 结案。
+3. SQLite 或宿主共享 MySQL 奖励队列的邮件预设可以使用 `retry` 接续原奖励，已入库的邮件会沿用原记录。自建 MySQL 奖励队列的邮件预设请到原发放服核对 Mail 记录，确认发放后使用 `confirmed`。其他奖励请先确认该步骤未执行，再填写 `retry`。
+
+```text
+/axs onlinerewards delivery-review <玩家UUID> <批次> <步骤> <尝试编号> retry
+```
+
 ### 时长格式
 
 管理命令中的时长参数支持以下后缀：

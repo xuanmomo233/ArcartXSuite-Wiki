@@ -44,4 +44,4 @@ public interface BindingService {
 
 ## 调用注意事项
 
-调用前由 QQ 等接入端验证外部操作者身份。每次决定是否允许操作前重新读取投影。玩家使用当前游戏连接通过 [AuthRuntimeCapability](/docs/api/AuthRuntimeCapability) 的 `confirmBinding` 完成确认。中心节点需要相应的 `binding-read` 或 `binding-write` 权限。
+接入方先验证外部操作者身份，每次授权前重新查询绑定。玩家在当前连接调用 [confirmBinding](/docs/api/AuthRuntimeCapability)。中心节点需要对应的 `binding-read` 或 `binding-write` 权限。

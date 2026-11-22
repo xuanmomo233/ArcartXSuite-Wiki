@@ -12,7 +12,7 @@ description: "创建功能导航，绑定命令、物品或 ESC 菜单。"
 
 ## 开始前
 
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。可选插件只在使用对应功能时安装，具体要求见功能配置页。
+用 `/axs status` 确认模块已加载，再用 ArcartX 客户端检查界面。
 
 ## 第一次使用
 
@@ -24,7 +24,7 @@ description: "创建功能导航，绑定命令、物品或 ESC 菜单。"
 
 检查按钮文字、点击动作、翻页和关闭。
 
-`/menu open trial_menu` 提示菜单不存在时，核对文件在 `menus/` 且根级 `id` 为 `trial_menu`。菜单可开但按钮呈禁用状态时，检查 `use-conditions` 和玩家实际等级。见[单按钮示例](/docs/menu/configuration#从一个可验证的按钮开始)。
+`/menu open trial_menu` 提示菜单不存在时，核对 `menus/` 文件位置及顶层 `id: trial_menu`。按钮禁用时，检查 `use-conditions` 和玩家等级。 [单按钮示例](/docs/menu/configuration#从一个可验证的按钮开始)
 
 ## 可以配置的功能
 

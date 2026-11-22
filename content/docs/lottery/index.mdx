@@ -12,7 +12,7 @@ description: "创建抽奖池、开箱动画、保底规则与积分兑换。"
 
 ## 开始前
 
-确认 ArcartX 客户端可用，且 `/axs status` 显示本模块已加载。本模块还需要安装 `PlaceholderAPI`。可选插件只在使用对应功能时安装，具体要求见功能配置页。
+安装 `PlaceholderAPI`，用 `/axs status` 确认模块已加载。
 
 ## 第一次使用
 
@@ -24,7 +24,7 @@ description: "创建抽奖池、开箱动画、保底规则与积分兑换。"
 
 完成一次测试抽奖，核对消耗、奖品和记录。
 
-提示找不到奖池时，核对 `pools/` 中的 `id` 与打开命令。界面能打开但无法抽取时，核对 `cost.single` 和玩家手中的箱子、钥匙或实际余额，见[奖池与费用](/docs/lottery/configuration)。
+找不到奖池时，检查 `pools/` 中的 `id`。奖池可打开却无法抽取时，核对 `cost.single`、箱子、钥匙和余额。 [奖池配置](/docs/lottery/configuration)
 
 ## 可以配置的功能
 

@@ -7,7 +7,7 @@ BattlePass 任务系统是战令经验的核心来源。任务模板按周期分
 
 ## 启用联动任务
 
-`tasks/integrations.yml` 带有副本、拾取、钓鱼、市场和签到任务示例。把所需示例设为 `enabled: true`，将示例里的副本、水域、兑换所或任务 ID 换成服务器实际值，然后重载 BattlePass。各示例会进入对应周期的任务池。
+在 `tasks/integrations.yml` 将需要的示例设为 `enabled: true`，填写实际的副本、水域、兑换所或任务 ID，再重载 BattlePass。任务会加入对应周期的任务池。
 
 | 来源 | 可统计的内容 |
 |---|---|
@@ -17,7 +17,7 @@ BattlePass 任务系统是战令经验的核心来源。任务模板按周期分
 | Market | `axs.market.npc_exchange_completed` 在兑换完成后发出，可用 `shop` 和 `offer` 过滤。竞拍成功使用 `axs.market.auction_purchased`，按买家和拍卖单计数。 |
 | OnlineRewards | `axs.onlinerewards.signin_completed` 统计当日签到，按玩家和签到日期计数。 |
 
-启用市场竞拍联动时，请在所有参与拍卖结算的游戏服启用 BattlePass 并配置对应任务。成交按结算日期计入符合条件的任务，任务进度保存后会确认这次联动。用已分配该任务的测试玩家完成一笔竞拍，确认买家的任务进度已更新。
+各拍卖结算服须启用 BattlePass 并配置对应任务。成交按结算日期计入符合条件的任务。验证时，用已领到该任务的买家完成一次竞拍，核对任务进度。
 
 已用 Abyss 脚本 `bp_task` 直接推进的任务，请继续使用原脚本，或改用通关结果事件。两条路径同时推进同一个任务会累计两次。
 
@@ -35,7 +35,7 @@ navigation:
 
 ## 任务模板字段
 
-### 先制作一条能触发的任务
+### 任务配置示例
 
 在已有赛季和每日分配配置可用的前提下，将下方任务加入 `tasks/daily.yml`。根键 `daily_trial_kills` 是任务 ID。
 
@@ -56,9 +56,9 @@ daily_trial_kills:
   weight: 1
 ```
 
-这条任务不筛选怪物种类，每次符合任务来源的击杀增加 1。先确认任务已分配到测试玩家，再完成三次击杀，检查进度和完成经验。修改任务池不会让指定玩家必然抽到这条任务，测试时应同时检查分配状态。
+这条任务每次匹配的击杀增加 1 进度，共需 3 次。任务池按规则分配任务，验证前请确认玩家已领到该任务。完成后检查进度和经验。
 
-确认基础进度后，再在 `conditions` 加入怪物或世界过滤。需要按伤害数值累计时，改用对应伤害事件和增量字段，不能只把击杀任务的目标数字调大。事件字段见本页下方说明。
+用 `conditions` 筛选怪物或世界。按伤害量累计时，选择伤害事件和对应增量字段。
 
 每个任务模板在 `tasks/daily.yml`、`tasks/weekly.yml`、`tasks/season.yml` 中定义，字段如下：
 
@@ -135,7 +135,7 @@ daily_trial_kills:
 | `PlayerItemBreakEvent`  | 玩家物品损坏 | `material`, `world` |
 | `PlayerHarvestBlockEvent`  | 玩家采收方块 | `material`, `world` |
 
-伤害任务保留 `EntityDamageByEntityEvent` 和 `TaczGunDamageEvent` 两个配置入口。Suite 会按伤害来源路由一次，有效伤害量可在 `damage` 读取。Symphony 接管的伤害在确认后才计入，并提供 `transaction_id`。取消、闪避和零伤害不计入进度。
+伤害任务可选 `EntityDamageByEntityEvent` 或 `TaczGunDamageEvent`，有效伤害从 `damage` 读取。Symphony 伤害确认后提供 `transaction_id`。取消、闪避和零伤害不计入。
 
 ### 事件字段怎样填写
 

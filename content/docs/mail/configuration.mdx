@@ -3,17 +3,9 @@ title: "邮箱配置"
 description: "调整presets/ 邮件预设、附件、有效期与清理设置；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-presets/ 邮件预设、附件、有效期与清理设置。先使用默认示例完成一次测试，再按本页逐项调整。
-
-配置位置：`plugins/ArcartX-Suite/data/mail/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload mail`；涉及插件安装或全局设置的变更请重启后验证。
-
 ## 配置文件概览
 
-Mail 模块的配置文件位于 `data/mail/config.yml`，预设邮件位于 `data/mail/presets/` 目录。执行 `/axs reload mail` 可热重载配置和预设。
+主配置为 `plugins/ArcartX-Suite/data/mail/config.yml`。修改后执行 `/axs reload mail`。邮件预设放在同目录下的 `presets/`。
 
 配置文件的 `config-version` 当前为 `3`，使用自动生成的值。
 

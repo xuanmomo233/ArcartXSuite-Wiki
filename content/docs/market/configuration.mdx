@@ -3,13 +3,7 @@ title: "市场配置"
 description: "调整shops/ 商品、回收价格、交易货币与拍卖规则；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-shops/ 商品、回收价格、交易货币与拍卖规则。先使用默认示例完成一次测试，再按本页逐项调整。
-
-主配置文件为 `plugins/ArcartX-Suite/data/market/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload market`；涉及插件安装或全局设置的变更请重启后验证。
+主配置为 `plugins/ArcartX-Suite/data/market/config.yml`。修改后执行 `/axs reload market`。
 
 ### 四类交易的界面与记录
 
@@ -21,7 +15,7 @@ shops/ 商品、回收价格、交易货币与拍卖规则。先使用默认示�
 
 `auction.tax-discount` 和 `player-shop.tax-discount` 的值均为**最终税率**，取匹配权限中的最低值；不是从基础税率中减去的数值。例如 `axsmarket.vip: 0.02` 表示最终收取 2%。
 
-`recycle.batch-recycle-enabled: false` 同时关闭界面和命令的批量回收，仍可逐件回收。`batch-confirm: true` 在界面显示确认弹窗；命令 `/market recycle all` 会先打开回收界面。自动拾取回收还需同时满足 `allow-auto-recycle`、`axsmarket.autorecycle` 权限及个人开关；个人默认关闭。材质排除与收藏同款保护对三种回收方式同时生效，详见[玩家回收保护](/docs/market/recycle-protection)。
+`recycle.batch-recycle-enabled: false` 仅允许逐件回收。`batch-confirm: true` 在界面显示确认弹窗，`/market recycle all` 会打开回收界面。自动回收还须开启 `allow-auto-recycle`，授予 `axsmarket.autorecycle`，并让玩家打开个人开关。材质排除和收藏保护适用于三种回收方式。 [回收保护](/docs/market/recycle-protection)
 
 Redis 启用后缓存玩家各自的拍卖和玩家商店列表页，保存时间使用 `cache-ttl-seconds`。交易、下架及到期会使列表缓存失效；Redis 不可用时直接查库。跨服消息发送不依赖此缓存开关。
 
@@ -237,7 +231,7 @@ recycle:
   batch-confirm: true
 ```
 
-使用[购买和回收示例](/docs/market/shops#先跑通一次购买和回收)准备商店和回收表，再用测试账号核对余额与物品数量。
+使用[购买和回收示例](/docs/market/shops#购买和回收示例)准备商店和回收表，再用测试账号核对余额与物品数量。
 
 ### 回收保护与交易管理界面
 

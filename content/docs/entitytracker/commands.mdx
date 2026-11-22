@@ -32,9 +32,9 @@ Boss 追踪管理命令（需 MythicMobs 已安装且 BossTrackerService 已启�
 
 ### 核对排行榜奖励
 
-当领取记录显示待核对时，执行 `/axs entitytracker rewards inspect <记录ID>`，取得步骤编号与尝试 UUID。核对对应动作的实际到账结果后，由控制台执行 `/axs entitytracker rewards resolve <记录ID> <步骤编号> <尝试UUID> <delivered|not-delivered>`。已发放用 `delivered`，确认未发放用 `not-delivered`。处理完待核对步骤后，`/axs entitytracker rewards retry <记录ID>` 可继续剩余的待发步骤。
+用 `/axs entitytracker rewards inspect <记录ID>` 查询步骤和尝试 UUID。核对后在控制台执行 `/axs entitytracker rewards resolve <记录ID> <步骤编号> <尝试UUID> <delivered|not-delivered>`。已发用 `delivered`，确认未发用 `not-delivered`。随后可用 `/axs entitytracker rewards retry <记录ID>` 接续剩余步骤。
 
-定时奖励显示「邮件待确认」时，可以用 `retry` 重查邮件回执。服务端沿用同一请求号，已入库的邮件会返回原回执。共享排行库且各子服使用独立 Mail 存储时，结果不明的邮件显示「待核对」。
+显示「邮件待确认」时，用 `retry` 按原请求查询结果。共享排行库而各服 Mail 存储独立时，请核对原服邮件记录。
 
 若服务器在定时结算点停机，可用 `distribute` 处理最近一个已结束周期。已有待发记录且奖励需要玩家在线时，请在该玩家所在的子服用 `retry` 继续发放。
 

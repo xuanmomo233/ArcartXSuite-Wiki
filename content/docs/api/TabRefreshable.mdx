@@ -17,19 +17,17 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.TabRefreshable;
 
 TabRefreshable api = AxsCapabilities.get(TabRefreshable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
 ```java
 public interface TabRefreshable {
 
+    @NotNull CompletionStage<Boolean> requestVanish(@NotNull Player player);
     void requestViewerRefresh(@NotNull Player viewer, @Nullable String reason);
 
     void requestGlobalRefresh(@Nullable String reason);
@@ -40,9 +38,10 @@ public interface TabRefreshable {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
+| `requestVanish` | 向代理申请开启隐身 | 在线玩家 | `CompletionStage<Boolean>`，`true` 才可启用隐身 |
 | `requestViewerRefresh` | 重新检查指定玩家的准入与隐身状态，变化时向代理上报。 | `viewer`：要上报状态的玩家，`reason` 可传 `null` | 无返回值 |
 | `requestGlobalRefresh` | 检查本服在线玩家的状态，向代理上报有变化的玩家。 | `reason` 可传 `null` | 无返回值 |
 
 ## 调用注意事项
 
-适合在准入或隐身状态变化时调用。代理收到新状态后更新跨服名单，客户端继续使用当前选定的布局。 [跨服名单配置](/docs/tab/cross-server)
+在 Bukkit 主线程调用 `requestVanish`。回调在服务器线程执行。收到 `true` 后，确认原连接和权限仍有效，再开启隐身并请求刷新。 [跨服名单配置](/docs/tab/cross-server)

@@ -25,4 +25,4 @@ rules:
 | `weekly` | 每周指定日期和时间触发。 | `day: monday`、`time: "08:00"` |
 | `interval` | 按固定间隔触发。 | 在 `interval-minutes`、`interval-seconds`、`interval-ticks` 中填写一项。 |
 
-日历时间使用游戏服所在时区，`time` 用 24 小时制。定时规则只能执行控制台命令，无需填写 `when`。排查时先在控制台运行配置里的命令，再核对触发时间。
+`time` 使用游戏服时区和 24 小时制。定时规则执行控制台命令，可省略 `when`。未触发时检查命令能否在控制台执行及触发时间。

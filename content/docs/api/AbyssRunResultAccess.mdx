@@ -59,6 +59,8 @@ public interface AbyssRunResultAccess {
     CompletableFuture<List<Result>> results(String owner, Cursor after, int limit);
 
     CompletableFuture<List<Committed>> committedResults(String owner, long afterSequence, int limit);
+    CompletableFuture<Long> latestCommittedSequence();
+    boolean usesSharedHostStorage();
 }
 ```
 
@@ -69,6 +71,8 @@ public interface AbyssRunResultAccess {
 | `result(runId)` | 实例 UUID | `CompletableFuture<Result>` |
 | `results(owner, after, limit)` | 所有者、Cursor、分页数量 | `CompletableFuture<List<Result>>` |
 | `committedResults(owner, afterSequence, limit)` | 所有者、已处理提交序号、分页数量 | `CompletableFuture<List<Committed>>` |
+| `latestCommittedSequence()` | 从当前最新序号开始订阅时使用，无参数 | `CompletableFuture<Long>` |
+| `usesSharedHostStorage()` | 检查结果查询是否使用本体共享 MySQL | `boolean` |
 
 ### 单局结果 result(runId)
 
@@ -95,7 +99,7 @@ public interface AbyssRunResultAccess {
 | `Cursor.endedAt / runId` | 历史分页最后一条结果的结束时间和实例 ID |
 | `Committed.sequence` | 提交顺序游标，完成本笔结果处理后再保存新值 |
 
-以下片段接在获取接口后。示例中的业务对象和 ID 由接入插件提供。
+获取接口后，传入实例 UUID `runId`。`rewardLedger` 为接入方提供的 `Consumer<AbyssRunResultAccess.Result>`，负责核对资格和登记奖励。
 
 ```java
 api.result(runId).whenComplete((result, error) -> {
@@ -111,11 +115,10 @@ api.result(runId).whenComplete((result, error) -> {
 
 ## 调用注意事项
 
-- Result 带 resultId、runId、requestId、owner、模板、路线、难度、规则版本、队长、时间和 Outcome。roster 保留开局成员及各自 PRESENT、DISCONNECTED 或 LEFT 状态、死亡次数和离场事实。
-- results 是按结束时间排列的历史页。需要逐笔消费时使用 committedResults，在幂等处理 resultId 成功后推进 sequence。
-- 结果回调可能运行在异步线程。涉及 Bukkit 玩家、背包或 UI 的操作应调回主线程，账本写入也应遵守自身事务约束。
-- RESULT_COMMITTED_TOPIC、RUN_NOTICE_TOPIC 和 ENTRY_NOTICE_TOPIC 常量给出通知主题。收到通知后按实例或请求 ID 查询，不能把漏收通知当作没有结果。局内 RunNotice 不提供历史重放。
-- Abyss 提供终局事实。章节进度、奖励资格与奖励去重由接入插件自己的账本确认。
+- `roster` 提供开局成员，以及 `PRESENT`、`DISCONNECTED` 或 `LEFT` 状态、死亡次数和离场事实。接入方据此判断资格。
+- 处理 `committedResults` 时按 `resultId` 去重，成功后再推进 `sequence`。
+- 回调需要更新游戏对象时切回主线程。
+- `RESULT_COMMITTED_TOPIC`、`RUN_NOTICE_TOPIC` 和 `ENTRY_NOTICE_TOPIC` 用于订阅通知。根据实例或请求 ID 补查结果，局内 `RunNotice` 仅实时通知。
 
 ## 相关接口
 

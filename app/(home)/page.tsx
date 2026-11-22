@@ -9,7 +9,7 @@ const assetBase = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 const firstSteps = [
   { number: '01', icon: BookOpen, title: '了解本体使用', text: '安装、绑定模块，完成主配置与验证。', href: '/docs/guide/first-run', label: '本体使用' },
   { number: '02', icon: SlidersHorizontal, title: '掌握通用配置', text: '使用选区、邮件派发、奖励与其他通用功能。', href: '/docs/guide/shared-functions', label: '通用配置' },
-  { number: '03', icon: Terminal, title: '开发插件桥接', text: '通过公开 API 接入你自己的插件。', href: '/docs/api', label: '开发者内容' },
+  { number: '03', icon: Terminal, title: '接入第三方插件', text: '通过公开 API 接入你自己的插件。', href: '/docs/api', label: '插件接入' },
 ];
 
 export default function HomePage() {

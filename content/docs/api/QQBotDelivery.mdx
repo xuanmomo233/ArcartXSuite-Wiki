@@ -10,7 +10,7 @@ description: "获取 QQ 群通知的真实回执，处理部分成功与未知�
 
 ## 获取接口
 
-需要确认通知结果时使用本接口。每次业务操作重新获取能力，模块未加载时返回 `null`。
+示例中的 `plugin` 为调用方的 `JavaPlugin`，群号替换为配置中的目标群。模块未加载时接口返回 `null`。
 
 ```java
 QQBotDelivery delivery = AxsCapabilities.get(QQBotDelivery.class);

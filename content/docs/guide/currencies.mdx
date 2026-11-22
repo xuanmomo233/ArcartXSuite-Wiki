@@ -82,7 +82,7 @@ currencies:
 
 可直接选择 XConomy。Vault 的当前经济提供者为 XConomy 时，选择 `vault` 或 `xconomy` 使用的是同一个钱包。扣款接口返回成功后，余额保存结果仍可能需要核对。
 
-银行、市场付费交易、NPC 兑换和地图锚点付费解锁需要使用能确认余额已保存的货币接口。玩家红包、副本门票和付费抽奖遇到扣款结果不明时，会保留凭证供管理员核对。
+银行、市场付费交易、NPC 兑换和付费锚点需能确认余额保存的货币接口。红包、副本门票和抽奖的扣款结果不明时，请凭编号核对。
 
 ```yaml
 currencies:
@@ -118,7 +118,7 @@ currencies:
 
 ### command — 命令桥接
 
-命令式货币通过 PlaceholderAPI 读取余额，用控制台命令扣款或入账。Suite 根据命令的返回值判断操作结果。若目标插件接收了命令，却因余额限制或其他规则拒绝变更，Suite 仍可能报告成功。验收时直接查询经济插件里的余额。
+命令式货币用 PlaceholderAPI 读取余额，扣款和入账由控制台命令执行。命令受理后仍可能被经济插件拒绝，验证时请查询实际余额。
 
 下例使用 Vault 和 EssentialsX。先在测试服安装 PlaceholderAPI，按 [PlaceholderAPI 命令文档](https://wiki.placeholderapi.com/users/commands/)安装 Vault 扩展并重载。用已进服的测试玩家确认 `/papi parse me %vault_eco_balance%` 返回数值。
 
@@ -151,7 +151,7 @@ currencies:
 
 1. 测试玩家进服后，用 `essentials:eco set WikiTester 100` 在控制台设置余额。用实际测试玩家名替换 `WikiTester`。
 2. 在控制台执行 `essentials:eco take WikiTester 5` 和 `essentials:eco give WikiTester 5`。每条命令后运行 `essentials:balance WikiTester`，应依次读到 95、100。PAPI 的查询值也应一致。
-3. 将上面的定义合并到本体 `config.yml` 后执行 `/axs reload all`。将[商店与回收示例](/docs/market/shops#先跑通一次购买和回收)中两个文件的 `currency` 都设为 `money_command_test`，用同一玩家实际买、回收一个苹果。读回余额应依次为 90、92。
+3. 将上面的定义合并到本体 `config.yml` 后执行 `/axs reload all`。将[商店与回收示例](/docs/market/shops#购买和回收示例)中两个文件的 `currency` 都设为 `money_command_test`，用同一玩家实际买、回收一个苹果。读回余额应依次为 90、92。
 4. 使用余额只有 5 的测试玩家尝试购买。确认余额和苹果数量都没有变化。若界面、流水和实际余额不一致，以经济插件的读回结果排查命令、账户和余额限制。
 
 此示例和 `vault` 类型读取同一个 Vault 余额。用于正常交易时可直接使用 `vault`。 [EssentialsX 命令定义](https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/main/resources/plugin.yml)
@@ -178,7 +178,7 @@ currencies:
 
 ## 模块局部货币
 
-部分模块（如 Warehouse、Map、Market）在自身配置中也支持 `currencies` 节。模块中定义的货币会合并到全局池中，但不覆盖已有的同名货币。全局 `config.yml` 中的货币定义优先。
+本体 `config.yml` 的货币定义优先。Warehouse、Map、Market 的 `currencies` 可补充新的货币 ID。
 
 ## 货币变动事件
 

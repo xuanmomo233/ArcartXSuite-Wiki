@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.ChatMutable;
 
 ChatMutable api = AxsCapabilities.get(ChatMutable.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -63,6 +60,6 @@ public interface ChatMutable {
 
 ## 调用注意事项
 
-禁言状态和列表读取返回异步结果。查询失败会使结果异常完成。禁言和解禁在 Bukkit 主线程提交，回调操作 Bukkit 对象时切回主线程。主线程不能用 `join()` 或 `get()` 等待结果。
+在主线程提交禁言和解禁。状态与列表异步读取，查询失败时异常完成。回调操作 Bukkit 对象前切回主线程。
 
 `MuteInfo.isPermanent()` 判断是否永久禁言；离线玩家的名称可能为 `null`，展示列表时可使用 UUID。`listMutes` 查询持久化的有效记录，不应按在线玩家数量判断是否还有下一页。

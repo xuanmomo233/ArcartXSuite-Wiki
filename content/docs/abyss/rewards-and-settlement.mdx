@@ -52,7 +52,7 @@ settlement:
 
 在对应副本模板目录的 `rewards.yml` 中定义奖励，再从 `scripts.yml`、`interacts.yml`、怪组、房间、NPC 或委托的动作列表引用奖励 ID。定义奖励集本身不会触发发放。
 
-| 想要的效果 | 配置和动作 |
+| 效果 | 配置和动作 |
 | --- | --- |
 | 通关后每位在场队员自动领整包 | 定义固定奖励集，在 `scripts.yml` 的 `complete` 中调用 `grant_reward @all clear_pack` |
 | 随机抽几份奖励包并自动发放 | 配置 `type: random`、`picks` 和 `pool`，仍用 `grant_reward` 触发 |
@@ -61,7 +61,7 @@ settlement:
 | 在副本地图上拾取战利品 | 由怪物或掉落模块生成地面物品，结算可用 `COUNTDOWN` 预留拾取时间 |
 | 高评级、支线或委托加赏 | 在对应评级、房间、任务或委托脚本中引用单独的奖励 ID |
 
-`@all` 表示脚本上下文中的副本参与者。结算脚本使用创建时取得的玩家快照，不能用它替代开局名单或离线奖励资格。`@trigger` 指当前触发交互的玩家。通关或失败脚本没有触发玩家时，团队奖励应明确写 `@all`。选择器和动作详见[脚本系统](/docs/abyss/scripting)。
+`@all` 选择结算脚本启动时的副本参与者，`@trigger` 选择触发交互的玩家。通关或失败脚本未指定触发玩家时，共享奖励请使用 `@all`。离线资格须另行配置。 [选择器与动作](/docs/abyss/scripting)
 
 同一份业务奖励只绑定一个入口。通关包、评级加赏和个人宝箱可以同时发放不同的奖励。
 
@@ -163,7 +163,7 @@ complete:
 | `allow-repeat` | 默认允许重复抽中同名子集。设为 `false` 时池内不同子集 ID 的数量至少等于牌位数 |
 | `auto-after-seconds` | 默认 `0`，一直保留未选资格。填写正数时，到期由服务端按已保存的牌位顺序选足剩余次数，离线也可登记补发 |
 
-同一实例、玩家和玩法 ID 只创建一份奖励。关闭面板、重开或重登都使用已保存的结果。通关时可从结算面板的「奖励玩法」入口打开，也可使用 `/abyss rewards` 补领。已选择但宿主未确认的奖励保留原选择，下次打开会重试。若脚本在结算前离线时未把玩家纳入目标名单，需由外部奖励规则另行判定资格。
+从结算面板的「奖励玩法」或 `/abyss rewards` 领取。同一实例、玩家和玩法只生成一份奖励，重开或重登会继续原记录。若已选择但尚未确认发奖，再次打开时会接续。离线玩家未被脚本纳入结算名单时，资格以外部奖励规则为准。
 
 ## 宝箱奖励
 
@@ -203,9 +203,9 @@ trial_chest_click:
 
 结算统计、终局凭据和到账状态分别记录。章节等外部模块可通过 `AbyssRunResultAccess.result(runId)` 查询终局，或用 `committedResults(owner, afterSequence, limit)` 按提交顺序补查。收到 `axs.abyss.result_committed` 时也应按 ID 回查凭据，外部账本按业务规则判定资格。 [终局结果接口](/docs/api/AbyssRunResultAccess)
 
-AXS 模块可通过公开的待发放奖励服务 `PendingRewardService`，使用 `savePendingBatchConfirmed(requestKey, rewards)` 登记完整批次。建议以「结果 ID、玩家 UUID、奖励类型」构造稳定操作键，并保存抽取后的内容。重试时复用同一键和同一内容，避免重抽。返回 `true` 表示宿主已持久接受该批奖励，实际到账仍由宿主处理。返回 `false` 时，发放责任仍由调用方保留。
+插件可用 `PendingRewardService.savePendingBatchConfirmed(requestKey, rewards)` 登记奖励。以结果 ID、玩家 UUID 和奖励类型构造操作键，重试时复用原键及原奖品。返回 `true` 表示已接收发放请求，到账以实际交付为准。返回 `false` 时，请由调用方继续处理。
 
-开发者可通过 `AxsCapabilities.get(AbyssRewardGameAccess.class)` 获取领取策略接口，在服务器主线程调用 `register(id, revealUnpicked, strategy)`。策略收到玩家、可展示的牌面和绑定该次展示的选择回调。打开自定义 UI 后，将玩家选中的槽位交给回调。Abyss 负责校验已选次数、保存选择并登记发奖。关闭注册句柄只移除该策略，待领记录会保留。内置 ID `flip`、`wheel` 和 `choose-three` 保留给 Abyss。
+通过 `AxsCapabilities.get(AbyssRewardGameAccess.class)` 获取接口，在 Bukkit 主线程调用 `register(id, revealUnpicked, strategy)`。自定义界面收到玩家、牌面和选择回调，将选中的槽位交给回调即可登记奖励。关闭注册句柄会移除策略，已登记的待领记录继续保留。`flip`、`wheel` 和 `choose-three` 是内置 ID。
 
 `revealUnpicked` 为 `false` 时，未选牌位的名称为 `null`。要更换奖励池、次数或期限，在副本配置中定义新的玩法 ID。已有的领取记录继续使用创建时保存的奖品和次数。
 

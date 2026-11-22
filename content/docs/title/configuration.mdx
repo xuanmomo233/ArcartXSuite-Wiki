@@ -3,13 +3,7 @@ title: "称号配置"
 description: "调整titles/ 称号定义、分组、品质与套装；附字段解释、修改示例与重载步骤。"
 ---
 
-## 先改哪些内容
-
-titles/ 称号定义、分组、品质与套装。先使用默认示例完成一次测试，再按本页逐项调整。
-
-配置位置：`plugins/ArcartX-Suite/data/title/config.yml`。定义文件与子目录均相对此模块目录。本文中的 YAML 片段用于修改对应小节，请保留文件中的其他设置。
-
-修改后执行 `/axs reload title`；涉及插件安装或全局设置的变更请重启后验证。
+修改配置后执行 `/axs reload title`。
 
 ## 配置文件结构
 
@@ -183,7 +177,7 @@ adventurer:
 - **键值对**（`display-attributes`）：`Map<String, Double>`，用于实际属性数值计算和属性插件同步
 - **文本行**（`display-attribute-lines`）：`List<String>`，用于 UI 展示和 AttributePlus / CraneAttribute 属性源数据写入
 
-文本行中可解析为「属性名:数值」格式的行会与键值对按属性名合并累加。不可解析的复杂行（如百分比、区间）按原样保留并去重。
+「属性名:数值」文本会与键值配置按属性名相加。百分比或区间等复杂文本按原样显示，重复行只保留一份。
 
 ```yaml
 # 键值对形式

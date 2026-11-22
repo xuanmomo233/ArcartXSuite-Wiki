@@ -15,13 +15,10 @@ import xuanmo.arcartxsuite.api.AxsCapabilities;
 import xuanmo.arcartxsuite.api.capability.BattlePassAccess;
 
 BattlePassAccess api = AxsCapabilities.get(BattlePassAccess.class);
-if (api == null) {
-    // 当前功能不可用，向玩家说明或使用你的替代流程。
-    return;
-}
+if (api == null) return;
 ```
 
-每次业务操作时重新获取接口；模块未加载或暂时不可用时返回 `null`。接入方式见[快速开始](/docs/api/quick-start)。
+每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
 
 ## 方法声明
 
@@ -30,21 +27,14 @@ public interface BattlePassAccess {
 
     boolean isSeasonActive();
 
-    int addXp(@NotNull Player player, int xp);
-
-    void setXp(@NotNull Player player, int xp);
-
-    void removeXp(@NotNull Player player, int xp);
-
-    void setLevel(@NotNull Player player, int level);
-
-    boolean unlockTier(@NotNull Player player, @NotNull String tier);
-
-    int claimAllRewards(@NotNull Player player);
-
-    void updateTaskProgress(@NotNull Player player, @NotNull String taskId, int increment);
-
-    void resetProgress(@NotNull UUID playerUuid);
+    CompletionStage<Integer> addXp(@NotNull Player player, int xp);
+    CompletionStage<Void> setXp(@NotNull Player player, int xp);
+    CompletionStage<Void> removeXp(@NotNull Player player, int xp);
+    CompletionStage<Void> setLevel(@NotNull Player player, int level);
+    CompletionStage<Boolean> unlockTier(@NotNull Player player, @NotNull String tier);
+    CompletionStage<Integer> claimAllRewards(@NotNull Player player);
+    CompletionStage<Void> updateTaskProgress(@NotNull Player player, @NotNull String taskId, int increment);
+    CompletionStage<Void> resetProgress(@NotNull UUID playerUuid);
 }
 ```
 
@@ -53,15 +43,29 @@ public interface BattlePassAccess {
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
 | `isSeasonActive` | 当前赛季是否进行中。 | 无参数 | `true` 表示赛季正在进行 |
-| `addXp` | 为玩家增加战令经验。 | `player`：目标玩家（`Player`）；`xp`：经验值（`int`） | 实际增加后的总经验 |
-| `setXp` | 直接设置玩家战令经验。 | `player`：目标玩家（`Player`）；`xp`：经验值（`int`） | 无返回值 |
-| `removeXp` | 扣减玩家战令经验。 | `player`：目标玩家（`Player`）；`xp`：经验值（`int`） | 无返回值 |
-| `setLevel` | 直接设置玩家战令等级。 | `player`：目标玩家（`Player`）；`level`：等级（`int`） | 无返回值 |
-| `unlockTier` | 解锁玩家战令档位。 | `tier`：档位名：`"PREMIUM"` / `"DELUXE"`（大小写不敏感） | 是否成功 |
-| `claimAllRewards` | 一键领取玩家全部可领奖励。 | `player`：目标玩家（`Player`） | 领取的奖励份数 |
-| `updateTaskProgress` | 为玩家推进指定任务进度。 | `taskId`：任务 id；`increment`：进度增量 | 无返回值 |
-| `resetProgress` | 重置玩家本赛季进度（等级/经验/任务/领取记录）。 | `playerUuid`：玩家 UUID（`UUID`） | 无返回值 |
+| `addXp` | 增加经验 | 玩家、增加量 | `CompletionStage<Integer>`，保存后的总经验 |
+| `setXp` | 设置经验 | 玩家、目标经验 | `CompletionStage<Void>`，保存后完成 |
+| `removeXp` | 扣减经验 | 玩家、扣减量 | `CompletionStage<Void>`，保存后完成 |
+| `setLevel` | 设置等级 | 玩家、目标等级 | `CompletionStage<Void>`，保存后完成 |
+| `unlockTier` | 解锁档位 | 玩家、`PREMIUM` 或 `DELUXE`，忽略大小写 | `CompletionStage<Boolean>`，是否成功 |
+| `claimAllRewards` | 领取全部可领奖励 | 玩家 | `CompletionStage<Integer>`，已确认受理的奖励份数。实际到账以交付结果为准 |
+| `updateTaskProgress` | 增加任务进度 | 玩家、任务 ID、增量 | `CompletionStage<Void>`，保存后完成 |
+| `resetProgress` | 重置本赛季等级、经验、任务和领取记录 | 玩家 UUID | `CompletionStage<Void>`，保存后完成 |
+
+## 调用示例
+
+在主线程为 `player` 增加 100 点经验。`plugin` 为调用方的插件实例。回调若需更新界面，请切回主线程并核对玩家连接。
+
+```java
+api.addXp(player, 100).whenComplete((totalXp, error) -> {
+    if (error != null) {
+        plugin.getLogger().warning("战令经验写入未确认: " + error.getMessage());
+        return;
+    }
+    plugin.getLogger().info("保存后的战令经验: " + totalXp);
+});
+```
 
 ## 调用注意事项
 
-涉及 Bukkit 玩家、世界、物品或界面的调用放在 Bukkit 主线程执行；接口有明确线程说明时以该方法约定为准。
+写操作异步完成。同一玩家的请求按提交顺序处理。取消等待或超时后，请核对实际结果再决定是否重试增减经验。`claimAllRewards` 异常完成时，部分奖励可能已受理，按原领取状态核对。
