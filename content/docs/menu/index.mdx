@@ -16,15 +16,13 @@ description: "创建功能导航，绑定命令、物品或 ESC 菜单。"
 
 ## 第一次使用
 
-1. 按[单按钮示例](/docs/menu/configuration#从一个可验证的按钮开始)建立 `plugins/ArcartX-Suite/data/menu/menus/trial_menu.yml`。
-2. 管理员执行 `/axs reload menu`，让具有 `arcartxsuite.menu.use` 的测试玩家执行 `/menu open trial_menu`。
-3. 先点无条件的测试按钮，再比较两名等级分别低于和达到示例要求的玩家。
+按[单按钮示例](/docs/menu/configuration#从一个可验证的按钮开始)创建 `trial_menu`，重载后由普通测试玩家打开菜单并点击「检查入口」。
 
 ## 检查是否配置成功
 
-检查按钮文字、点击动作、翻页和关闭。
+应看到「试炼入口」菜单，点击按钮后收到「按钮可用」。验证成功后再配置其他页面、条件或跨模块动作。
 
-`/menu open trial_menu` 提示菜单不存在时，核对 `menus/` 文件位置及顶层 `id: trial_menu`。按钮禁用时，检查 `use-conditions` 和玩家等级。 [单按钮示例](/docs/menu/configuration#从一个可验证的按钮开始)
+`/menu open trial_menu` 提示菜单不存在时，先用 `/axs menu status` 核对加载情况，再检查文件位置和顶层 `id`。
 
 ## 可以配置的功能
 

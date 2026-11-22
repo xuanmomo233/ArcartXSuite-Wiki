@@ -16,16 +16,7 @@ description: "轮播服务器公告，或为指定玩家播放字幕。"
 
 ## 第一次使用
 
-在测试服的 `plugins/ArcartX-Suite/data/announcer/config.yml` 中确认 `settings.auto-play: true`，并保留默认 `entries-directory: "announcer"`。在 `plugins/ArcartX-Suite/data/announcer/announcer/wiki_trial.yml` 保存以下完整条目文件。
-
-```yaml
-wiki_trial:
-  enabled: true
-  text: "轮播验收：这条文字来自 wiki_trial.yml"
-  click-command: ""
-```
-
-执行 `/axs reload announcer` 后，使用普通玩家账号查看公告。默认条目间隔约 30 秒，另计滚动和轮间等待。验证单条公告时，可暂时关闭其他条目。
+按[单条公告轮播示例](/docs/announcer/entries#最少改两处即可开始)保存测试公告并重载，使用普通玩家账号查看 HUD。
 
 ## 检查是否配置成功
 

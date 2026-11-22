@@ -111,6 +111,66 @@ export const docRedirects: Record<string, DocRedirect> = {
   'guide/text-moderation': {
     sections: { '提示文字与内容过滤不同': '/docs/guide/text-moderation/#已接入的文本场景' },
   },
+  'afkreward/configuration': {
+    sections: {
+      '区域字段': '/docs/afkreward/afk-areas/#区域顶层字段',
+      '区域边界pos': '/docs/afkreward/afk-areas/#区域边界判定',
+      '传送点teleport': '/docs/afkreward/afk-areas/#传送点配置',
+      '奖励配置reward': '/docs/afkreward/reward-tiers/#档位定义',
+      '奖励档位': '/docs/afkreward/reward-tiers/#档位匹配逻辑',
+      '物品奖励rewarditem-rewards': '/docs/afkreward/reward-tiers/#物品奖励配置',
+      '倍率配置multiplier': '/docs/afkreward/reward-tiers/#倍率配置',
+      '定时倍率调度multiplierschedules': '/docs/afkreward/reward-tiers/#定时倍率调度',
+      '区域配置完整示例': '/docs/afkreward/afk-areas/#区域识别与结算验证',
+    },
+  },
+  'afkreward/commands': {
+    sections: {
+      'ui-配置': '/docs/afkreward/configuration/#hud-配置ui',
+      'hud-控件': '/docs/afkreward/configuration/#hud-配置ui',
+      '消息文件': '/docs/afkreward/configuration/#消息文件',
+      '消息分类': '/docs/afkreward/configuration/#消息文件',
+      '关键消息键': '/docs/afkreward/configuration/#消息文件',
+    },
+  },
+  'announcer/configuration': {
+    sections: {
+      '公告条目定义announceryml': '/docs/announcer/entries/#条目配置',
+      '字幕帧定义subtitlegroupsyml': '/docs/announcer/subtitle/#字幕组文件格式',
+      '公告条目示例': '/docs/announcer/entries/#最少改两处即可开始',
+      '字幕组示例': '/docs/announcer/subtitle/#完整字幕组示例',
+    },
+  },
+  'map/configuration': {
+    sections: { '贴图导航提示navigationtexture-marker150-新增': '/docs/map/configuration/#贴图导航提示navigationtexture-marker' },
+  },
+  'market/commands': {
+    sections: { 'status-输出示例': '/docs/market/commands/#status-输出说明' },
+  },
+  'menu/configuration': {
+    sections: { '全屏功能导航与悬停详情150': '/docs/menu/configuration/#全屏功能导航与悬停详情' },
+  },
+  'questgps/commands': {
+    sections: {
+      '消息文件': '/docs/questgps/configuration/#消息文件',
+      '消息键一览': '/docs/questgps/configuration/#消息文件',
+    },
+  },
+  'tooltip/configuration': {
+    sections: {
+      '消息前缀prefix': '/docs/tooltip/configuration/#消息键一览',
+      '权限不足提示commonno-permission': '/docs/tooltip/configuration/#消息键一览',
+      '仅限玩家使用提示commonplayer-only': '/docs/tooltip/configuration/#消息键一览',
+      '状态信息标题adminstatus-title': '/docs/tooltip/configuration/#消息键一览',
+      '状态统计数量文字adminstatus-cache-size': '/docs/tooltip/configuration/#消息键一览',
+      '状态统计时效文字adminstatus-ttl': '/docs/tooltip/configuration/#消息键一览',
+      '无统计数据提示adminstatus-no-cache': '/docs/tooltip/configuration/#消息键一览',
+      '帮助菜单标题helptitle': '/docs/tooltip/configuration/#消息键一览',
+      '状态命令帮助helpstatus': '/docs/tooltip/configuration/#消息键一览',
+      '完整配置示例': '/docs/tooltip/configuration/#自定义消息示例',
+      '配置管理': '/docs/tooltip/configuration/#主配置文件configyml',
+    },
+  },
 };
 
 export function getDocRedirect(slugs: string[] = []) {

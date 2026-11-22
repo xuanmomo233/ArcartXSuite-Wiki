@@ -7,7 +7,7 @@ description: "设置聊天频道、消息格式、私聊与物品展示。"
 | --- | --- |
 | 模块 ID | `chat` |
 | 主配置 | `plugins/ArcartX-Suite/data/chat/config.yml` |
-| 主要调整内容 | channels/ 频道、消息模板与频道权限 |
+| 主要调整内容 | `chat/channels/` 频道、消息模板与频道权限 |
 | 重载 | `/axs reload chat` |
 
 ## 开始前
@@ -16,9 +16,7 @@ description: "设置聊天频道、消息格式、私聊与物品展示。"
 
 ## 第一次使用
 
-1. 按[附近频道示例](/docs/chat/channels#创建一个附近频道)将频道文件保存到 `plugins/ArcartX-Suite/data/chat/channels/Nearby.yml`，然后执行 `/axs reload chat`。
-2. 让两名具有 `arcartxsuite.chat.use` 的普通玩家执行 `/chat channel nearby`。
-3. 两人站在同一世界相距 10 格处发送测试消息，再拉开到 40 格复测。
+按[附近频道示例](/docs/chat/channels#创建一个附近频道)创建频道并重载。让两名测试玩家切换到 `nearby`，分别在相距 10 格和 40 格时发送消息。
 
 ## 检查是否配置成功
 

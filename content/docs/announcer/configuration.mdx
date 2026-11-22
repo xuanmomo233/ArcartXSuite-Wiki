@@ -67,98 +67,10 @@ description: "调整announcer/ 公告文字、播放间隔与 subtitle/ 字幕�
 
 > 在 `ui.subtitle-ui-id` 填写字幕 HUD 的界面 ID。使用 `ui.register-ui-on-enable` 和 `ui.overwrite-ui-files` 配置界面注册及文件覆盖。
 
-## 公告条目定义（`announcer/*.yml`）
+## 公告与字幕文件
 
-每个公告条目文件根键为条目 ID，包含以下字段：
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `enabled` | `boolean` | `true` | 是否启用该条目参与轮播 |
-| `text` | `string` | — | 公告展示文本，支持 PlaceholderAPI 变量与颜色代码 |
-| `click-command` | `string` | — | 点击公告时执行的命令，留空表示无点击事件；`{player}` 替换为点击者名 |
-
-> `enabled: false` 的条目不会下发到客户端，不参与轮播。`text` 为空的条目也会被过滤。
-
-## 字幕帧定义（`subtitle/groups/*.yml`）
-
-每个字幕组文件名（去掉 `.yml`）即为组 ID。文件内顶层数字节点按升序排列，每个节点为一帧字幕：
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `text` | `string` | — | 字幕文本，支持颜色代码与 PlaceholderAPI 变量 |
-| `length` | `int` | `0` | 打字机动画总字数，`0` 或负数时按可见文本长度自动计算 |
-| `time` | `int` | `1000` | 打字机动画时长（毫秒） |
-| `keep` | `double` | `1.0` | 动画结束后停留时间（秒），最后一帧停留后自动关闭 HUD |
-
-字幕组文件还支持以下组级配置：
-
-| 字段 | 类型 | 默认值 | 说明 |
-|---|---|---|---|
-| `ui-id` | `string` / `list` | 继承全局 | 指定本组使用的 UI ID，支持字符串或列表，不填则使用 `ui.subtitle-ui-id` |
-
-> 顶层节点必须是数字，系统按数字从小到大顺序播放。非数字节点会被跳过。
-
-### 公告条目示例
-
-```yaml
-# plugins/ArcartX-Suite/data/announcer/announcer/default.yml
-# 目录下每个 *.yml 文件可包含多个条目，根键即为条目 ID。
-
-# 欢迎公告条目
-welcome:
-  enabled: true
-  text: "欢迎来到服务器，祝你游玩愉快。"
-  click-command: ""
-
-# 玩家个性化公告条目（PAPI 变量按接收玩家解析）
-player:
-  enabled: true
-  text: "你好，%player_name%。"
-  click-command: "say {player} 点击了公告"
-
-# 禁用条目示例
-disabled_entry:
-  enabled: false
-  text: "这条公告不会显示"
-  click-command: ""
-```
-
-### 字幕组示例
-
-```yaml
-# data/announcer/subtitle/groups/default.yml
-# 顶层节点必须是数字，按从小到大顺序播放。
-
-# 组级 UI 覆盖（可选）
-# ui-id: "AXS:custom_subtitle_hud"
-# 或多 UI：
-# ui-id:
-#   - "AXS:subtitle_hud_1"
-#   - "AXS:subtitle_hud_2"
-
-1:
-  # 支持颜色代码和 PlaceholderAPI 变量
-  text: "&f欢迎，%player_name%。"
-  # 0 = 自动按可见文本长度计算
-  length: 0
-  # 打字机动画 1.4 秒
-  time: 1400
-  # 动画结束后停留 1 秒再切下一条
-  keep: 1
-
-2:
-  text: "&e这是 AXS Subtitle 默认字幕组。"
-  length: 0
-  time: 1800
-  # 最后一条会在 time + keep 后自动关闭 HUD
-  keep: 1.5
-
-3:
-  text: "&b字幕支持多帧播放。"
-  length: 0
-  time: 1200
-  keep: 0.8
-```
+- [公告条目与轮播](/docs/announcer/entries)提供单条轮播、点击命令和完整字段。
+- [字幕组配置](/docs/announcer/subtitle)提供数字帧、时长、界面 ID 和播放示例。
 
 ## 消息文件（`messages.yml`）
 

@@ -77,6 +77,8 @@ mail:
 
 执行 `axs reload onlinerewards`。使用当天尚未达到测试阶段的玩家等到阈值，在邮箱核对收到一封补给邮件并能领取附件。
 
+OnlineRewards 使用宿主共享 MySQL 时，Mail 也需使用同一套宿主共享 MySQL。各服使用独立奖励队列并共享 Mail 时，为每台服填写不同且固定的 `cross-server.node-id`。结果待核对时，按[奖励发放核对流程](/docs/onlinerewards/commands#核对奖励发放)查询。
+
 阶段按配置顺序推进，每个阶段只能触发一次。状态引擎使用 `rewardStage` 字段记录已领取的阶段序号：
 
 ```

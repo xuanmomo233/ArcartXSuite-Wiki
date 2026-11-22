@@ -56,10 +56,6 @@ Tooltip 模块通过 `/axs` 命令系统注册管理子命令，提供模块状�
 |---|---|---|
 | `arcartxsuite.admin` | OP | 执行 Tooltip 管理命令所需权限 |
 
-<Callout type="info">
-`arcartxsuite.admin` 是 Suite 的通用管理权限，所有模块的管理命令均使用此权限节点。
-</Callout>
-
 ## Tab 补全
 
 | 补全位置 | 补全内容 |
@@ -73,11 +69,4 @@ Tooltip 模块**不提供**玩家命令。
 
 ## 枪械浏览界面
 
-- `gun-list.mode: ax` 时使用 AX 自定义界面（`ui/gun_list.yml`）
-- `gun-list.mode: mod` 时使用客户端本地 Forge 界面
-- 模式在玩家进服时自动推送，模块 reload 后补推全部在线玩家，也可用 `push` 命令手动重推
-- 客户端未收到推送时默认使用 `mod` 本地界面
-
-<Callout type="info">
-经 Bungee/Velocity 代理时，模式推送依赖代理转发插件消息通道。
-</Callout>
+界面的选择见[枪械浏览模式](/docs/tooltip/configuration#主配置文件configyml)。重载后模块会向在线玩家推送模式，可用 `status` 核对并用 `push` 单独重推。

@@ -95,64 +95,6 @@ No.1 玩家名 - 总时长: XX时XX分XX秒 - 总奖励: XX 次
 | `axs.afkreward.bypass.timelimit` | 豁免挂机时长限制 |
 | `axs.afkreward.bypass.iplimit` | 豁免同 IP 限制 |
 
-> 档位匹配优先级：`axs.afkreward.start.<areaId>.<tier>` 优先于 `axs.afkreward.start.<tier>`。系统按配置顺序从高到低匹配，命中第一个有权限的档位即停止。无任何档位权限时默认取最后一个档位（通常是 `common`）。
+两个档位权限都会在每个档位上检查。按[奖励档位](/docs/afkreward/reward-tiers#档位匹配逻辑)的配置顺序选择第一个命中项；未命中时使用最后一个档位。
 
-### UI 配置
-
-| UI 属性 | 值 | 说明 |
-|---|---|---|
-| `isHud` | `true` | HUD 模式（无交互的纯显示界面） |
-| `defaultOpen` | `true` | 默认开启（玩家进入区域自动显示） |
-| `level` | `20` | 渲染层级（数值越大越靠前） |
-| `through` | `true` | 点击穿透（不拦截鼠标操作） |
-
-### HUD 控件
-
-HUD 面板包含一个背景面板和 6 个文本控件，所有控件可见性绑定到 `var.visible` 变量：
-
-| 控件 | 类型 | 显示内容 |
-|---|---|---|
-| 背景 | `Texture` | 圆角矩形面板（深蓝半透明 + 浅蓝描边） |
-| 标题 | `Text` | `&b挂机区域: &f{var.area}` |
-| 时间 | `Text` | `&7当前挂机: &f{var.time}` |
-| 下次奖励 | `Text` | `&7下次奖励: &f{var.next}秒` |
-| 人数 | `Text` | `&7区域人数: &f{var.players}` |
-| 本次收益 | `Text` | `&7本次收益: &f{var.session_rewards} 次` |
-| 本次时长 | `Text` | `&7累计挂机: &f{var.session_time}` |
-
-> HUD 文件位于 `data/afkreward/ui/afk_reward_hud.yml`，可自由编辑布局与样式。设置 `ui.overwrite-ui-files: false`（默认）后模块不会覆盖你的修改。UI 编辑详见 [图标配置](/docs/guide/icons) 指南。
-
-## 消息文件
-
-消息文件位于 `data/afkreward/messages.yml`，支持 `&` 颜色码和 `{0}` `{1}` 占位符。修改后执行 `/axs reload afkreward` 即可生效。
-
-### 消息分类
-
-| 分类 | 说明 |
-|---|---|
-| `prefix` | 消息前缀 |
-| `common` | 通用消息（仅玩家、无权限、服务未启动） |
-| `player` | 玩家命令消息（帮助、toggle、status、manual 列表/排行榜） |
-| `admin` | 管理命令消息（帮助、status、reload） |
-
-### 关键消息键
-
-| 消息键 | 说明 |
-|---|---|
-| `hints.enter-area` | 进入挂机区域提示（参数：区域名） |
-| `hints.leave-area` | 离开挂机区域提示（参数：区域名） |
-| `hints.reward` | 获得奖励提示（参数：区域名、周期分钟数） |
-| `hints.reward-limit` | 达到每日奖励次数上限 |
-| `hints.player-limit` | 区域已满员 |
-| `hints.no-permission-area` | 无权限在此区域挂机 |
-| `hints.manual.start` | 开始原地挂机（参数：区域名） |
-| `hints.manual.end` | 结束原地挂机（参数：时长、奖励次数） |
-| `hints.manual.end-no-reward` | 结束挂机但未达奖励时间 |
-| `hints.manual.recovered` | 崩溃恢复提示（参数：时长、奖励次数） |
-| `hints.manual.end-reason.combat` | 因战斗强制结束 |
-| `hints.manual.end-reason.area_removed` | 因区域删除强制结束 |
-| `hints.manual.end-reason.no_permission` | 因权限失效强制结束 |
-| `hints.manual.end-reason.time_limit` | 因时长上限强制结束 |
-| `hints.anti-abuse.time-limit-session` | 单次挂机达上限 |
-| `hints.anti-abuse.time-limit-daily` | 每日挂机达上限 |
-| `hints.anti-abuse.ip-limit` | 同 IP 限制生效 |
+[HUD 设置](/docs/afkreward/configuration#hud-配置ui)与[命令提示文字](/docs/afkreward/configuration#消息文件)见模块配置。

@@ -25,7 +25,7 @@ description: "钓鱼可用命令、参数填写方式和权限要求。"
 
 ## 管理员命令
 
-管理命令挂载在Suite `/axs fishing` 下，需要权限 `axs.fishing.admin`。
+`/axs fishing` 需要本体权限 `arcartxsuite.admin`。统计、发经验、重置、赛季结算、水域管理与试钓还会检查 `axs.fishing.admin`。
 
 | 命令 | 说明 |
 | --- | --- |
@@ -43,9 +43,9 @@ description: "钓鱼可用命令、参数填写方式和权限要求。"
 | `/axs fishing water reload` | 重载水域配置 |
 | `/axs fishing fatigue set <玩家> <值>` | 设置玩家疲惫值（0-100） |
 | `/axs fishing fatigue reset <玩家>` | 重置玩家疲惫值为 0 |
+| `/axs fishing fatigue view <玩家>` | 查看玩家疲惫值与钓鱼效率 |
 
 赛季结算中断后，再次执行结算会沿用已经保存的奖励内容和交接编号。使用独立存储时，请在原结算服继续处理。
-| `/axs fishing fatigue view <玩家>` | 查看玩家疲惫值与钓鱼效率 |
 
 ### 实机试钓
 
@@ -82,7 +82,8 @@ description: "钓鱼可用命令、参数填写方式和权限要求。"
 | 权限 | 说明 |
 | --- | --- |
 | `arcartxsuite.fishing.use` | 使用 `/fishing` 玩家命令，默认授予所有玩家 |
-| `axs.fishing.admin` | 执行 `/axs fishing` 管理命令 |
+| `arcartxsuite.admin` | 访问 `/axs fishing` 管理命令 |
+| `axs.fishing.admin` | 统计、发经验、重置、赛季结算、水域管理与试钓的附加权限 |
 | `axs.fishing.legendary` | 钓到传说鲤鱼所需权限（鱼类定义 `require-permission` 示例） |
 
 > 鱼类定义中的 `require-permission` 字段和水域定义中的 `require-permission` 字段可配置自定义权限节点。

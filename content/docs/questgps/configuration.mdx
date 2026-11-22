@@ -95,3 +95,7 @@ navigation:
 | `gate.deny-chat-card` / `gate.deny-subtitle` | 按需使用的卡片或字幕组 ID |
 
 完整例子见[主线门禁](/docs/questgps/gate)。玩家任务数据仍由 Chemdah 保存，QuestGPS 只读取状态，不单独配置任务数据库。
+
+## 消息文件
+
+在 `plugins/ArcartX-Suite/data/questgps/messages.yml` 修改命令帮助、状态输出和导航提示。保留原消息中的 `{0}`、`{1}` 等参数，保存后执行 `axs reload questgps`。门禁拦截文案从上面的 `gate.deny-message` 配置。

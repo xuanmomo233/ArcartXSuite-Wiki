@@ -211,27 +211,7 @@ Redis 启用后缓存玩家各自的拍卖和玩家商店列表页，保存时�
 
 ## 商店与回收配置示例
 
-以下为原配置中两个功能小节的修改片段。先在全局货币中配置 `money`，再准备对应的商品与回收定义：
-
-```yaml
-shop:
-  enabled: true
-  shops-directory: shops
-  refresh-interval-ticks: 6000
-  default-currency: money
-recycle:
-  enabled: true
-  recycle-directory: recycle
-  default-currency: money
-  allow-auto-recycle: true
-  protection:
-    default-auto-recycle: false
-    max-rules: 200
-  batch-recycle-enabled: true
-  batch-confirm: true
-```
-
-使用[购买和回收示例](/docs/market/shops#购买和回收示例)准备商店和回收表，再用测试账号核对余额与物品数量。
+确认 `shop.enabled` 和 `recycle.enabled` 都已开启，然后按[购买和回收示例](/docs/market/shops#购买和回收示例)配置两个文件并验收。
 
 ### 回收保护与交易管理界面
 

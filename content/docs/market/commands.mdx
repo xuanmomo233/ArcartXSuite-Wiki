@@ -72,6 +72,8 @@ description: "商店与拍卖可用命令、参数填写方式和权限要求。
 
 ## 管理员命令
 
+常规 `/axs market` 管理命令需要同时拥有 `arcartxsuite.admin` 和 `arcartxsuite.market.admin`。NPC 兑换入口使用[独立权限](/docs/market/commands#npc-兑换命令)。
+
 ### 管理员交易管理面板
 
 玩家可通过交易历史页的「交易管理」打开面板，需要 `arcartxsuite.market.admin`。用 `/axs market trades` 打开时还需 `arcartxsuite.admin`。控制台可使用下方的流水命令。
@@ -117,18 +119,9 @@ description: "商店与拍卖可用命令、参数填写方式和权限要求。
 | `/axs market open <auction\|pshop\|shop\|recycle\|history\|sell> [商店ID]` | 打开对应业务界面；仅玩家执行，商店 ID 只用于 shop | `arcartxsuite.market.admin` |
 | `/axs market edit [商店ID]` | 打开系统商店编辑 UI（仅玩家可执行；省略 ID 时打开商店选择界面） | `arcartxsuite.market.admin` |
 
-### status 输出示例
+### status 输出说明
 
-```
-AXS Market 状态
-活跃拍卖: 42
-玩家商店在售: 12
-功能状态: 拍卖行=true，玩家商店=true，系统商店=true，回收商店=true，动态商店=false
-系统商店: 3
-回收条目: 10
-列表缓存(Redis): 已连接
-跨服通道: 已启用
-```
+`/axs market status` 用于检查各业务开关、拍卖和玩家店铺挂单、系统商店与回收条目。界面中的实际订单或入账异常按[交易流水与异常核对](#交易流水与异常核对)处理。
 
 ### 清理过期商品（clear-expired）
 

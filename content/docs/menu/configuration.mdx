@@ -95,7 +95,7 @@ description: "配置菜单页面、按钮显示、使用条件和点击动作。
 | ArcartX 贴图 | `texture` / `texture-url` / `nbt` | 写入 NBT 渲染自定义贴图 |
 | 直接 NBT | `json` | 直接提供物品 NBT JSON |
 
-## 全屏功能导航与悬停详情（1.5.0）
+## 全屏功能导航与悬停详情
 
 悬停预览详情，点击左侧按钮执行动作。禁用按钮可预览。长说明纵向滚动，页脚横向滚动。刷新后继续预览同一按钮，切页时重置滚动位置。
 
@@ -144,7 +144,7 @@ warehouse:
 
 ### 从一个可验证的按钮开始
 
-保存为 `menus/trial_menu.yml`。此例只用原版图标和消息，确认成功后再换成其他模块的命令。
+保存为 `plugins/ArcartX-Suite/data/menu/menus/trial_menu.yml`。此例只使用原版物品图标和消息动作。
 
 ```yaml
 id: trial_menu
@@ -159,14 +159,11 @@ pages:
         order: 0
         icon:
           material: EMERALD
-        use-conditions:
-          - "%player_level% >= 5"
-        deny-message: "&c需要达到 5 级"
         actions:
           - "message: &a按钮可用"
 ```
 
-执行 `/axs reload menu` 后用 `/menu open trial_menu` 打开。先用低于 5 级的玩家检查禁用提示，再用达到 5 级的玩家检查消息。PAPI 等级变量需可解析。
+在控制台执行 `axs reload menu`。用具有 `arcartxsuite.menu.use` 的玩家执行 `/menu open trial_menu`，点击按钮后应收到「按钮可用」。再按[条件写法](/docs/guide/conditions)添加按钮使用条件，并用满足和不满足条件的账号分别验证。
 
 `open: teleport` 引用另一个菜单的 `id`。按钮顶层的 `requirements` 控制可见性，`details.requirements` 填写显示给玩家的要求文字。
 

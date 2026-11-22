@@ -16,21 +16,15 @@ description: "按在线时长、签到记录和全服目标发放奖励。"
 
 ## 第一次使用
 
-1. 修改一个默认奖励。
-2. 执行 `/axs reload onlinerewards`。
-3. 执行 `/onlinerewards open`。
+按[短阶段奖励示例](/docs/onlinerewards/time-rewards#从一个短阶段开始测试)配置一条在线两分钟的物品奖励。用当天尚未达到该阶段的玩家执行 `/onlinerewards open`，查看进度并等到阈值。
 
 ## 检查是否配置成功
 
-用测试账号签到或达到一个奖励条件，检查奖励内容。
-
-奖励列表有测试档位却无法领取时，用 `/onlinerewards status` 核对当天累计时长，并查看是否已领取该档。先使用[短阶段奖励示例](/docs/onlinerewards/time-rewards#从一个短阶段开始测试)验证一次实际发放。
+达到阈值后，应自动收到两颗苹果。未收到时先用 `/onlinerewards status` 核对当天累计时长。签到可另用 `/onlinerewards signin` 验证。
 
 ### 邮件预设奖励
 
-在 Mail 中启用预设，并在奖励的 `mail.presets` 填写预设 ID。奖励入库后，玩家可在 `/mail` 查看邮件并领取附件。若发放结果待核对，请在控制台[核对该次奖励](/docs/onlinerewards/commands#核对奖励发放)。
-
-OnlineRewards 使用宿主共享 MySQL 时，Mail 也要使用同一套宿主共享 MySQL。使用各服独立的奖励队列并共用 Mail 时，请在各服的 `cross-server.node-id` 配置不同且固定的节点 ID。单服使用自建 MySQL 的 OnlineRewards 可以向本服 Mail 正常发放。
+按[阶段推进机制](/docs/onlinerewards/time-rewards#阶段推进机制)设置预设及存储，再用 `/mail` 核对收件与领取。
 
 ## 可以配置的功能
 

@@ -14,22 +14,23 @@ description: "功能菜单可用命令、参数填写方式和权限要求。"
 | `/menu list` | 列出所有可用菜单 |
 | `/<自定义命令别名>` | 通过菜单 `commands` 绑定的别名直接打开 |
 
-管理命令（挂载在Suite `/axs menu`）：
+以下命令均经过 `arcartxsuite.admin` 检查。部分 `/axs menu` 子命令另有权限。
 
 | 命令 | 权限 | 说明 |
 | --- | --- | --- |
 | `/axs menu help` | `arcartxsuite.admin` | 显示管理帮助 |
 | `/axs menu status` | `arcartxsuite.admin` | 查看模块状态（菜单数量、UI、绑定数） |
-| `/axs menu list` | `arcartxsuite.admin` | 列出所有已注册菜单 |
-| `/axs menu open <菜单ID> [玩家]` | `axs.menu.open.other` | 为自己或指定玩家打开菜单 |
-| `/axs reload menu` | `axs.menu.reload` | 热重载菜单配置 |
+| `/axs menu list` | `arcartxsuite.admin` | 仅玩家可用，列出已注册菜单 |
+| `/axs menu open <菜单ID> [玩家]` | `arcartxsuite.admin`、`axs.menu.open.other` | 打开菜单，控制台须提供在线玩家名 |
+| `/axs reload menu` | `arcartxsuite.admin` | 通过本体重载菜单模块 |
+| `/axs menu reload` | `arcartxsuite.admin`、`axs.menu.reload` | 通过菜单子命令重载 |
 
 权限节点：
 
 | 权限 | 说明 |
 | --- | --- |
 | `arcartxsuite.menu.use` | 使用 `/menu` 玩家命令 |
-| `axs.menu.open.other` | 管理命令中为其他玩家打开菜单 |
-| `axs.menu.reload` | 热重载菜单配置 |
+| `axs.menu.open.other` | 使用 `/axs menu open`，包括为自己打开 |
+| `axs.menu.reload` | 使用 `/axs menu reload` |
 | `arcartxsuite.admin` | 执行管理命令的基础权限 |
 | `<菜单定义中的 permission>` | 各菜单自定义的打开权限 |
