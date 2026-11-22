@@ -93,14 +93,13 @@ MANUAL 挂机期间的独立行为保护开关，默认全部开启：
 
 | 字段 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `id` | `string` | 文件名 ID | 区域唯一 ID |
 | `name` | `string` | `id` | 区域显示名称（用于权限 `axs.afkreward.area.<name>`） |
 | `enabled` | `boolean` | `true` | 是否启用区域 |
 | `world` | `string` | — | 区域所在世界名（必填，缺失则跳过） |
 | `manual-enabled` | `boolean` | `true` | 是否允许 `/afk start` 原地挂机 |
 | `reward-weight` | `double` | `1.0` | 区域奖励权重，最终倍率会乘以该值 |
 | `pos` | `list<string>` | — | 区域边界点（`x,z` 格式），至少 3 个点 |
-| `teleport` | `section` | — | 原地挂机传送点（缺失则不支持原地挂机） |
+| `teleport` | `section` | — | 必填，传送世界须已加载。关闭手动挂机时也需要配置 |
 
 ### 区域边界（pos）
 
@@ -238,7 +237,6 @@ multiplier:
 ### 区域配置完整示例
 
 ```yaml
-id: default
 name: "泡澡池"
 enabled: true
 world: bskyblock_world

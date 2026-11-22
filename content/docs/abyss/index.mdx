@@ -16,15 +16,13 @@ description: "配置地牢、怪物波次、阶段任务、队伍与结算奖励
 
 ## 第一次使用
 
-需要从零制作并验证一条流程时，先阅读[完整按钮开战示例](/docs/abyss/walkthrough)。它提供同一地牢的六个文件，以及普通、额外挑战和超时失败三条测试路线。
-
-1. 复制默认示例地牢并修改入口设置。
-2. 执行 `/abyss list`。
-3. 执行 `/abyss enter <地牢ID>`。
+1. 按[完整按钮开战示例](/docs/abyss/walkthrough)在 `plugins/ArcartX-Suite/data/abyss/abysses/button_trial/` 创建六个文件。本例使用虚空世界和原版怪物。
+2. 执行 `axs abyss reload`，确认日志没有模板报错。
+3. 让具有 `arcartxsuite.abyss.use` 的测试玩家执行 `/abyss list`，找到「按钮试炼」，再执行 `/abyss enter button_trial`。
 
 ## 检查是否配置成功
 
-走完一个测试关卡，检查任务推进、退出与结算。
+右键金块后应刷出三只僵尸。清完后检查绿宝石和经验奖励，再确认玩家按示例的结算规则退出。额外挑战和超时失败可按[单人验证步骤](/docs/abyss/walkthrough#重载和单人验证)分开测试。
 
 `/abyss list` 找不到测试地牢时，核对 `abysses/button_trial/` 的文件位置和重载日志。能进入却没有刷怪时，从[按钮开战示例](/docs/abyss/walkthrough#重载和单人验证)的金块交互开始，按准备、刷怪、通关的顺序逐项核对。
 

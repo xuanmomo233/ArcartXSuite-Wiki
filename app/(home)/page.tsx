@@ -7,8 +7,8 @@ import { modules, taskGroups } from '@/lib/modules';
 
 const assetBase = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 const firstSteps = [
-  { number: '01', icon: BookOpen, title: '了解本体使用', text: '安装、绑定模块，完成主配置与验证。', href: '/docs/guide/first-run', label: '本体使用' },
-  { number: '02', icon: SlidersHorizontal, title: '掌握通用配置', text: '使用选区、邮件派发、奖励与其他通用功能。', href: '/docs/guide/shared-functions', label: '通用配置' },
+  { number: '01', icon: BookOpen, title: '安装与启用模块', text: '检查兼容环境，绑定服务器并验证第一个模块。', href: '/docs/guide/first-run', label: '本体使用' },
+  { number: '02', icon: SlidersHorizontal, title: '配置通用功能', text: '查阅选区、邮件派发、奖励与其他通用功能。', href: '/docs/guide/shared-functions', label: '通用配置' },
   { number: '03', icon: Terminal, title: '接入第三方插件', text: '通过公开 API 接入你自己的插件。', href: '/docs/api', label: '插件接入' },
 ];
 
@@ -26,7 +26,7 @@ export default function HomePage() {
         <h1 id="suite-title">SUITE<span className="wordmark-period">.</span></h1>
         <p className="hero-tagline">让每个功能，<span>奏成你的世界。</span></p>
         <p className="hero-description">{modules.length} 个模块，自由编排你的 Minecraft 服务器。<br className="desktop-break" />从功能使用到配置细节，在这里找到每一步。</p>
-        <div className="hero-actions"><Link className="primary-link" href="/docs/guide">开始使用 <ArrowRight size={17} /></Link><a className="secondary-link" href="#modules">探索模块 <ArrowDown size={15} /></a></div>
+        <div className="hero-actions"><Link className="primary-link" href="/docs/guide/first-run">开始安装 <ArrowRight size={17} /></Link><a className="secondary-link" href="#modules">探索模块 <ArrowDown size={15} /></a></div>
         <div className="hero-facts"><div><strong>{modules.length.toString().padStart(2, '0')}</strong><span>功能模块</span></div><span className="fact-divider" /><div><strong>{Object.keys(taskGroups).length.toString().padStart(2, '0')}</strong><span>使用场景</span></div><span className="fact-divider" /><Link href="/docs/api"><Code2 size={22} /><span>公开开发 API <ArrowUpRight size={12} /></span></Link></div>
       </div>
 

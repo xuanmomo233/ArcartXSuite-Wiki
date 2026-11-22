@@ -16,13 +16,13 @@ description: "在指定区域或原地挂机时，按周期发放奖励。"
 
 ## 第一次使用
 
-1. 修改默认区域坐标。
-2. 配置一个简单奖励。
-3. 进入区域并执行 `/afkreward status`。
+1. 按[区域识别与结算验证](/docs/afkreward/afk-areas#区域识别与结算验证)保存一个独立的测试区域。将世界名、边界和传送点改成测试服的实际位置，再执行 `axs reload afkreward`。
+2. 为普通测试玩家授予 `arcartxsuite.afkreward.use` 和示例的区域权限 `axs.afkreward.area.wiki_trial`。
+3. 让玩家步行进入该区域，执行 `/afkreward status`，然后停留至少一分钟。
 
 ## 检查是否配置成功
 
-等待一个奖励周期，检查状态显示和实际奖励。
+状态应显示区域为 `wiki_trial`、模式为「区域挂机」。第一个周期完成后，玩家应收到「挂机测试结算已触发」。离开区域后再查状态，确认不再计时。
 
 用 `/afkreward status` 核对区域。区域不符时检查世界名、边界和站位。区域正确但未发奖时，核对[档位权限](/docs/afkreward/reward-tiers)、发放周期与每日上限。
 

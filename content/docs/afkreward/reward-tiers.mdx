@@ -38,10 +38,10 @@ reward:
 
 系统按配置顺序（`LinkedHashMap` 保持插入顺序）从高到低匹配玩家权限：
 
-| 权限节点 | 优先级 | 说明 |
-|---|---|---|
-| `axs.afkreward.start.<areaId>.<tier>` | 高 | 匹配指定区域指定档位 |
-| `axs.afkreward.start.<tier>` | 低 | 匹配任意区域指定档位（通用档位权限） |
+| 权限节点 | 说明 |
+|---|---|
+| `axs.afkreward.start.<areaId>.<tier>` | 匹配指定区域的这个档位 |
+| `axs.afkreward.start.<tier>` | 匹配所有区域中的同名档位 |
 
 匹配流程：
 

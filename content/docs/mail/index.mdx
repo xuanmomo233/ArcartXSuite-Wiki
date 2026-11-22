@@ -16,13 +16,13 @@ description: "发送邮件与物品附件，配置预设邮件和兑换码。"
 
 ## 第一次使用
 
-1. 编辑一个默认预设。
-2. 按命令页向测试玩家发送。
-3. 执行 `/mail` 打开收件箱。
+1. 按[两颗苹果的预设示例](/docs/mail/presets#预设派发与附件领取示例)保存 `plugins/ArcartX-Suite/data/mail/presets/trial_supply.yml`。
+2. 在控制台执行 `axs mail preset reload` 和 `axs mail preset list`，确认出现 `trial_supply`。再执行 `axs mail preset send trial_supply WikiTester`，用实际在线玩家名替换 `WikiTester`。
+3. 让背包有空位的测试玩家执行 `/mail open`，打开新邮件并领取附件。
 
 ## 检查是否配置成功
 
-阅读邮件并领取附件，确认物品或货币到账。
+背包应增加两颗苹果。重新打开收件箱查看同一封邮件，确认附件已领取。
 
 修改预设后，用 `/axs mail preset send trial_supply WikiTester` 重新派发。未收到时核对预设 ID 与收件人，缺少附件时查看[预设与领取步骤](/docs/mail/presets#预设派发与附件领取示例)。
 

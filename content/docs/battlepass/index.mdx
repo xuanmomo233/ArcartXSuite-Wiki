@@ -16,13 +16,13 @@ description: "配置赛季任务、经验等级与不同档位的奖励。"
 
 ## 第一次使用
 
-1. 设置测试赛季。
-2. 保留一个容易完成的任务。
-3. 执行 `/bp tasks`。
+1. 在模块 `config.yml` 中设置测试赛季的 `season.start-date` 和 `season.end-date`，确保覆盖游戏服当前日期。日期用带引号的 `yyyy-MM-dd` 格式。
+2. 在独立测试服的 `tasks/daily.yml` 仅配置[试炼狩猎示例](/docs/battlepass/tasks#任务配置示例)，确认 `tasks.daily-count` 至少为 1。执行 `axs reload battlepass`。
+3. 用当天尚未分配过战令任务的测试玩家执行 `/bp tasks`，确认出现「试炼狩猎」。用原版武器击杀三个生物，再回到战令界面。
 
 ## 检查是否配置成功
 
-完成任务后检查经验变化，并在 /bp rewards 领取奖励。
+任务进度应达到 3/3。检查战令等级或当前经验是否变化。达到已配置的奖励等级后，可用 `/bp rewards` 打开界面领取。
 
 `/bp tasks` 中没有任务时，检查当前赛季与任务分配。进度未更新时，按[任务示例](/docs/battlepass/tasks#任务配置示例)核对事件、条件和触发限制。
 
@@ -37,7 +37,7 @@ description: "配置赛季任务、经验等级与不同档位的奖励。"
 | 任务条件 | 事件载荷条件（EventPayloadCondition）、玩家状态条件（PlayerStateCondition）、组合条件（any_of / all_of / not） |
 | 增量策略 | 固定增量（FixedIncrementStrategy）和载荷值增量（PayloadValueStrategy，支持 scale / max-per-event / min-per-event） |
 | 触发限制 | 每个任务可配置冷却时间（cooldown-ms）和每日最大计入次数（max-per-day） |
-| 等级奖励 | 每级三档奖励，支持 item / command / currency / mail 四种奖励类型 |
+| 等级奖励 | 每级三档，可发放物品、命令、货币、邮件、称号和地图锚点。称号与锚点需要相应模块及有效目标 ID |
 | 赛季结算 | 按等级阈值提交结算奖励，在线玩家自动触发发放，离线玩家上线后发放 |
 
 ## 继续配置

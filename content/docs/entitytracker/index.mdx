@@ -16,13 +16,11 @@ description: "显示目标信息、Boss 伤害排名与结算奖励。"
 
 ## 第一次使用
 
-1. 准备一个 MythicMobs 测试 Boss。
-2. 为其配置追踪条目。
-3. 攻击该目标。
+用 ArcartX 客户端进服，以普通近战攻击一只原版生物，先验证[攻击目标 HUD](/docs/entitytracker/target-hud)。要继续测试 Boss 排名，安装 MythicMobs，按[Boss 追踪配置](/docs/entitytracker/boss-tracking)将 `bosses/` 中的条目指向实际 MythicMob ID，再重载并生成该 Boss。
 
 ## 检查是否配置成功
 
-检查目标面板、伤害排名及击杀结算。
+攻击原版生物后应看到其血量和距离，停止攻击一段时间后面板应消失。测试 Boss 排名时，让两名玩家分别造成不同伤害，再核对排名和击杀结算。
 
 Boss 排名缺失时，检查 `bosses/` 中的怪物 ID 和[排名配置](/docs/entitytracker/boss-tracking)，再让两名玩家分别攻击以核对结果。
 

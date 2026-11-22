@@ -5,27 +5,34 @@ description: "设置挂机区域的坐标、传送点，并选择区域挂机或
 
 区域由 X-Z 平面坐标围成。玩家进入后自动累计区域挂机时间（`REGION`），也可用命令开始原地挂机（`MANUAL`）。两种模式可在同一区域使用，共用奖励档位和倍率。
 
-## 区域文件结构
-
 ## 区域识别与结算验证
 
-复制 `area-default.yml` 后，先更改区域 ID、名称、真实世界和多边形边界，再确认传送点位于安全位置。`pos` 是 `x,z` 点列，按边界顺序围成多边形，不是长方体的两个角。至少需要三个点。
-
-可用一条无倍率的提示命令验证区域结算，再配置正式奖励与倍率。开放前将结算周期设回预期分钟数。
+在 `plugins/ArcartX-Suite/data/afkreward/areas/` 新建 `area-wiki_trial.yml`。将 `world` 与 `teleport.world` 改成已加载的测试世界，`pos` 按边界顺序填写实际区域的 X、Z 坐标。将传送点设在安全位置。
 
 ```yaml
+name: wiki_trial
+enabled: true
+world: world
+manual-enabled: false
+pos: ["0,0", "8,0", "8,8", "0,8"]
+teleport:
+  world: world
+  x: 4.5
+  y: 64
+  z: 4.5
 reward:
   round: 1
   common:
     - "tell {player} 挂机测试结算已触发"
 ```
 
-将片段合并到区域的 `reward` 节，并为玩家授予对应档位权限。区域挂机进区即计时，原地挂机还需开启手动开始并设置传送点。 [奖励档位](/docs/afkreward/reward-tiers)
+保存后执行 `axs reload afkreward`。授予测试玩家 `axs.afkreward.area.wiki_trial` 和 `arcartxsuite.afkreward.use`，在边界内用 `/afkreward status` 检查计时。一分钟后应收到提示命令发出的消息。此例只有 `common` 档，未匹配到专用档位权限时会采用它。 [奖励档位](/docs/afkreward/reward-tiers)
+
+## 区域文件结构
 
 每个区域为独立的 `area-<id>.yml` 文件，位于 `data/afkreward/areas/` 目录下。文件名中的 `<id>` 作为区域内部 ID，同时用于奖励权限 `axs.afkreward.start.<id>.<tier>`。模块首次启动时自动导出 `area-default.yml` 模板。
 
 ```yaml
-id: default
 name: "泡澡池"
 enabled: true
 world: bskyblock_world
@@ -54,16 +61,15 @@ multiplier:
 
 | 字段 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `id` | `string` | 文件名 ID | 区域唯一 ID |
 | `name` | `string` | `id` | 区域显示名称（用于权限 `axs.afkreward.area.<name>`） |
 | `enabled` | `boolean` | `true` | 是否启用区域 |
 | `world` | `string` | — | 区域所在世界名（必填，缺失则跳过） |
 | `manual-enabled` | `boolean` | `true` | 是否允许 `/afk start` 原地挂机 |
 | `reward-weight` | `double` | `1.0` | 区域奖励权重，最终倍率会乘以该值 |
 | `pos` | `list<string>` | — | 区域边界点（`x,z` 格式），至少 3 个点 |
-| `teleport` | `section` | — | 原地挂机传送点（缺失则不支持原地挂机） |
+| `teleport` | `section` | — | 必填。原地挂机的传送点，关闭手动挂机时也需保留有效设置 |
 
-> 区域名重复时后加载的文件会被跳过并打印警告。`world` 字段缺失或 `teleport` 世界未加载时，整个区域文件会被跳过。
+> 区域名重复、缺少 `world` 或 `teleport`、传送世界未加载时，加载日志会提示并跳过该文件。
 
 ## 区域边界判定
 

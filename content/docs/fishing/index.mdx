@@ -7,7 +7,7 @@ description: "配置钓鱼小游戏、鱼类、水域、鱼竿和鱼饵。"
 | --- | --- |
 | 模块 ID | `fishing` |
 | 主配置 | `plugins/ArcartX-Suite/data/fishing/config.yml` |
-| 主要调整内容 | fishes/ 鱼类、pools/ 水域、rods/ 鱼竿与 baits/ 鱼饵 |
+| 主要调整内容 | `fishes/` 鱼类、`waters/` 水域、`rods/` 鱼竿与 `baits/` 鱼饵 |
 | 重载 | `/axs reload fishing` |
 
 ## 开始前
@@ -16,15 +16,15 @@ description: "配置钓鱼小游戏、鱼类、水域、鱼竿和鱼饵。"
 
 ## 第一次使用
 
-1. 先保留默认鱼类和鱼竿。
-2. 设置测试水域。
-3. 执行 `/fishing` 查看界面，再尝试钓鱼。
+1. 在模块 `config.yml` 确认 `fishing.replace-vanilla: true`。使用现成的 `waters/water-default.yml` 与其中引用的默认鱼类，找一处未被其他水域定义覆盖的水面。
+2. 用普通测试玩家手持原版鱼竿抛竿，等到咬钩提示出现后，按界面提示提竿并完成小游戏。
+3. 确认背包收到鱼类物品，再执行 `/fishing collection` 检查图鉴。该命令需要 `arcartxsuite.fishing.use`，默认向玩家开放。
 
 ## 检查是否配置成功
 
 完成一次小游戏，确认获得鱼类并更新图鉴。
 
-抛竿后未进入小游戏时，核对落点、水域开关和鱼竿要求。小游戏完成后未获奖时，检查该水域引用的鱼池、鱼种和发奖配置。
+咬钩后仍是原版钓鱼时，先核对接管开关，再检查浮漂落点命中的[水域](/docs/fishing/pools)、水域权限和钓鱼等级。小游戏成功后未收到物品时，检查鱼种的 `item` 定义、物品来源和背包空间。
 
 ## 可以配置的功能
 
