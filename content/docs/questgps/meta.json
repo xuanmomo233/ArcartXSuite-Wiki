@@ -2,6 +2,7 @@
   "title": "任务导航",
   "pages": [
     "index",
+    "chemdah-walkthrough",
     "chemdah-mapping",
     "configuration",
     "commands",

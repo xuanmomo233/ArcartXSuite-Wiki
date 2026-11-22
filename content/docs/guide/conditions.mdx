@@ -158,62 +158,9 @@ use-conditions:
 
 ## 配置节名称
 
-不同模块使用不同的配置节名称来承载条件，语法完全一致：
+字段名称和判断时机由模块决定。`requirements` 与 `use-conditions` 分别控制菜单按钮的可见和可点击状态。邮件使用 `claim-conditions` 检查领取资格。
 
-| 配置节 | 使用场景 |
-|--------|----------|
-| `use-conditions` | 使用 / 触发条件（如道具使用、按钮点击） |
-| `requirements` | 通用前置条件 |
-| `open-conditions` / `open-requirements` | 打开 UI 前置条件 |
-| `claim-conditions` | 领取条件（如邮件、奖励领取） |
-| `when` | EventPacket 的事件字段精确匹配 |
-
-> 这些配置节的语法完全一致，只是命名随模块语义不同。配置时按模块文档选择对应节名即可。
-
-### Menu 菜单按钮显示条件
-
-菜单按钮的 `requirements` 控制按钮是否可见，`use-conditions` 控制是否可点击：
-
-```yaml
-buttons:
-  vip-shop:
-    icon:
-      material: DIAMOND
-      name: "&bVIP 商店"
-    requirements:           # 可见条件：等级 >= 10
-      - "%player_level% >= 10"
-    use-conditions:         # 使用条件：拥有 vip 权限
-      - "aria: player.hasPermission('vip.access')"
-```
-
-### Mail 邮件领取条件
-
-邮件的 `claim-conditions` 控制玩家能否领取该邮件附件：
-
-```yaml
-mails:
-  welcome-mail:
-    title: "新手礼包"
-    claim-conditions:
-      - "%player_level% >= 5"
-      - "aria: player.getWorld() == 'world'"
-    rewards:
-      money: 1000
-```
-
-### BattlePass 任务条件
-
-BattlePass 任务通过条件判定玩家行为是否满足任务要求：
-
-```yaml
-tasks:
-  - id: "kill-mobs"
-    name: "击杀 10 只怪物"
-    conditions:
-      - "{entity-type} == ZOMBIE"
-      - "aria: player.getLevel() >= 1"
-    target: 10
-```
+[Menu 按钮](/docs/menu/configuration#从一个可验证的按钮开始) · [Mail 领取条件](/docs/mail/presets#领取条件claim-conditions) · [BattlePass 任务条件](/docs/battlepass/tasks#条件系统) · [EventPacket 事件筛选](/docs/eventpacket/triggers)
 
 ## 故障排除
 

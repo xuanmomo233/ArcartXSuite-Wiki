@@ -151,65 +151,7 @@ Market 拍品和 Mail 附件会保留外部物品来源，取回时按已安装�
 
 > 识别依赖对应插件已安装。若插件未安装，物品按普通物品处理，取回时不再关联物品库 ID。
 
-### Market 商店物品
-
-Market 商店中上架的物品通过 `source` + `id` 描述来源：
-
-```yaml
-shops:
-  weapons:
-    items:
-      - source: "mythic"
-        id: "SwordOfFlame"
-        price: 1000
-      - source: "mmoitems"
-        id: "SWORD;EXCALIBUR"
-        price: 5000
-      - source: "minecraft"
-        id: "DIAMOND"
-        amount: 32
-        price: 100
-```
-
-### BattlePass 等级奖励
-
-BattlePass 各等级奖励中的物品配置：
-
-```yaml
-rewards:
-  level-10:
-    items:
-      - source: "neige"
-        id: "rare_chest"
-        amount: 1
-      - source: "minecraft"
-        id: "GOLDEN_APPLE"
-        amount: 5
-  level-20:
-    items:
-      - source: "mmoitems"
-        mmo-type: "SWORD"
-        mmo-id: "EXCALIBUR"
-        amount: 1
-```
-
-### Mail 邮件附件
-
-邮件附件中的物品配置：
-
-```yaml
-mails:
-  welcome-mail:
-    title: "新手礼包"
-    attachments:
-      - source: "minecraft"
-        id: "IRON_SWORD"
-        amount: 1
-        nbt: "{display:{Name:'{\"text\":\"新手铁剑\"}'}}"
-      - source: "overture"
-        id: "starter_kit"
-        amount: 1
-```
+完整条目见[商店商品](/docs/market/shops)、[战令物品奖励](/docs/battlepass/rewards#item-物品奖励)与[邮件物品附件](/docs/mail/presets#物品附件item-attachments)。
 
 ## 故障排除
 

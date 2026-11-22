@@ -166,43 +166,13 @@ match:
 
 该例匹配名称含“传送券”或“旅行券”的纸。它适用于外层字段为 `match` 的位置；要求 `matcher` 或 `blacklist` 的位置，应替换外层名称。空匹配器不会自动匹配全部物品，各模块还可能直接跳过空定义。
 
-## 物品费用示例
-
-Map 支持在锚点的费用物品列表中使用数量与匹配条件，例如在锚点 `unlock` 中配置：
-
-```yaml
-items:
-  - amount: 3
-    match:
-      material-ids: [diamond]
-```
-
-表示手动解锁时使用符合条件的三颗钻石。自动解锁和手动解锁条件不同，不能用费用配置推断所有解锁路径都会扣物品；完整位置见[传送锚点](/docs/map/anchors)。
-
-Lottery 的物品费用使用 `matcher`，且物品费用不能同时用 `id` 代替匹配条件。不要把上例直接改一个模块名就投入使用，具体结构见[抽奖功能配置](/docs/lottery/configuration)。
+物品费用的外层结构和扣除时机见[锚点物品消耗](/docs/map/anchors#物品消耗)与[抽奖消耗配置](/docs/lottery/configuration#消耗配置cost)。
 
 ## 验证方法
 
 分别用完全匹配、部分匹配和不匹配的物品验证。费用还需检查数量不足、足额和多组匹配。过滤规则可用允许与拒绝的物品验证，并在重载日志中检查正则错误。
 
-## 完整示例：按标签识别鱼竿
-
-假设真实鱼竿是原版 `FISHING_ROD`，且已存在值为 `jade_rod` 的 `rod_id` 标签，在 `plugins/ArcartX-Suite/data/fishing/rods/jade_rod.yml` 中可写：
-
-```yaml
-id: jade_rod
-match:
-  material-ids:
-    - fishing_rod
-  nbt-values:
-    "rod_id": "jade_rod"
-green-bar-height-bonus: 8
-exp-multiplier: 1.1
-min-player-level: 0
-max-player-level: 0
-```
-
-保存后执行 `/axs reload fishing`，分别用带正确标签、带其他值和不带标签的鱼竿测试。这个文件只识别并赋予钓鱼加成，不会生成鱼竿、写入标签或自动给玩家发物品。鱼竿其余字段见[鱼竿配置](/docs/fishing/rods)。
+完整鱼竿定义见[按标签识别鱼竿](/docs/fishing/rods#按标签识别鱼竿)。
 
 ## 常见写法错误
 

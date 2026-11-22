@@ -66,17 +66,24 @@ rod.setItemMeta(meta);
 | `nbt-values` | 映射，检查具体值，多个键值全部满足；完整写法见下方例子 |
 | `name-regex` / `lore-regex` | 字符串列表；完整名称可写 `name-regex: ['^青玉钓竿$']` |
 
-例如，实际鱼竿已有 `rod_id` 标签，值为 `jade_rod`：
+### 按标签识别鱼竿
+
+如果鱼竿已有值为 `jade_rod` 的 `rod_id` 标签，在 `plugins/ArcartX-Suite/data/fishing/rods/jade_rod.yml` 创建定义。
 
 ```yaml
+id: jade_rod
 match:
   material-ids:
     - fishing_rod
   nbt-values:
     "rod_id": "jade_rod"
+green-bar-height-bonus: 8
+exp-multiplier: 1.1
+min-player-level: 0
+max-player-level: 0
 ```
 
-该匹配条件要求物品是鱼竿且已有对应标签。标签写法和获取方式见[物品匹配教程](/docs/guide/item-matching#nbtpdc-标签从哪里获取)。
+执行 `axs reload fishing` 后，分别用带正确标签和无标签的原版鱼竿试钓。前者应获得绿色目标条与经验加成。标签由实际物品配置提供，获取方法见[物品匹配](/docs/guide/item-matching#nbtpdc-标签从哪里获取)。
 
 ### 鱼竿耐久度
 

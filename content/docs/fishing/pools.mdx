@@ -99,10 +99,11 @@ current-zones:
 
 `pos` 为 `"x,z"` 格式的字符串列表，至少需要 3 个点定义一个多边形。验证时让玩家站在岸上，把浮漂抛到边界内并等咬钩，再抛到界外比较。界外未命中其他水域时使用默认水域。
 
-可使用管理命令 `/axs fishing water create <id>` 配合选区工具创建多边形：
-- 左键方块 → 添加顶点
-- 右键方块 → 闭合多边形（至少 3 点）
-- Shift+右键 → 撤销上一个顶点
+### 用选区工具创建水域
+
+1. 管理员在游戏内执行 `/axs fishing water create lake_demo`。手持木棍或[本体指定的选区工具](/docs/guide/first-run#多边形选区工具)，沿同一世界的水域边缘依次左键选点。至少选三个点，再右键闭合。Shift + 右键可撤销最后一个点。
+2. 执行 `/axs fishing water save lake_demo`，确认生成 `waters/water-lake_demo.yml`。请选择尚未使用的水域 ID。
+3. 在文件中填写实际的 `fishes` 和 `treasures` ID，再执行 `/axs fishing water reload`。让普通玩家把浮漂抛到边界内，确认咬钩时进入该水域的钓鱼流程。
 
 ### difficulty-formula 难度修正公式
 

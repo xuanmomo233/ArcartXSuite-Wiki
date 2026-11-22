@@ -7,6 +7,8 @@ description: "编写可重复发送的邮件模板，添加物品、货币、命
 
 预设邮件位于 `data/mail/presets/` 目录，每个 `.yml` 文件定义一个可重复分发的邮件模板。明确填写 `preset.id` 时按该值引用，省略时使用文件名。建议两者一致，避免把文件名和展示名称混用。
 
+预设派发需要 Suite 的 Mail 模块。当服务器仅安装 SystemMail 时，部分直接邮件可以发送物品或命令附件；预设与货币附件需要 Mail。
+
 ### 预设派发与附件领取示例
 
 保存为 `presets/trial_supply.yml`。此例只包含两颗苹果和一条领取消息，便于核对投递和领取分别是否成功。
@@ -338,6 +340,17 @@ preset:
       mmo-id: "EPIC_HELMET"
       amount: 1
 ```
+
+### 在其他模块使用预设
+
+在调用模块填写 `preset.id`，例如 `trial_supply`。先用在线测试账号确认预设能单独发送并领取，再测试该模块的触发条件。
+
+| 来源 | 对应说明 |
+| --- | --- |
+| 在线时长到达阶段 | [在线阶段奖励](/docs/onlinerewards/time-rewards#阶段推进机制) |
+| 区域或原地挂机 | [挂机奖励档位](/docs/afkreward/reward-tiers)与[原地挂机配置](/docs/afkreward/configuration) |
+| 战令、抽奖 | [战令邮件奖励](/docs/battlepass/rewards#mail-邮件奖励)与[抽奖投递](/docs/lottery/prize-delivery) |
+| 首次准入 | [EventPacket 邮件动作](/docs/eventpacket/actions#首次准入邮件)在规则里直接填写信件内容 |
 
 ### 命令管理
 

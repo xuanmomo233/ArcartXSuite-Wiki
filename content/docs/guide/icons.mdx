@@ -187,73 +187,7 @@ icon:
 
 ## 在各模块中的使用
 
-`icon:` 配置节在以下模块配置中出现，写法完全一致：
-
-| 模块 | 使用场景 | 示例 |
-|------|----------|------|
-| **Menu** | 菜单按钮图标 | 按钮 `icon:` 节 |
-| **Market** | 商店商品图标 | 商品 `icon:` 节 |
-| **BattlePass** | 等级奖励图标 | 奖励 `icon:` 节 |
-| **Fishing** | 鱼类图鉴图标 | 鱼类 `icon:` 节 |
-| **Lottery** | 抽奖物品图标 | 奖品 `icon:` 节 |
-
-### Menu 菜单按钮
-
-```yaml
-buttons:
-  shop:
-    icon:
-      material: EMERALD
-      name: "&a商店"
-      lore:
-        - "&7点击打开商店"
-    slot: 0
-```
-
-### Market 商店商品
-
-```yaml
-items:
-  - icon:
-      source: "mythic"
-      id: "RareGem"
-      name: "&b稀有宝石"
-    price: 500
-```
-
-### BattlePass 等级奖励
-
-```yaml
-rewards:
-  level-5:
-    icon:
-      material: GOLDEN_APPLE
-      name: "&6等级 5 奖励"
-      lore:
-        - "&7点击领取"
-```
-
-### Fishing 鱼类图鉴
-
-```yaml
-fishes:
-  - id: "gold_fish"
-    icon:
-      material: TROPICAL_FISH
-      name: "&e金鱼"
-      custom-model-data: 30001
-```
-
-### Lottery 抽奖物品
-
-```yaml
-prizes:
-  - icon:
-      source: "neige"
-      id: "legendary_box"
-      name: "&6传说宝箱"
-    weight: 1
-```
+各模块决定 `icon` 的位置。完整文件见[菜单按钮](/docs/menu/configuration#从一个可验证的按钮开始)、[商店商品](/docs/market/shops)、[战令奖励](/docs/battlepass/rewards#奖励图标配置)、[鱼类图鉴](/docs/fishing/fishes)及[抽奖奖品](/docs/lottery/configuration)。
 
 ## 故障排除
 

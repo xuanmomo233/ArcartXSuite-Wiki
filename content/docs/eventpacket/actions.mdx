@@ -36,3 +36,36 @@ rules:
 ```
 
 填写实际的副本、难度和货币 ID，并启用 Abyss 与 Mail。纯通知可省略 `currency` 和 `amount`。保持规则与邮件动作 `id` 稳定，避免重复发奖。省略 `start-sequence` 时，从启用规则后的结果开始处理。跨服发奖须让三个模块使用同一共享 MySQL。
+
+## 用信号播放字幕
+
+先在 Announcer 配置[字幕组](/docs/announcer/subtitle#字幕组文件格式) `welcome_demo`，再将规则合并到 EventPacket 主配置的 `rules`。
+
+```yaml
+rules:
+  welcome-notice:
+    trigger: signal
+    signal: welcome_demo
+    actions:
+      - type: subtitle
+        group: welcome_demo
+```
+
+执行 `axs reload eventpacket`，再执行 `axs eventpacket fire welcome_demo WikiTester`，把 `WikiTester` 换成在线测试玩家。确认字幕播放后，可在[菜单按钮](/docs/menu/bindings)绑定同名信号。
+
+## 首次准入邮件
+
+启用 LoginView、Mail 和 EventPacket，将规则合并到 `rules`。
+
+```yaml
+rules:
+  welcome-mail:
+    trigger: first-admitted
+    actions:
+      - type: mail
+        id: welcome
+        title: "欢迎加入服务器"
+        content: "你的冒险从这里开始。"
+```
+
+重载 EventPacket，让尚未通过准入的测试账号完成首次进服验证，再打开收件箱确认欢迎邮件。用同一账号重新进服，核对没有新增同一封邮件。

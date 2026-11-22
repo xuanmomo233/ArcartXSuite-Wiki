@@ -241,6 +241,10 @@ keybinds:
 
 同一默认键位会合并成一个客户端按键。为地图和批量拾取分配不同键位，例如小键盘 8 和 `J`。执行 `/axs reload all` 并重新进服后，检查实际绑定。
 
+## 多边形选区工具
+
+`selection.wand-item` 设置本体多边形选区使用的物品，默认是 `STICK`。修改后执行 `/axs reload all`。先在模块内启动选区，再使用指定物品，例如[创建钓鱼水域](/docs/fishing/pools#用选区工具创建水域)。
+
 ## 属性插件与模组兼容
 
 ### 属性插件选择
@@ -311,7 +315,7 @@ potion-aura:
 
 远程词库支持每行一个词的纯文本、JSON 字符串数组，或带 `words`、`data`、`list` 数组字段的 JSON 对象。按实际维护的词库填写地址。
 
-修改后执行 `/axs reload all`，用普通测试账号分别验证频道消息、私聊、市场留言和玩家邮件。只使用 Suite 本地词库时，可关闭 `moderation.cloud.enabled` 和 `moderation.redact.enabled`。匹配规则和配置示例见[内容过滤与提示文字](/docs/guide/text-moderation)。
+修改后执行 `/axs reload all`，用普通测试账号分别验证频道消息、私聊、市场留言和玩家邮件。只使用 Suite 本地词库时，可关闭 `moderation.cloud.enabled` 和 `moderation.redact.enabled`。匹配规则和配置示例见[内容过滤](/docs/guide/text-moderation)。
 
 ## 跨服功能
 
@@ -330,7 +334,7 @@ potion-aura:
 | `proxy.messenger-channel` | 转发频道，默认 `AXS_CROSS` |
 | `proxy.forward-target` | 转发目标，默认 `ALL` |
 
-首次使用选择符合群组服部署方式的方案，不必为了“全部启用”而同时打开两种方式。修改连接设置后重启各子服，再按[跨服功能使用](/docs/guide/cross-server-setup)验证实际业务。
+选择符合群组服部署方式的方案。修改连接设置后重启各子服，再按[跨服连接](/docs/guide/cross-server-setup)验证消息通道。
 
 ## 奖励命令执行速度
 
@@ -365,5 +369,3 @@ potion-aura:
 模块未出现时，先对照[云端绑定与模块日志](/docs/guide/config-management)。模块已启用但公告不出现时，优先确认客户端 ArcartX、公告文件路径及 `settings.auto-play`。
 
 安装完成后，按[阅读顺序](/docs/guide)查阅通用配置和模块用法。
-
-区域选择、邮件派发、奖励命令与其他可复用功能的实际用法见[通用功能概览](/docs/guide/shared-functions)。

@@ -1,13 +1,11 @@
 ---
 title: "阅读顺序"
-description: "按安装、服务器配置和第三方插件接入的顺序查找文档。"
+description: "从安装和启用模块开始，按需查阅本体设置与共用配置参考。"
 ---
 
-依次查阅安装、通用配置和模块用法。需要调用 Suite 功能时，查看第三方插件接入。
+第一次安装 Suite 时，先完成本体安装和模块启用，再从[模块目录](/docs#按功能找模块)打开所需功能。
 
 ## 第一步：了解本体如何使用
-
-[本体安装与配置](/docs/guide/first-run)包含环境准备、账号绑定、模块启用和 `config.yml`。
 
 | 文档 | 读完后能做什么 |
 | --- | --- |
@@ -15,37 +13,23 @@ description: "按安装、服务器配置和第三方插件接入的顺序查找
 | [常用命令](/docs/guide/commands) | 使用状态查询、同步、更新与重载等管理入口 |
 | [日志与报错提示](/docs/guide/config-management) | 看懂常见警告和失败提示，按原因定位问题 |
 
-这一阶段以 `/axs status` 状态正常、客户端能够实际使用所需功能为完成标准。
+## 通用配置参考
 
-## 第二步：了解通用配置
-
-按[通用功能概览](/docs/guide/shared-functions)选择服务器需要的配置。
+按正在编辑的字段查阅下表。具体文件、玩法示例和验收步骤见对应模块。
 
 | 文档 | 主要用途 |
 | --- | --- |
 | [配置写法入门](/docs/guide/config-syntax) | 看懂缩进、类型、列表与映射，学会替换示例和核对结果 |
-| [区域选择](/docs/guide/region-selection) | 在游戏中圈定水域，区分多边形与两点选区 |
-| [邮件派发](/docs/guide/mail-delivery) | 创建邮件预设，并由在线奖励、事件等功能引用 |
-| [奖励发放排查](/docs/guide/rewards-and-commands) | 检查背包溢出、离线补发、邮件领取和命令变量 |
-| [属性与持续效果](/docs/guide/attributes-and-effects) | 区分属性插件、药水与模组属性，验证生效条件 |
-| [按键绑定](/docs/guide/keybinds) | 设置交互和地图按键，区分 Prop 槽位绑定 |
-| [物品匹配与消耗](/docs/guide/item-matching) | 识别现有物品，区分匹配、过滤、生成和费用 |
-| [通知与功能联动](/docs/guide/notifications-and-actions) | 按模块使用信号、字幕、聊天卡片、公告与 QQ 通知 |
-| [Chemdah 对话与任务接入](/docs/guide/chemdah-setup) | 配置 Chemdah 主题、NPC、任务与 Suite 映射 |
-| [内容过滤与提示文字](/docs/guide/text-moderation) | 核对已接入文本的实际行为，调整词库和语言提示 |
-| [占位符](/docs/guide/placeholders) | 在文字中显示玩家等级、邮件数、在线时间等动态数据 |
 | [条件配置](/docs/guide/conditions) | 根据玩家状态决定功能是否可用或内容是否显示 |
 | [物品来源](/docs/guide/item-sources) | 引用原版或物品插件提供的物品 |
+| [物品匹配与消耗](/docs/guide/item-matching) | 用材质、物品 ID、名称或标签识别已有物品 |
 | [图标配置](/docs/guide/icons) | 为界面选择物品图标和展示样式 |
 | [货币系统](/docs/guide/currencies) | 连接经济插件，并在费用、奖励和商品中引用货币 |
-| [多界面配置](/docs/guide/multi-ui) | 在支持的功能中配置多个界面 |
-| [跨服功能使用](/docs/guide/cross-server-setup) | 开启模块支持的跨服业务，并在多个子服验证 |
-
-从[模块目录](/docs#按功能找模块)查找入门步骤、配置、命令与权限。
+| [内容过滤](/docs/guide/text-moderation) | 配置词库、命中行为和 Redact 接入 |
+| [占位符速查](/docs/guide/placeholders) | 按模块查找 PAPI 变量，验证变量能否解析 |
+| [跨服连接](/docs/guide/cross-server-setup) | 配置 Redis 或代理转发，验证两服间的通道 |
 
 ## 按需接入第三方插件
-
-需要让自己的插件调用 Suite 功能时，进入[第三方插件接入](/docs/api)。
 
 | 文档 | 主要用途 |
 | --- | --- |

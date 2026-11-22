@@ -67,6 +67,16 @@ rewards:
 
 ### 阶段推进机制
 
+需要按阶段寄信时，先在 Mail 创建并验证[试炼补给预设](/docs/mail/presets#预设派发与附件领取示例)。然后在测试用的 `rewards.yml` 阶段条目中，用下面的 `mail` 小节替换原有的物品和命令奖励，保留 `minutes`、`name` 与 `rewardText`：
+
+```yaml
+mail:
+  presets:
+    - trial_supply
+```
+
+执行 `axs reload onlinerewards`。使用当天尚未达到测试阶段的玩家等到阈值，在邮箱核对收到一封补给邮件并能领取附件。
+
 阶段按配置顺序推进，每个阶段只能触发一次。状态引擎使用 `rewardStage` 字段记录已领取的阶段序号：
 
 ```

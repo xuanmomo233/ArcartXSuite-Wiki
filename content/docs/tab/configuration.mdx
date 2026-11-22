@@ -16,4 +16,8 @@ settings:
 | `settings.layout` | `simple` 显示玩家名，`avatar` 额外显示头像和延迟。 |
 | `settings.proxy-roster` | 启用时向 Suite Velocity 上报当前连接的准入和隐身状态。单服使用默认值 `false`。 |
 
-想调整颜色或布局时，在 `plugins/ArcartX-Suite/ui/` 中编辑所选布局对应的 `tab-simple.yml` 或 `tab-avatar.yml`，保存后重载 Tab。界面从 ArcartX 客户端读取当前原版 Tab 名单。
+## 切换与验证布局
+
+一次选择一个布局。保存 `settings.layout` 后执行 `axs reload tab`，用 ArcartX 客户端进服按住 Tab。选择 `avatar` 时，应在名单中看到头像和延迟。
+
+在 `plugins/ArcartX-Suite/ui/` 编辑当前布局对应的 `tab-simple.yml` 或 `tab-avatar.yml`，保存后重载 Tab。界面从 ArcartX 客户端读取原版 Tab 名单。多子服的名单同步见[跨服名单](/docs/tab/cross-server)。

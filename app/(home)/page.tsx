@@ -8,7 +8,7 @@ import { modules, taskGroups } from '@/lib/modules';
 const assetBase = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 const firstSteps = [
   { number: '01', icon: BookOpen, title: '安装与启用模块', text: '检查兼容环境，绑定服务器并验证第一个模块。', href: '/docs/guide/first-run', label: '本体使用' },
-  { number: '02', icon: SlidersHorizontal, title: '配置通用功能', text: '查阅选区、邮件派发、奖励与其他通用功能。', href: '/docs/guide/shared-functions', label: '通用配置' },
+  { number: '02', icon: SlidersHorizontal, title: '查阅通用配置', text: '查找物品、条件、货币、占位符和跨服连接的写法。', href: '/docs/guide/#通用配置参考', label: '通用配置' },
   { number: '03', icon: Terminal, title: '接入第三方插件', text: '通过公开 API 接入你自己的插件。', href: '/docs/api', label: '插件接入' },
 ];
 

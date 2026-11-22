@@ -48,6 +48,15 @@ description: "调整announcer/ 公告文字、播放间隔与 subtitle/ 字幕�
 | `cross-server.redis.enabled` | `boolean` | 继承Suite全局 | 是否走 Redis 后端，不填则继承Suite `config.yml` 的全局配置 |
 | `cross-server.proxy.enabled` | `boolean` | 继承Suite全局 | 是否走 Proxy Forward 后端，不填则继承Suite全局配置 |
 
+### 验证跨服公告
+
+按[跨服连接](/docs/guide/cross-server-setup)连接大厅和生存服。确认两服都能显示本地公告后，在两边的 Announcer `config.yml` 设置 `cross-server.enabled: true`，重载或重启后分别运行 `axs announcer status`。
+
+1. 两台服各留一名在线测试玩家。大厅控制台执行 `axs announcer gbroadcastnow 双服消息测试`，两服都应看到这条公告。
+2. 生存服执行 `axs announcer broadcastnow 本服消息测试`，只应在生存服看到它。配置文件的轮播也只在本服显示。
+
+远端收不到时，确认对端启用了 Announcer 的跨服开关，再检查消息通道。
+
 ### 字幕配置节（`subtitle.settings`）
 
 | 配置项 | 类型 | 默认值 | 说明 |

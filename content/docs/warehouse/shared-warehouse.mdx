@@ -186,6 +186,24 @@ permission-tiers:
 
 接收者须符合当前权限层级的仓库数量上限。确认时身份变化会取消转让，请核对成员后重新发起。多人同级扩容时只接受一笔，其他操作退回费用。
 
+## 验证共享仓库
+
+1. 在两台服启用 Warehouse 和 PlaceholderAPI。在本体 `config.yml` 按[MySQL 配置](/docs/guide/first-run#使用-mysql)连接同一个数据库，再按[跨服连接](/docs/guide/cross-server-setup)配置消息通道。
+2. 在两台服的 Warehouse `config.yml` 合并下例，再重启。`storage.shared` 使用本体数据库，`cross-server.enabled` 启用跨服编辑锁。
+
+```yaml
+storage:
+  shared: true
+shared:
+  enabled: true
+cross-server:
+  enabled: true
+```
+
+3. 核对 `shared.create-cost`。使用默认费用时，启用 PlayerPoints，并给玩家 A 准备 1,000 点券。让 A 用 `/warehouse open` 创建仓库，将玩家 B 加为成员。
+4. A 在大厅服存入一个铁锭并关闭仓库，B 在生存服应看到同一个铁锭。让 A 重新打开编辑，B 再打开时应只能查看。A 关闭后，B 重新打开并取出铁锭。
+5. 两服物品不一致时检查数据库和成员身份。两边同时可编辑时，执行 `axs warehouse status` 检查编辑锁，再查跨服连接。
+
 ## 相关文档
 
 - [功能配置](/docs/warehouse/configuration) — 设置共享仓库数量、容量和成员限制。

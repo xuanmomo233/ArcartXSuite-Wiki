@@ -1,18 +1,11 @@
 ---
-title: "跨服功能使用"
-description: "用两台游戏服验证 Redis 或代理转发，区分共享仓库的数据和编辑锁。"
+title: "跨服连接"
+description: "为游戏服配置 Redis 或代理转发，并验证子服之间的消息通道。"
 ---
 
 ## 开始前
 
-在两台已[完成安装](/docs/guide/first-run)的游戏服启用 Announcer，下文以 `lobby` 和 `survival` 为例。配置跨服前确认两服各自能显示公告。
-
-| 目的 | 应配置的内容 |
-| --- | --- |
-| 跨服公告和其他模块通知 | 选 Redis 或代理转发，然后打开目标模块的跨服开关 |
-| 跨服聊天 | 各服使用同一个 MySQL 数据库，再开启 Chat 跨服与频道转发 |
-| 多服访问同一个共享仓库 | 各服连接同一个 MySQL 库，并开启 Warehouse 的跨服编辑锁 |
-| 跨服地图传送 | 完成消息连接后，继续配置[跨服地图](/docs/map/cross-server)的代理服名称和目标落地点 |
+在两台已[完成安装](/docs/guide/first-run)的游戏服配置消息通道，下文以 `lobby` 和 `survival` 为例。各模块按业务另外设置自己的跨服开关与共享数据。
 
 ## 用 Redis 连接两台服
 
@@ -65,38 +58,8 @@ cross-server:
 
 调整跨服连接方式时，保留各服自己的 `node-id`，确认所需模块已启用新通道，并检查各服的签名配置。
 
-## 按模块开启
-
-在两台游戏服各自的 `plugins/ArcartX-Suite/data/announcer/config.yml` 中启用跨服公告。
-
-```yaml
-cross-server:
-  enabled: true
-```
-
-Tab 的跨服名单通过 Suite Velocity 配置。 [跨服名单](/docs/tab/cross-server)
-
 ## 验证步骤
 
-1. 重启两台游戏服。在各自控制台执行 `axs announcer status`，确认「跨服通道」为「已启用」。
-2. 在大厅控制台执行 `axs announcer gbroadcastnow 双服验收：大厅发出`。大厅和生存服的在线测试玩家都应在公告 HUD 看到这段文字。
-3. 在生存服控制台执行 `axs announcer broadcastnow 双服验收：仅生存服`。只应在生存服看到它。文件中的自动轮播也只在本服显示。
-4. 远端未收到时，核对接收玩家是否在线、各服 `node-id` 是否不同、频道和密钥是否一致，以及接收服是否启用 Announcer。本服也无公告时，检查[本服轮播](/docs/announcer#第一次使用)。
+重启子服后，按[双服公告验证](/docs/announcer/configuration#验证跨服公告)发送一条跨服公告和一条本服公告。跨服消息只在本服出现时，先核对两边的连接日志、`node-id`、频道和密钥。仅使用代理转发时，两台服各留一名在线测试玩家。
 
-## 验证共享仓库
-
-1. 在两台服启用 Warehouse 和 PlaceholderAPI。在本体 `config.yml` 按[MySQL 配置](/docs/guide/first-run#使用-mysql)连接同一个数据库，填写能访问该库的账号。
-2. 在两台服的 `data/warehouse/config.yml` 合并下例，再重启。`storage.shared` 让 Warehouse 使用本体的数据库，`cross-server.enabled` 打开跨服编辑锁。
-
-```yaml
-storage:
-  shared: true
-shared:
-  enabled: true
-cross-server:
-  enabled: true
-```
-
-3. 核对 `shared.create-cost` 和玩家 A 的余额。使用默认配置时，启用 PlayerPoints，并为 A 准备 1,000 点券。随后在大厅用玩家 A 执行 `/warehouse open`，按[共享仓库操作](/docs/warehouse/shared-warehouse)创建仓库并把玩家 B 加为成员。
-4. 玩家 A 存入 1 个铁锭并关闭仓库。玩家 B 到生存服打开同一仓库，应看到 1 个铁锭。随后让 A 在大厅打开编辑，B 在生存服重新打开同一仓库，应只能查看。A 关闭后，B 重新打开应能取出铁锭。
-5. 看不到同一份内容时查数据库和成员身份。内容一致但两边都能编辑时，执行 `/axs warehouse status` 查看编辑锁是否启用，再查跨服连接。
+其他业务的配置和验收见[跨服聊天](/docs/chat/channels)、[验证共享仓库](/docs/warehouse/shared-warehouse#验证共享仓库)、[跨服地图](/docs/map/cross-server)和[Tab 跨服名单](/docs/tab/cross-server)。
