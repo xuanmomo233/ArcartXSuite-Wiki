@@ -3,9 +3,9 @@ title: "外部身份接入"
 description: "通过 OIDC 接入官网身份，配置启动器授权与原游戏连接确认。"
 ---
 
-玩家在已有官网或启动器完成授权，回到游戏核对并确认后进入服务器。LoginView 提供认证接口与游戏界面，官网和启动器可以使用接入方已有的产品。
+玩家通过已有官网或启动器验证中心身份。若采用[AuthCenter 原生混合登录](/docs/loginview/mixed-login#加入-suite-authcenter)，启动器兑换 Minecraft 会话后即可启动游戏进服。进服后授权流程则在原游戏连接中确认。
 
-部署前完成中心发行包、节点密钥和游戏服环境准备。本页在中心节点配置的基础上启用外部授权，并增加 HTTPS 入口。游戏服继续使用相同的中心模式 `authentication.yml`。[独立认证中心](/docs/loginview/center)
+部署前准备中心发行包、身份提供方和游戏服环境。进服后授权使用[独立认证中心](/docs/loginview/center)中的 `backend: center`、`ingress.type: external`。原生混合登录使用 `local-mixed` 或 `signed-proxy`，中心账号无需先通过微软或 LittleSkin 验证。
 
 ## 身份系统要求
 
@@ -14,7 +14,7 @@ description: "通过 OIDC 接入官网身份，配置启动器授权与原游戏
 | 官网支持 OIDC | 按本页登记中心回调，并索取下表参数 |
 | 已有启动器，也有可用的 OIDC 身份系统 | 同时在中心登记启动器，再按接口参考接入 |
 | 官网只有自定义“验证登录”URL 或密码查询接口 | 先由接入方提供 OIDC 适配，再使用本页配置 |
-| 使用游戏内注册和密码登录 | 采用中心密码认证 |
+| 只在本机断网测试账号密码 | 使用[本机离线密码入口](/docs/loginview/configuration) |
 
 OIDC 是网站向其他应用提供身份认证的标准协议。本配置需要提供方的授权端点与换码端点，配置前应确认身份系统具备相应能力。
 
@@ -46,7 +46,7 @@ https://auth.example.net/v1/external/callback
 
 将以下完整配置保存为中心的 `center.json`，并替换域名、提供方地址、应用 ID、公钥编号和公钥值。
 
-样例启用外部授权并关闭游戏内密码认证。需要同时提供密码认证时，将 `gamePasswordEnabled` 设为 `true`。
+这个入口使用外部授权，`gamePasswordEnabled` 保持 `false`。
 
 ```json
 {
@@ -56,6 +56,7 @@ https://auth.example.net/v1/external/callback
   "external": {
     "port": 25601,
     "origin": "https://auth.example.net",
+    "minecraftSessions": true,
     "providers": [
       {
         "realm": "network",
@@ -108,6 +109,8 @@ https://auth.example.net/v1/external/callback
 
 `external.launchers` 用于登记启动器。仅接入官网时，使用空数组 `[]`。登记启动器时，由接入方提供应用 `id` 及实际监听的本机回调地址。
 
+`external.minecraftSessions: true` 开启启动器兑换 Minecraft 会话，此时至少登记一个启动器。仅需进服后授权时，省略此字段或设为 `false`。
+
 ## HTTPS 转发配置
 
 在认证中心所在机器上配置反向代理，使用你在 `origin` 中填写的 HTTPS 域名。转发时保持原请求路径。
@@ -117,7 +120,9 @@ https://auth.example.net/v1/external/callback
 | `https://auth.example.net/v1/external/...` | `http://127.0.0.1:25601/v1/external/...` | 浏览器和启动器授权 |
 | `https://auth.example.net/v1/node/rpc` | `http://127.0.0.1:25600/v1/node/rpc` | 异机游戏节点访问中心，同机节点可以继续走本机地址 |
 
-外部授权转发应保留 Origin 和 Cookie，并对请求来源限流。授权路径应关闭包含查询串、请求正文和 Cookie 的访问日志。
+外部授权转发应保留 Origin 和 Cookie，并由本机可信反向代理将 `X-AXS-Client-IP` 覆盖为实际来源地址。使用直接接收客户端请求的 Nginx 时，可在外部授权的转发规则中设置 `proxy_set_header X-AXS-Client-IP $remote_addr;`。不要透传客户端提供的同名头。授权路径应关闭包含查询串、请求正文和 Cookie 的访问日志。
+
+保留认证中心返回的 `Referrer-Policy`。授权表单使用 `strict-origin`，让浏览器提交同源表单时保留 `Origin`，并避免在 `Referer` 中发送回调参数。
 
 `origin` 填服务根地址，不带末尾斜线和接口路径。例如填写 `https://auth.example.net`。
 
@@ -154,12 +159,10 @@ $env:AXS_WEBSITE_OIDC_SECRET = '网站为 axs-center 分配的应用密钥'
 | 系统浏览器授权 | 从启动器打开浏览器，完成官网授权后返回启动器 | 创建 S256 参数、接收登记的本机回调、核对 state 并交换授权码 |
 | 设备授权 | 启动器展示用户码，玩家在浏览器输入并授权 | 私有设备码轮询、等待或降速、处理拒绝和取消 |
 
-启动器使用短期凭据启动游戏，并用游戏显示的授权码完成配对。玩家在原连接刷新并核对启动器显示的号码，然后继续登录。 [启动器接口](/docs/loginview/external-api)
+原生混合登录在启动游戏前，用启动凭据兑换 Minecraft 会话。进服后授权则用启动凭据配对游戏显示的授权码，玩家在原连接刷新并确认核对码。[启动器接口](/docs/loginview/external-api)
 
 接入前可使用通用 HTTP 客户端验证设备授权接口及异常处理，再将调用流程集成到已有启动器。
 
-## 现有账号关联
+## 身份与连接
 
-关联前在中心启用游戏内密码认证，玩家使用原账号密码登录。管理员执行 `/axs loginview open 玩家名` 打开账号管理界面后，玩家点击“关联官网账号”，完成官网授权和游戏核对。
-
-账号关联要求近期密码验证。验证超时后需要重新登录，再发起关联。官网账号与游戏账号名称相同，也需要完成双方身份验证。
+中心按身份提供方的账号标识识别玩家。官网身份不能仅凭与游戏档案同名而使用已有账号。玩家需要在原游戏连接确认授权，随后完成中心配置的条款和绑定要求。

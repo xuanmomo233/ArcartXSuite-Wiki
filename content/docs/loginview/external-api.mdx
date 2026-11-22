@@ -119,9 +119,36 @@ description: "查询公开授权接口的完整路径、JSON 请求、返回结�
 
 调用 `POST /v1/external/launcher/device/cancel`，请求字段与轮询相同。成功响应的 `code` 为 `OK`。
 
+## 兑换 Minecraft 会话
+
+游戏服使用[Suite AuthCenter 混合登录](/docs/loginview/mixed-login#加入-suite-authcenter)时，启动器在启动 Minecraft 前，用浏览器或设备授权取得的 `launchToken` 调用 `POST /v1/external/launcher/minecraft-session`。
+
+```json
+{
+  "version": 1,
+  "requestId": "fb7ae77f-b15a-49c2-a884-73aff5515827",
+  "clientId": "example-launcher",
+  "launchToken": "填写本次取得的启动凭据"
+}
+```
+
+`code` 为 `OK` 时，解析响应的 `value` 字符串：
+
+| 字段 | 用途 |
+| --- | --- |
+| `sessionApi` | 客户端 authlib-injector 使用的 HTTPS API 根地址，例如 `https://auth.example.net/v1/external/yggdrasil/` |
+| `profileId` | 中心档案的无连字符 UUID，传给 Minecraft 的 `--uuid` |
+| `name` | 中心分配的档案名，传给 Minecraft 的 `--username` |
+| `accessToken` | 本次 Minecraft 连接的会话凭据，传给 `--accessToken` |
+| `expiresIn` | 会话凭据有效秒数，当前为 300 |
+
+使用 JVM 参数 `-javaagent:<authlib-injector 路径>=<sessionApi>`，让客户端的在线会话请求发往中心。启动器将 `name`、`profileId` 和 `accessToken` 配成同一个游戏档案。Java 封装可调用 `LauncherAuthorizationClient.minecraftSession(launchToken)`。
+
+Minecraft 在 `join` 中使用凭据，混合网关用本次握手向中心查询 `hasJoined`。凭据只允许一次成功的连接登记，握手最多保留 30 秒。掉线、过期或已消费时，需要重新授权和兑换。不要把凭据记录到启动日志。同一 `launchToken` 只能兑换 Minecraft 会话或执行下方的进服后配对。
+
 ## 游戏连接配对
 
-玩家进入游戏后，主动把 LoginView 显示的游戏授权码交给启动器。启动器调用 `POST /v1/external/launcher/pair`。
+玩家用 Minecraft 在线身份进入服务器后，主动把 LoginView 显示的游戏授权码交给启动器。启动器凭据用于本次中心授权。启动器调用 `POST /v1/external/launcher/pair`。
 
 ```json
 {

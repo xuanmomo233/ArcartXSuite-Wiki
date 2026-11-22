@@ -1,16 +1,16 @@
 ---
 title: "混合账号认证"
-description: "配置微软与 LittleSkin 账号认证，支持单服直连、BungeeCord 和 Velocity 代理转发。"
+description: "在同一套混合登录中验证微软、LittleSkin 和 Suite AuthCenter 账号，支持单服直连和可信代理转发。"
 ---
 
-混合账号认证接收微软和 LittleSkin 身份。验证完成后，玩家继续执行条款确认和已启用的 QQ 绑定要求。以下两种部署方式均由游戏服保存账号记录。
+混合网关默认验证微软与 LittleSkin。启用 Suite AuthCenter 会话后，中心账号通过启动器完成授权，就可以直接进入同一台服务器。身份验证完成后，玩家继续完成游戏服要求的条款与 QQ 绑定。
 
 | 连接拓扑 | 认证入口 | 网关部署位置 |
 | --- | --- | --- |
 | 玩家直接连接游戏服 | 单服混合认证，`local-mixed` | 与游戏服同一台机器 |
 | 玩家通过 BungeeCord 或 Velocity 进入子服 | 代理转发认证，`signed-proxy` | 与代理同一台机器 |
 
-微软与 LittleSkin 账号通过在线身份验证后免输本服密码。需要在同一台在线模式游戏服再验证本服密码时，按[单服密码认证](/docs/loginview/configuration)设置对应入口。
+通过混合网关验证的玩家免输本服密码。本机断网测试使用独立的[本机离线密码入口](/docs/loginview/configuration)，不使用混合网关。
 
 ## 单服混合认证
 
@@ -68,9 +68,39 @@ Windows 使用 `start-mixed-auth.bat`，Linux 使用 `start-mixed-auth.sh`。主
 
 认证入口同时检查网关和实际 Java 启动参数，游戏服须通过生成的混合启动脚本启动。
 
+### 加入 Suite AuthCenter
+
+1. 按[外部授权配置](/docs/loginview/external-authorization#外部授权配置)部署中心并登记启动器，在 `center.json` 的 `external` 段设置 `minecraftSessions: true`。公网 HTTPS 继续将 `/v1/external/` 转发到中心的外部授权端口。
+2. 游戏服保持 `online-mode=true` 和 `local-mixed`。使用中心档案时，将直接游戏服的 `enforce-secure-profile` 设为 `false`，允许不带 Mojang 聊天签名密钥的中心档案连接。在线握手仍由混合网关验证。
+3. 在启动混合网关的环境中设置中心的 HTTPS 根地址。不要在地址后附带 `/v1/external` 或接口路径。
+
+   ```powershell
+   $env:AXS_MIXED_CENTER_ORIGIN = 'https://auth.example.net'
+   & .\start-mixed-auth.bat
+   ```
+
+4. 启动器完成中心的浏览器或设备授权，按[启动器接口](/docs/loginview/external-api#兑换-minecraft-会话)兑换 Minecraft 会话。用返回的档案、凭据和会话地址启动客户端，即可进服，无需先选择微软或 LittleSkin 账号。
+
+网关对中心分配的 `AXS_…` 档案先查询 AuthCenter，会话通过后由 LoginView 识别为 `center`。微软和 LittleSkin 玩家仍使用各自的登录方式。中心档案的名称和 UUID 由中心分配并持久保存，与其他来源的档案分开。
+
+如果在代理端运行混合网关，在代理启动环境设置同一个变量，并将 `center` 加到子服相应的 `trusted-proxies[].providers` 列表。代理维持在线验证。
+
+### 加入独立认证服务
+
+也可接入其他提供 Yggdrasil HTTPS `hasJoined` 的独立服务。客户端使用对应服务登录。下列变量填写完整接口地址，且不能与 `AXS_MIXED_CENTER_ORIGIN` 同时设置。
+
+```powershell
+$env:AXS_MIXED_CENTER_HAS_JOINED = 'https://identity.example.net/sessionserver/session/minecraft/hasJoined'
+& .\start-mixed-auth.bat
+```
+
+替换示例域名和路径。混合网关将此入口标记为 `center`。它按当前在线握手核验身份。公开资料查询地址和单纯的网页登录地址不能用作该接口。
+
+在代理端接入该服务时，在代理启动环境设置变量，并将 `center` 加到子服对应的 `trusted-proxies[].providers` 列表。
+
 ### 验证身份与准入
 
-分别用微软和 LittleSkin 账号验证登录。通过后，玩家应进入条款步骤或直接进入游戏。握手回执过期时，重新连接并核对网关端口、脚本和启动参数。
+分别用微软、LittleSkin 和中心启动器账号验证登录。通过后，玩家应进入条款步骤或直接进入游戏。中心会话凭据只能用于一次连接；握手过期或已消费时，在启动器重新授权和兑换。
 
 ## 代理转发认证
 
@@ -175,6 +205,6 @@ performance:
 | 玩家通过代理进入，而子服配置了 `local-mixed` | 将子服认证入口设为 `signed-proxy`，把网关部署在代理端 |
 | 单服提示需要在线模式 | 单服混合认证的游戏服必须设置 `online-mode=true` |
 | 在中心模式中使用混合入口 | 中心节点按独立中心教程配置，当前中心入口要求直连 |
-| 服务器需要允许普通离线账号 | 由适合离线部署的其他登录插件管理。Suite 的单服密码入口要求在线模式直连 |
+| 只在本机做离线测试 | 使用回环监听的 `password` 入口，游戏服保持 `online-mode=false` |
 
-游戏内注册与密码登录的部署步骤见[单服密码认证](/docs/loginview/configuration)。
+本机游戏内密码的部署步骤见[本机离线密码](/docs/loginview/configuration)。

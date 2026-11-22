@@ -1,68 +1,43 @@
 ---
 title: "登录认证"
-description: "比较登录模式的身份来源、部署条件和配置入口，确定服务器的认证方案。"
+description: "按服务器的连接方式选择 LoginView 入口，配置本机离线密码、在线身份、混合登录或中心授权。"
 ---
 
-LoginView 支持游戏内登录、条款、QQ 绑定和外部授权。可选择本服验证或连接独立认证中心。
+LoginView 显示登录状态，并在身份验证后引导玩家完成服务器条款、QQ 绑定等要求。玩家通过在线身份验证后，游戏内无需再输入本服密码。
 
-## 登录模式
+## 选择登录入口
 
-| 模式 | 身份验证方式 | 部署条件 | 配置文档 |
+| 服务器场景 | `server.properties` | 认证入口 | 玩家如何验证 |
 | --- | --- | --- | --- |
-| 单服密码认证 | 玩家通过 Minecraft 在线验证后，在游戏界面注册或输入本服密码 | 玩家直连，游戏服 `online-mode=true` | [单服密码认证](/docs/loginview/configuration) |
-| 单服混合认证 | 验证微软或 LittleSkin 账号，通过后免输本服密码 | 玩家直连游戏服，同机运行混合登录网关 | [单服混合认证](/docs/loginview/mixed-login#单服混合认证) |
-| 代理转发认证 | 代理验证账号，子服校验代理传入的结果 | BungeeCord 或 Velocity、对应代理插件与已配置转发的子服 | [代理转发认证](/docs/loginview/mixed-login#代理转发认证) |
-| 中心密码认证 | 玩家在游戏界面注册、输入密码，由中心验证 | 独立认证中心，玩家直连在线模式游戏服 | [独立认证中心](/docs/loginview/center) |
-| 外部授权认证 | 玩家通过官网或启动器授权，再在原游戏连接确认 | 独立认证中心与可接入的 OIDC 身份系统 | [外部身份接入](/docs/loginview/external-authorization) |
+| 本机离线直连 | `online-mode=false`，`server-ip=127.0.0.1` 或 `::1` | `standalone` + `password` | 在 LoginView 注册或输入本服密码。[配置方法](/docs/loginview/configuration) |
+| 微软在线直连 | `online-mode=true` | `standalone` + `online` | Minecraft 使用微软会话验证，通过后进入准入步骤。[配置方法](/docs/loginview/configuration#微软在线直连) |
+| 混合在线直连 | `online-mode=true` | `standalone` + `local-mixed` | 微软和 LittleSkin 照常登录。Suite AuthCenter 账号可由启动器兑换 Minecraft 会话，直接完成握手。[配置方法](/docs/loginview/mixed-login#加入-suite-authcenter) |
+| 在线进服后由中心准入 | `online-mode=true` | `center` + `external` | 玩家完成游戏在线握手后，在原连接确认网页或启动器授权。[配置方法](/docs/loginview/center) |
+| 可信代理后的子服 | 子服通常为 `online-mode=false`，由代理完成在线身份验证 | `standalone` + `signed-proxy` | 子服校验代理对本次连接的签名。[配置方法](/docs/loginview/mixed-login#代理转发认证) |
 
-### 配置项对应关系
+`backend` 决定账号由本服还是中心管理。`ingress.type` 决定使用哪条验证路径。单服的 `auto` 根据 `online-mode` 选择微软在线入口或本机密码入口。混合、中心和代理入口需要显式配置。
 
-`backend` 指定账号管理位置，`ingress.type` 指定游戏服的认证入口。
-
-| 模式 | 游戏服 backend | 游戏服 ingress.type | 其他关键设置 |
-| --- | --- | --- | --- |
-| 单服密码认证 | `standalone` | `password` | 游戏服保持 `online-mode=true`，在本服设置密码、条款和绑定要求 |
-| 单服混合认证 | `standalone` | `local-mixed` | 游戏服启用在线模式并使用混合启动脚本 |
-| 代理转发认证 | `standalone` | `signed-proxy` | 子服配置可信代理及对应公钥 |
-| 中心密码认证 | `center` | `password` | 中心设置 `gamePasswordEnabled: true` |
-| 外部授权认证 | `center` | `password` | 中心配置 `external`，密码入口按需启用 |
-
-中心节点要求玩家直连，且 `online-mode=true`。Velocity 代理转发采用 `standalone` 与 `signed-proxy` 的组合。普通离线账号的密码认证请使用适合该部署方式的登录插件。
-
-## 与其他登录插件配合
-
-使用 AuthMe 等其他登录插件时，在 Suite 的 `config.yml` 中设置 `modules.loginview.enabled: false`，或卸载 LoginView，然后按对应插件的文档配置认证。
-
-LoginView 停用或启动失败时，Suite 恢复普通进服流程。其他登录插件继续执行各自的验证与限制。
+离线密码入口面向本机断网测试，游戏服须绑定回环地址，并关闭 BungeeCord 和 Velocity 转发。公开服务器需要使用表中的在线或可信代理入口。不同来源的同名账号不会自动合并。
 
 ## 部署流程
 
-1. 根据身份来源和服务器拓扑选择登录模式。
-2. 准备 ArcartX 客户端、服务端环境及 LoginView 模块，确认模块可正常加载。
-3. 按对应教程设置认证配置，重启相关进程。
-4. 使用测试账号验证身份、条款及绑定流程，再开放玩家连接。
+1. 在 Suite 的 `config.yml` 中设置 `modules.loginview.enabled: true`。
+2. 按所选教程修改 `authentication.yml` 和必要的服务器配置，重启相关进程。
+3. 在控制台执行 `axs status`，确认 LoginView 已启用。
+4. 使用所选入口的测试账号进服。分别确认身份验证、条款、QQ 绑定和准入状态。在验证完成前，玩家应无法移动或交互。
 
-以下路径以 `plugins/ArcartX-Suite/` 为宿主数据目录。实际目录名以服务器生成结果为准。
-
-| 配置文件 | 用途 |
-| --- | --- |
-| `plugins/ArcartX-Suite/config.yml` | 通过 modules.loginview.enabled 控制模块启用状态 |
-| `plugins/ArcartX-Suite/authentication.yml` | 配置账号后端与游戏服认证入口 |
-| `plugins/ArcartX-Suite/data/loginview/config.yml` | 配置登录界面的打开延迟 |
-| `plugins/ArcartX-Suite/ui/auth_v1.yml` | 配置界面外观 |
-| 中心配置文件，例如 `D:/AXSAuth/center.json` | 配置中心账号策略、外部身份系统及游戏节点 |
+登录入口和认证策略在 `plugins/ArcartX-Suite/authentication.yml`。界面延迟在 `data/loginview/config.yml`，外观在 `ui/auth_v1.yml`，两者都相对于 Suite 数据目录。
 
 ## 配置验证
 
-用 `axs status` 确认 LoginView 已启用，再按所选模式验证入服。密码或外部确认完成前，玩家应无法移动或交互。混合登录与代理免密须分别核对有效账号和错误身份。启用条款或 QQ 绑定时，还需检查完成前后的操作权限。
+安装 PlaceholderAPI 后，可用 `/papi parse me %axsauth_admitted%` 查询准入。完成全部要求后应返回 `true`。模块启用与玩家登录需要分别验收。
 
-安装 PlaceholderAPI 后，可通过 `/papi parse me %axsauth_admitted%` 查询准入结果。完成全部要求后应返回 `true`。
+## 与其他登录插件配合
+
+由其他插件负责登录时，将 `modules.loginview.enabled` 设为 `false`。LoginView 停用或启动失败时，Suite 恢复普通进服流程。需要认证的服务器应在开放玩家连接前核对模块状态与实际准入。
 
 ## 相关文档
 
-- [单服密码认证](/docs/loginview/configuration)提供游戏内注册、密码登录和绑定要求的完整配置。
-- [混合账号认证](/docs/loginview/mixed-login)说明单服直连与 Velocity 代理的部署步骤。
-- [独立认证中心](/docs/loginview/center)提供中心与游戏节点的成对配置。
-- [外部身份接入](/docs/loginview/external-authorization)说明官网参数、启动器登记和授权验证。
-- [启动器授权接口](/docs/loginview/external-api)列出开发者接入所需的请求、返回值及状态码。
-- [管理与故障排查](/docs/loginview/commands)提供管理命令、占位符和常见故障处理方法。
+- [外部身份接入](/docs/loginview/external-authorization)说明如何登记网站身份系统和启动器，以及如何确认本次游戏连接。
+- [启动器授权接口](/docs/loginview/external-api)提供浏览器和设备授权的请求示例、返回字段与错误码。
+- [管理与故障排查](/docs/loginview/commands)列出管理命令、认证状态占位符以及常见配置问题的核对方法。
