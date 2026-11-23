@@ -88,7 +88,7 @@ Linux 在同样的服务环境中运行 `./bin/auth-center "$(realpath center.js
 
 ## 游戏节点配置
 
-要在**进服后**确认官网身份，玩家需用可通过 Minecraft 在线握手的账号直连该游戏服。`server.properties` 使用 `online-mode=true`，关闭 BungeeCord 和 Velocity 转发，启用 LoginView。
+要在**进服后**确认官网身份，玩家需用可通过 Minecraft 在线握手的账号直连该游戏服。将 `server.properties` 设为 `online-mode=true`，按[直连服的转发设置](/docs/loginview/getting-started#直连服的转发设置)检查当前核心，然后启用 LoginView。
 
 将下面的完整节点配置写入 `plugins/ArcartX-Suite/authentication.yml`。在游戏服的运行环境设置 `AXS_AUTH_LOBBY_KEY` 为该节点的密钥，再重启游戏服。
 

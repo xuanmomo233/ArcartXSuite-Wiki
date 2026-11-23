@@ -20,6 +20,17 @@ description: "为游戏服启用 LoginView，找到认证入口配置，选择�
 
 默认入口 `auto` 根据游戏服的 `online-mode` 选择[微软账号直连](/docs/loginview/online-login)或[离线模式与游戏内密码](/docs/loginview/password-login)。混合账号、代理子服和官网授权需要显式配置入口。按[连接方式对照表](/docs/loginview#选择登录入口)找到对应教程，写好配置后重启游戏服。
 
+## 直连服的转发设置
+
+玩家直接连接游戏服时，关闭该核心启用的玩家信息转发。按实际运行的服务端选择一行。
+
+| 游戏服核心 | 直连时检查什么 |
+| --- | --- |
+| Spigot | 在 `spigot.yml` 中设置 `settings.bungeecord: false` |
+| Paper 及沿用其配置的分支 | 在 `spigot.yml` 中设置 `settings.bungeecord: false`，并在 `config/paper-global.yml` 中设置 `proxies.velocity.enabled: false` |
+
+使用其他兼容核心时，检查该构建实际提供的代理转发开关和已安装的转发插件。只有采用 Paper 配置的核心才需要编辑 `paper-global.yml`。玩家经过代理进入时，改按[代理与子服组合](/docs/loginview/mixed-login#配置玩家信息转发)配置两端。
+
 ## 验收第一名玩家
 
 1. 在游戏服控制台执行 `axs status`，在模块列表找到 `loginview: 已启用`。

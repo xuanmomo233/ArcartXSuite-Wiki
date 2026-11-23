@@ -23,7 +23,7 @@ description: "配置微软和 LittleSkin 的混合账号认证，支持单服直
 
 ### 配置游戏服入口
 
-在 `server.properties` 设置 `online-mode=true`，关闭 BungeeCord 和 Velocity 转发。对于没有 Mojang 聊天签名密钥的档案，在支持该设置的服务端将 `enforce-secure-profile=false`。启用 LoginView，在 `plugins/ArcartX-Suite/authentication.yml` 写入下例。示例中的网关端口与上一步一致，已有服保留自己的 `realm-id`。
+在 `server.properties` 设置 `online-mode=true`，按[直连服的转发设置](/docs/loginview/getting-started#直连服的转发设置)关闭当前核心的玩家信息转发。对于没有 Mojang 聊天签名密钥的档案，在支持该设置的服务端将 `enforce-secure-profile=false`。启用 LoginView，在 `plugins/ArcartX-Suite/authentication.yml` 写入下例。示例中的网关端口与上一步一致，已有服保留自己的 `realm-id`。
 
 ```yaml
 schema-version: 1
@@ -45,15 +45,17 @@ Windows 运行 `.\start-mixed-auth.bat`，Linux 运行 `bash ./start-mixed-auth.
 
 ### 配置玩家信息转发
 
-| 修改位置 | Velocity | BungeeCord |
-| --- | --- | --- |
-| 代理本身 | `velocity.toml` 设 `online-mode = true`、`player-info-forwarding-mode = "modern"`，在 `[servers]` 登记 `lobby` | 代理的 `config.yml` 设 `online_mode: true`、`ip_forward: true`，在 `servers` 登记 `lobby` |
-| 使用没有 Mojang 聊天签名公钥的档案 | 在支持该选项的 `velocity.toml` 中设 `force-key-authentication = false` | 在支持该选项的代理 `config.yml` 中设 `enforce_secure_profile: false` |
-| 子服 `server.properties` | `online-mode=false` | `online-mode=false` |
-| 子服 `spigot.yml` | `settings.bungeecord: false` | `settings.bungeecord: true` |
-| Paper 子服 `config/paper-global.yml` | 开启 `proxies.velocity.enabled` 和 `proxies.velocity.online-mode`，将 `proxies.velocity.secret` 填为代理转发密钥文件的内容 | 开启 `proxies.bungee-cord.online-mode`，关闭 `proxies.velocity.enabled` |
+先把 `lobby` 登记在代理的服务器列表中。Velocity 使用 `velocity.toml` 的 `[servers]`，BungeeCord 使用代理 `config.yml` 的 `servers`。子服的 `server.properties` 均设为 `online-mode=false`，由代理完成在线验证。
 
-表中列的是当前 Paper 的文件位置，其他支持版本按其服务端文档找到同一项设置。代理保持在线握手，玩家信息转发和聊天签名要求分别配置。[Velocity 玩家信息转发](https://docs.papermc.io/velocity/player-information-forwarding/) · [Velocity 代理选项](https://docs.papermc.io/velocity/configuration/) · [BungeeCord 代理配置](https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/conf/Configuration.java) · [Paper 代理设置](https://docs.papermc.io/paper/reference/global-configuration/#proxies)
+| 代理和子服 | 代理上的设置 | 子服上的设置 |
+| --- | --- | --- |
+| Velocity → 原生 Spigot | 在 `velocity.toml` 设 `online-mode = true`、`player-info-forwarding-mode = "legacy"` | 在 `spigot.yml` 设 `settings.bungeecord: true`，接收 BungeeCord 格式的玩家信息 |
+| Velocity → 使用原生 modern 转发的 Paper 系子服 | 在 `velocity.toml` 设 `online-mode = true`、`player-info-forwarding-mode = "modern"` | 在 `spigot.yml` 设 `settings.bungeecord: false`。在 `config/paper-global.yml` 开启 `proxies.velocity.enabled` 和 `proxies.velocity.online-mode`，将 `proxies.velocity.secret` 设为代理转发密钥文件的内容 |
+| BungeeCord → Spigot 或 Paper 系子服 | 在代理 `config.yml` 设 `online_mode: true`、`ip_forward: true` | 在 `spigot.yml` 设 `settings.bungeecord: true`。采用 Paper 配置的子服还要开启 `proxies.bungee-cord.online-mode`、关闭 `proxies.velocity.enabled` |
+
+同一台 Velocity 的转发模式对所有子服生效。混用核心时，选择每台子服都能接收的模式。其他兼容核心或第三方转发插件使用其自身的配置入口。使用 BungeeCord 格式转发时，通过监听地址或防火墙将子服游戏端口限制为仅代理可达。[Velocity 玩家信息转发](https://docs.papermc.io/velocity/player-information-forwarding/) · [Paper 代理设置](https://docs.papermc.io/paper/reference/global-configuration/#proxies)
+
+接纳没有 Mojang 聊天签名公钥的档案时，在提供该选项的版本中，Velocity 设 `force-key-authentication = false`，BungeeCord 设 `enforce_secure_profile: false`。两端仍按上表执行在线握手和玩家信息转发。[Velocity 代理选项](https://docs.papermc.io/velocity/configuration/) · [BungeeCord 代理配置](https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/conf/Configuration.java)
 
 ### 生成代理启动脚本
 
