@@ -6,7 +6,6 @@ const original = source.pageTree;
 const overviewLabels: Record<string, string> = {
   guide: '阅读顺序',
   api: '接入概览',
-  loginview: '模式概览',
 };
 const findFolder = (slug: string): PageTree.Folder | undefined => {
   const folder = original.children.find((node) => node.type === 'folder' && node.index?.url === `/docs/${slug}`);

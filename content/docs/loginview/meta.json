@@ -1,10 +1,9 @@
 {
   "title": "登录认证",
   "pages": [
-    "index",
-    "configuration",
     "mixed-login",
     "center",
+    "configuration",
     "external-authorization",
     "external-api",
     "commands"
