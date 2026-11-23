@@ -210,7 +210,7 @@ export const docRedirects: Record<string, DocRedirect> = {
   'loginview/getting-started': {
     sections: {
       '离线模式与游戏内密码': '/docs/loginview/password-login/#设置离线直连',
-      '配置密码入口': '/docs/loginview/password-login/#配置密码入口',
+      '配置密码入口': '/docs/loginview/password-login/#只要求游戏内密码',
       '注册与重新登录': '/docs/loginview/password-login/#注册与重新登录',
     },
   },
@@ -220,6 +220,9 @@ export const docRedirects: Record<string, DocRedirect> = {
       '验证代理入口': '/docs/loginview/mixed-login/#验证身份与准入',
       '部署约束': '/docs/loginview/#选择登录入口',
     },
+  },
+  'loginview/password-login': {
+    sections: { '配置密码入口': '/docs/loginview/password-login/#只要求游戏内密码' },
   },
   'loginview/center': {
     sections: { '验证准入': '/docs/loginview/center/#玩家在游戏内确认授权' },
@@ -241,7 +244,7 @@ export const docRedirects: Record<string, DocRedirect> = {
     sections: {
       '模块启用': '/docs/loginview/getting-started/#启用-loginview',
       '本机离线密码': '/docs/loginview/password-login/#设置离线直连',
-      '密码与准入配置': '/docs/loginview/password-login/#配置密码入口',
+      '密码与准入配置': '/docs/loginview/password-login/#只要求游戏内密码',
       '启动与验证本机密码': '/docs/loginview/password-login/#注册与重新登录',
       '微软在线直连': '/docs/loginview/online-login/#配置原生在线入口',
       '验证准入': '/docs/loginview/#配置验证',

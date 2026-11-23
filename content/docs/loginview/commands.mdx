@@ -46,7 +46,7 @@ description: "服主进行账号管理与故障排查时，可在这里查询命
 | --- | --- |
 | 新玩家直接进服，看不到预期的注册或条款界面 | 用 `axs status` 检查模块，再核对该账号的登录方式与待办要求。微软原生在线验证且无附加要求时会直接放行 |
 | 有待办要求，但玩家看不到界面 | 检查客户端 ArcartX、服务端界面加载日志和玩家是否在线。用 `/axs loginview open <玩家>` 重开该玩家的当前步骤 |
-| 无法启用游戏内密码 | `auto` 会按游戏服的 `online-mode` 选择 `online` 或 `password`。密码入口还会校验监听地址及转发。按[设置离线直连](/docs/loginview/password-login#设置离线直连)逐项核对 |
+| 离线服没有出现注册或登录界面 | 确认 LoginView 已启用、`online-mode=false`，直连游戏服已关闭代理转发。将 `standalone` 后端的入口设为 `auto` 或 `password`。[设置离线直连](/docs/loginview/password-login#设置离线直连) |
 | 选了单服混合登录却收不到握手结果 | 检查实际启动的脚本、`-javaagent` 所用网关和 `ingress.gateway-url` 的端口。[配置游戏服入口](/docs/loginview/mixed-login#配置游戏服入口) |
 | 能进代理，在子服一直等待身份验证 | 核对子服注册名、玩家信息转发、签发者、公钥、Realm、目标标识和允许的来源。[配置子服信任项](/docs/loginview/mixed-login#配置子服信任项) |
 | 长时间在线后切服才被拒绝 | 代理上的原始认证已超过 12 小时时，断开并重新连接代理，再进入目标子服 |
