@@ -1,178 +1,86 @@
 ---
 title: "启动器授权接口"
-description: "查询公开授权接口的完整路径、JSON 请求、返回结构和设备轮询错误码。"
+description: "启动器通过浏览器回调或设备码取得启动凭据，用于启动 Minecraft 或与一条已打开的游戏连接配对。"
 ---
 
-接入前完成中心配置、身份提供方登记和启动器登记。以下接口供启动器开发者调用，根地址为中心的 HTTPS 域名。[外部身份接入](/docs/loginview/external-authorization)
+本页供启动器开发者使用。先让服主在中心[登记启动器](/docs/loginview/center#登记启动器)，取得公开 HTTPS 根地址、启动器 ID 和登记的回环回调地址。官网的 OIDC 应用密钥由中心持有。
+
+调用分两步。先选浏览器授权或设备授权，拿到一次性 `launchToken`。然后根据玩家此刻的目标，用它**兑换 Minecraft 会话**或**配对已经连上的游戏**。
 
 ## 通用请求格式
 
-所有接口使用 `POST`，请求头设置 `Content-Type: application/json`。每次请求带以下字段。
+全部接口使用 `POST`，发送 UTF-8 JSON，请求头为 `Content-Type: application/json`。每次调用都包含数字 `version: 1`、新生成的 UUID 字符串 `requestId` 和已登记的 `clientId`。下表及后文列出的业务字段加在同一层。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `version` | 数字 | 当前填写 `1` |
-| `requestId` | UUID 字符串 | 为本次请求生成新的关联编号 |
-| `clientId` | 字符串 | 中心 `external.launchers[].id` 中登记的启动器 ID |
-
-各操作的附加字段见下文。OIDC 应用密钥由认证中心读取和使用。
-
-响应包含 `version`、`requestId` 和 `code`，有返回值时提供字符串 `value`。结果不明时，查看游戏界面或重新发起授权。
+中心响应含 `version`、本次 `requestId` 和 `code`。`value` 有值时类型为字符串。浏览器地址、启动凭据和配对核对码直接读取。设备挑战、轮询结果和 Minecraft 会话需要将 `value` 再解析一次 JSON。
 
 ## 浏览器授权流程
 
-### 发起授权
+1. 启动器在登记的回环地址监听回调。本次分别用 32 字节安全随机数生成 `state` 和 `codeVerifier`，编码为无填充 Base64url。对 verifier 的 ASCII 字节作 SHA-256，再用同样编码得到 `codeChallenge`。
+2. 请求 `/v1/external/launcher/start`，在通用字段外提交 `redirectUri`、`codeChallenge`、`state`。成功时用系统浏览器打开 `value` 中的中心授权地址。玩家在官网完成登录、确认，并返回启动器。
+3. 校验回调的协议、主机、端口、路径和本次 `state`。若参数为 `error=access_denied`，结束本次操作。若返回 `code`，请求 `/v1/external/launcher/exchange`，提交 `redirectUri`、`code`、原始 `codeVerifier`。成功响应的 `value` 是 120 秒有效的启动凭据。
 
-接口为 `POST /v1/external/launcher/start`。
-
-```json
-{
-  "version": 1,
-  "requestId": "4a284789-a95b-47e8-984f-e0064cd0e877",
-  "clientId": "example-launcher",
-  "redirectUri": "http://127.0.0.1:43981/callback",
-  "codeChallenge": "填写本次verifier计算出的S256结果",
-  "state": "填写本次生成的32字节Base64url随机值"
-}
-```
-
-启动器每次生成新的 verifier、S256 challenge 和 state。在本机监听已经登记的回调端口和路径，再用系统浏览器打开成功响应 `value` 中的地址。
-
-`redirectUri` 必须与登记值完全一致，包括端口和路径。授权确认页会提供返回启动器的链接。
-
-### 回调验证与授权码兑换
-
-回调包含 `code` 和 `state`。先检查 state 与本次发起时保存的一致，再调用 `POST /v1/external/launcher/exchange`。
-
-```json
-{
-  "version": 1,
-  "requestId": "53a20ce2-5549-4804-9674-e9cc22182ac0",
-  "clientId": "example-launcher",
-  "redirectUri": "http://127.0.0.1:43981/callback",
-  "code": "填写回调中的code",
-  "codeVerifier": "填写本次保存在启动器里的verifier"
-}
-```
-
-成功时 `value` 是 120 秒有效的启动凭据。错误 verifier、不同回调或重复消费授权码应被拒绝。回调为 `error=access_denied` 时停止本次授权。
+Java 接入可使用 `auth-protocol` 的 `xuanmo.arcartxsuite.auth.protocol.LauncherAuthorizationClient`。构造函数接收中心根地址（`URI`）、已登记的启动器 ID（`String`）及回调地址（`URI`）。调用 `start()`，打开返回对象的 `authorizationUrl()`。收到回调后调用 `exchange(attempt, callbackUri)`，返回启动凭据字符串。回环监听与打开浏览器由启动器实现。
 
 ## 设备授权流程
 
-### 申请设备码
+适合让玩家在另一台设备上完成官网登录。以下 PowerShell 7 示例从已部署的中心申请一组真实设备码。将根地址与启动器 ID 换为自己的登记值。
 
-接口为 `POST /v1/external/launcher/device/start`。
-
-```json
-{
-  "version": 1,
-  "requestId": "4a284789-a95b-47e8-984f-e0064cd0e877",
-  "clientId": "example-launcher"
-}
+```powershell
+$origin = 'https://auth.example.net'
+$clientId = 'example-launcher'
+$body = @{
+  version = 1
+  requestId = [guid]::NewGuid().ToString()
+  clientId = $clientId
+} | ConvertTo-Json -Compress
+$reply = Invoke-RestMethod -Method Post -Uri "$origin/v1/external/launcher/device/start" -ContentType 'application/json' -Body $body
+$device = $reply.value | ConvertFrom-Json
+$device | Select-Object verificationUrl, userCode, expiresIn, interval
 ```
 
-响应结构如下。样例中的设备码为占位文字，测试时使用实际返回值。
+玩家打开 `verificationUrl`，输入公开的 `userCode` 并授权。启动器自己保留 `deviceCode`。当前挑战有效 300 秒，初始轮询间隔为 5 秒，实际调度读取返回的 `expiresIn` 和 `interval`。
 
-```json
-{
-  "version": 1,
-  "requestId": "4a284789-a95b-47e8-984f-e0064cd0e877",
-  "code": "OK",
-  "value": "{\"verificationUrl\":\"https://auth.example.net/v1/external/device?client=example-launcher\",\"userCode\":\"0123456789ABCDEF\",\"deviceCode\":\"替换为接口实际返回的私有设备码\",\"expiresIn\":300,\"interval\":5}"
-}
-```
+### 轮询与取消
 
-响应采用两层 JSON 表示。解析外层响应后，将字符串字段 `value` 再解析为 JSON，可得到以下字段。
+等待 `interval` 秒后请求 `/v1/external/launcher/device/poll`。在通用字段外提交 `deviceCode`。先读外层 `code`，再解析 `value` 中的 `code`、`interval`、`launchToken`。
 
-| 字段 | 用途 |
+| 轮询结果 | 启动器下一步 |
 | --- | --- |
-| `verificationUrl` | 玩家在浏览器中打开的设备授权地址 |
-| `userCode` | 玩家在该页面输入的公开用户码 |
-| `deviceCode` | 启动器私有轮询凭据，保存在客户端 |
-| `expiresIn` | 本次设备授权的有效秒数 |
-| `interval` | 首次轮询前及后续请求间应等待的秒数 |
+| `AUTHORIZATION_PENDING` | 玩家仍在处理，等待返回的间隔再轮询 |
+| `SLOW_DOWN` | 把间隔改为新返回的秒数，再等待和轮询 |
+| `ACCESS_DENIED` 或 `EXPIRED_TOKEN` | 停止轮询，玩家可重新发起 |
+| `OK` | 停止轮询，读取 `launchToken` 并继续下面一个操作 |
 
-### 轮询授权结果
-
-接口为 `POST /v1/external/launcher/device/poll`，在通用字段之外增加 `deviceCode`。
-
-```json
-{
-  "version": 1,
-  "requestId": "53a20ce2-5549-4804-9674-e9cc22182ac0",
-  "clientId": "example-launcher",
-  "deviceCode": "填写实际返回的deviceCode"
-}
-```
-
-设备状态放在外层 `code`，`value` 仍需再解析为 JSON，内容包括 `code`、`interval` 和 `launchToken`。
-
-| 外层 code | 含义 | 客户端如何处理 |
-| --- | --- | --- |
-| `AUTHORIZATION_PENDING` | 玩家尚未完成授权 | 等待返回的 interval 后再轮询 |
-| `SLOW_DOWN` | 请求过快 | 改用本次返回的更长 interval |
-| `ACCESS_DENIED` | 玩家在身份提供方或认证中心确认页明确拒绝，或客户端已取消授权 | 停止轮询 |
-| `EXPIRED_TOKEN` | 本次授权已过期 | 停止轮询，由玩家重新发起 |
-| `OK` | 授权完成 | 读取 launchToken，停止轮询 |
-
-### 取消授权
-
-调用 `POST /v1/external/launcher/device/cancel`，请求字段与轮询相同。成功响应的 `code` 为 `OK`。
+玩家从启动器取消时，请求 `/v1/external/launcher/device/cancel`，字段与轮询相同，成功返回 `OK`。Java 封装对应 `startDevice()`、`pollDevice(attempt)` 和 `cancelDevice(attempt)`。
 
 ## 兑换 Minecraft 会话
 
-游戏服使用[Suite AuthCenter 混合登录](/docs/loginview/mixed-login#加入-suite-authcenter)时，启动器在启动 Minecraft 前，用浏览器或设备授权取得的 `launchToken` 调用 `POST /v1/external/launcher/minecraft-session`。
+用于玩家**尚未启动游戏**并希望使用中心档案进服的情形。中心开启 `external.minecraftSessions`，服务器接入[中心混合登录](/docs/loginview/mixed-login#加入-suite-authcenter)。
 
-```json
-{
-  "version": 1,
-  "requestId": "fb7ae77f-b15a-49c2-a884-73aff5515827",
-  "clientId": "example-launcher",
-  "launchToken": "填写本次取得的启动凭据"
-}
-```
+请求 `/v1/external/launcher/minecraft-session`，在通用字段外提交 `launchToken`。成功后解析 `value`，也可用 Java 方法 `minecraftSession(launchToken)` 直接取得会话对象。
 
-`code` 为 `OK` 时，解析响应的 `value` 字符串：
-
-| 字段 | 用途 |
+| 返回字段 | 如何启动游戏 |
 | --- | --- |
-| `sessionApi` | 客户端 authlib-injector 使用的 HTTPS API 根地址，例如 `https://auth.example.net/v1/external/yggdrasil/` |
-| `profileId` | 中心档案的无连字符 UUID，传给 Minecraft 的 `--uuid` |
-| `name` | 中心分配的档案名，传给 Minecraft 的 `--username` |
-| `accessToken` | 本次 Minecraft 连接的会话凭据，传给 `--accessToken` |
-| `expiresIn` | 会话凭据有效秒数，当前为 300 |
+| `sessionApi` | 客户端 JVM 参数使用 `-javaagent:<authlib-injector 路径>=<sessionApi>` |
+| `profileId`、`name` | 分别作为 Minecraft 的 `--uuid`（无连字符）和 `--username` |
+| `accessToken` | 用作本次游戏档案的 `--accessToken`，启动日志应隐藏该值 |
+| `expiresIn` | 本次凭据的有效秒数，当前为 300 |
 
-使用 JVM 参数 `-javaagent:<authlib-injector 路径>=<sessionApi>`，让客户端的在线会话请求发往中心。启动器将 `name`、`profileId` 和 `accessToken` 配成同一个游戏档案。Java 封装可调用 `LauncherAuthorizationClient.minecraftSession(launchToken)`。
-
-Minecraft 在 `join` 中使用凭据，混合网关用本次握手向中心查询 `hasJoined`。凭据只允许一次成功的连接登记，握手最多保留 30 秒。掉线、过期或已消费时，需要重新授权和兑换。不要把凭据记录到启动日志。同一 `launchToken` 只能兑换 Minecraft 会话或执行下方的进服后配对。
+使用同一响应的档案和凭据启动客户端，连接启用该来源的混合入口，预期玩家身份来源为 `center`。该凭据仅供一次成功连接，过期或已使用时重新授权兑换。
 
 ## 游戏连接配对
 
-玩家用 Minecraft 在线身份进入服务器后，主动把 LoginView 显示的游戏授权码交给启动器。启动器凭据用于本次中心授权。启动器调用 `POST /v1/external/launcher/pair`。
+用于玩家**已经加入中心游戏节点**并看到 LoginView 授权码的情形。让玩家将游戏显示的码输入启动器。请求 `/v1/external/launcher/pair`，在通用字段外提交 `launchToken` 和 `userCode`。这里的 `userCode` 取自本次游戏连接，设备授权页另有自己的用户码。
 
-```json
-{
-  "version": 1,
-  "requestId": "fb7ae77f-b15a-49c2-a884-73aff5515827",
-  "clientId": "example-launcher",
-  "launchToken": "填写本次取得的启动凭据",
-  "userCode": "填写当前游戏连接显示的授权码"
-}
-```
-
-成功的 `value` 是 8 位核对码。启动器展示它，玩家回到原游戏连接刷新并核对，再点击确认。随后游戏服执行条款、QQ 绑定等要求。
-
-启动凭据只能用于一次配对。设备授权的公开用户码与游戏里的授权码是两份不同流程的代码，配对时填写游戏当前显示的那一份。
+成功的 `value` 是 8 位十六进制核对码。启动器展示它，玩家回到原连接点击「刷新状态」，核对相同后确认授权。Java 调用为 `pair(launchToken, userCode)`。每个启动凭据仅能消费一次，兑换会话与游戏配对各自需要新凭据。
 
 ## 错误处理
 
-| 结果 | 用途与处理 |
+| HTTP 或响应码 | 处理 |
 | --- | --- |
-| `UNSUPPORTED_VERSION` | 请求版本不支持，核对 version |
-| `AUTHORIZATION_REJECTED` | 字段、回调或授权凭据不符合本次请求，重新核对参数 |
-| `UNAVAILABLE` | 中心暂时无法完成操作，先检查中心和提供方状态 |
-| HTTP 429 | 达到访问频率限制，等待 Retry-After 后再试 |
+| `400 UNSUPPORTED_VERSION` | 核对 `version` 是数字 `1` |
+| `400 AUTHORIZATION_REJECTED` | 核对该接口的字段、登记的回调和本次凭据。授权已失效时重新发起 |
+| `429` | 按响应头 `Retry-After` 等待。Java 客户端的 `RateLimitedException.retryAfterSeconds()` 提供等待秒数 |
+| `503 UNAVAILABLE` | 检查中心和身份提供方的服务状态，恢复后重新发起授权 |
 
-浏览器授权码、设备码和启动凭据都只用于短期流程。中心重启后，尚未完成的浏览器及启动器授权需要重新发起。
-
-可选 Java 调用封装位于项目的 `auth-protocol` 中，类名为 `LauncherAuthorizationClient`。它封装浏览器授权、设备授权和配对调用，启动器仍需自行提供回环监听及用户界面。
+接入验收至少走通一次授权成功和一次玩家拒绝。成功时检查实际游戏结果，拒绝或取消时启动器应停止等待。中心进程重启后，未完成的临时授权需要重新发起。

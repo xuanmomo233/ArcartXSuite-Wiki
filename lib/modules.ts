@@ -10,7 +10,7 @@ export interface ModuleInfo {
 export const modules: ModuleInfo[] = [
   { slug: 'pickup', name: 'Pickup', displayName: '拾取提示', description: '显示拾取通知，或让玩家主动扫描附近掉落物。', color: '#84cc16', keywords: '附近战利品 掉落物清单 批量拾取 一键拾取' },
   { slug: 'announcer', name: 'Announcer', displayName: '公告与字幕', description: '轮播服务器公告，或为指定玩家播放字幕。', color: '#f59e0b' },
-  { slug: 'loginview', name: 'LoginView', displayName: '登录认证', description: '配置微软在线、混合登录或代理认证，以及条款、QQ 绑定与中心授权。', color: '#3b82f6', keywords: '密码登录 本机离线 正版登录 LittleSkin AuthCenter 启动器授权' },
+  { slug: 'loginview', name: 'LoginView', displayName: '登录认证', description: '配置游戏内密码、微软在线、单服或代理混合登录和官网授权，设置服规与 QQ 绑定。', color: '#3b82f6', keywords: '离线模式 密码登录 游戏内注册 正版登录 Velocity BungeeCord LittleSkin AuthCenter 启动器授权' },
   { slug: 'onlinerewards', name: 'OnlineRewards', displayName: '在线奖励与签到', description: '按在线时长、签到记录和全服目标发放奖励。', color: '#22c55e', keywords: '在线礼包 时长奖励 签到补签' },
   { slug: 'combateffect', name: 'CombatEffect', displayName: '战斗特效', description: '展示伤害数字、连击提示与击杀特效。', color: '#ef4444' },
   { slug: 'eventpacket', name: 'EventPacket', displayName: '事件与动作', description: '按事件、信号或定时配置提示、任务、命令与邮件。', color: '#a855f7', keywords: '首次进服 进服礼包 自定义事件' },

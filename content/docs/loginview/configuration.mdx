@@ -1,17 +1,22 @@
 ---
 title: "准入要求与登录界面"
-description: "设置身份验证后的服务器条款、QQ 绑定要求和 LoginView 界面。"
+description: "让已验证身份的玩家确认指定版本的服规、完成 QQ 绑定，并调整登录界面的打开时间和外观。"
 ---
 
-先在[登录认证首页](/docs/loginview#选择登录入口)选择适合游戏服的接入方式，配置身份验证。然后按本页设置玩家验证身份后需要完成的条款、绑定和界面提示。
-
-## 模块启用
-
-为当前服务器装备 LoginView，并在本体 `plugins/ArcartX-Suite/config.yml` 中确认 `modules.loginview.enabled: true`。按所选入口配置认证后重启，在控制台执行 `axs status` 检查模块状态。
+先用一个普通账号跑通所选登录方式，再逐项开启服务器要求。身份验证完成时，玩家可以继续处理条款和绑定。所有必需项完成后，Suite 才会放行。
 
 ## 准入要求
 
-`backend: standalone` 的游戏服在 `plugins/ArcartX-Suite/authentication.yml` 中设置准入要求。下面是局部片段，保留所选入口的 `ingress` 和其他设置。
+先看游戏服 `plugins/ArcartX-Suite/authentication.yml` 的 `backend`，据此确定在哪里改策略。
+
+| 这台服的后端 | 条款与版本 | QQ 绑定 | 完成时限 |
+| --- | --- | --- | --- |
+| `standalone` | 游戏服的 `requirements.terms`、`terms.version` 和 `terms.lines` | `requirements.qq-binding` | `login-timeout-seconds` |
+| `center` | `center.json` 对应 Realm 的 `requireTerms`、`termsVersion` 和 `termsLines` | 同一 Realm 的 `requireBinding` | 同一 Realm 的 `loginTimeoutSeconds` |
+
+### 要求阅读服规
+
+单服或代理子服使用 `standalone` 时，在已有 `authentication.yml` 中合并以下片段。保留已验证可用的 `ingress`。`version` 使用字符串，正文写 1 至 3 行，每行最多 60 个字符。
 
 ```yaml
 requirements:
@@ -20,40 +25,30 @@ requirements:
 terms:
   version: "1"
   lines:
-    - "请先阅读并确认服务器规则。"
+    - "请尊重其他玩家，禁止破坏他人的建筑。"
+login-timeout-seconds: 300
 ```
 
-- `requirements.terms` 开启条款确认。启用时填写版本和 1 至 3 行正文，每行最多 60 个字符。修改正文时同步更改版本，让玩家重新确认。
-- `requirements.qq-binding` 决定是否要求玩家绑定 QQ 后才能操作。按下文先验证 QQBot。
-- `login-timeout-seconds` 控制玩家完成准入的等待时间，默认 300 秒，允许 30 至 1800 秒。
+中心节点按[中心配置示例](/docs/loginview/center#编写中心配置)改对应 Realm。策略在哪个进程修改，就重启哪个进程。两种后端的完成时限均可设为 30 至 1800 秒。
 
-`backend: center` 的节点由[独立认证中心](/docs/loginview/center#游戏节点配置)提供策略。条款和绑定要求在对应 Realm 中设置，游戏服的 `authentication.yml` 保持节点配置。
+验收时，用尚未同意当前版本的玩家登录。游戏内密码界面可以勾选条款后一起提交。进入单独的条款步骤时，勾选后点击「确认条款并继续」。下次以同一账号进服，已同意的版本应直接通过。修改服规后同步更换版本号，原账号再次进入时应收到新的条款。
 
-## QQ 绑定要求
+### QQ 绑定要求
 
-先按[QQBot 绑定流程](/docs/qqbot/binding-whitelist#绑定)确认测试账号能从群里申请验证码，并在游戏里确认。单服策略在 `requirements.qq-binding` 开启，中心策略在 Realm 的 `requireBinding` 开启。
-
-使用已验证身份、尚未绑定 QQ 的测试账号进服。玩家应看到绑定提示，输入群里申请的验证码后，再确认剩余要求和最终准入状态。
+1. 先启用 QQBot 并确认机器人已连入目标群。用已建立游戏身份的测试账号走通一次[QQBot 账号绑定](/docs/qqbot/binding-whitelist#绑定)。
+2. 启用上表中对应的绑定要求。中心模式在需要查询和发起绑定的节点 `nodes[].scopes` 保留 `auth`，并加入 `binding-read` 和 `binding-write`。重启修改了策略的进程。
+3. 使用另一名未绑定的玩家验证身份。玩家在群中发送 `#绑定 游戏名`，将返回的验证码填入游戏界面的绑定栏，点「确认绑定」。验证码有效期为 300 秒，过期后在群中重新申请。
+4. 完成其余要求后应能正常游戏。再次进服时，已有绑定的账号应直接通过绑定检查。
 
 ## 界面配置
 
-界面延迟在 `plugins/ArcartX-Suite/data/loginview/config.yml`：
+只有要改打开时机或外观时才需要编辑这些文件。打开延迟位于 `plugins/ArcartX-Suite/data/loginview/config.yml`，完整配置如下。
 
 ```yaml
 config-version: 1
 open-delay-ticks: 20
 ```
 
-`open-delay-ticks` 控制进服后尝试打开界面的时机，取值 0 至 600 tick。示例的 20 tick 约为 1 秒。自定义外观使用 Suite 数据目录中的 `ui/auth_v1.yml`。
+`open-delay-ticks` 的取值为 0 至 600 tick，默认 20 tick。自定义界面使用 `plugins/ArcartX-Suite/ui/auth_v1.yml`，保留注册、登录、条款以及绑定等所用控件的交互事件。
 
-修改界面或延迟后执行 `axs reload loginview`。修改游戏服的认证入口、后端或准入策略后重启游戏服。调整中心 Realm 策略后重启中心。
-
-## 验证准入
-
-1. 按所选入口使用测试账号进服，核对该账号实际通过的身份来源。
-2. 开启条款时，使用尚未同意当前版本的账号。确认提示出现，完成要求前无法移动或交互，完成后恢复。
-3. 开启绑定时，使用未绑定的账号复测。已安装 PlaceholderAPI 时，可按[认证状态查询](/docs/loginview/commands#认证状态查询)分别检查身份验证和最终准入。
-
-## 界面加载排查
-
-先用 `axs status` 查看模块状态，再核对客户端 ArcartX 环境和玩家当前是否仍有待完成的要求。管理员可用 `/axs loginview open <玩家>` 为在线玩家尝试打开界面。入口或策略报错按[管理与故障排查](/docs/loginview/commands#故障排查)处理。
+修改界面或打开延迟后，在游戏服控制台执行 `axs reload loginview`。用仍有待完成要求的测试账号进服查看变化。已经放行且无需操作的玩家会正常进入游戏。

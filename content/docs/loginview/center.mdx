@@ -1,45 +1,96 @@
 ---
-title: "独立认证中心"
-description: "选择 Suite AuthCenter 的原生混合登录或进服后授权模式，配置游戏节点和身份来源。"
+title: "认证中心与官网授权"
+description: "部署 Suite AuthCenter 独立认证中心，用官网 OIDC 完成外部身份接入，让玩家在原游戏连接确认授权。"
 ---
 
-想让 Suite AuthCenter 账号和微软、LittleSkin 一起通过 Minecraft 握手，使用[混合登录](/docs/loginview/mixed-login#加入-suite-authcenter)。玩家通过中心授权后，即可用启动器启动游戏进服。
-
-本页其余内容介绍进服后由中心管理准入的模式。玩家先完成 Minecraft 在线握手，再在 LoginView 确认中心网页或启动器授权。两种模式均无需在游戏内输入本服密码。
+玩家先用 Minecraft 在线账号直连游戏服，再通过官网登录并在游戏内确认，这就是本页的完整流程。只需要网页时，无需启动器。要让玩家直接用官网账号启动 Minecraft，可复用同一个中心，完成[登记启动器](#登记启动器)后转到混合登录教程。
 
 ## 部署条件
 
-| 准备项 | 要求 |
-| --- | --- |
-| 独立中心发行包 | 使用 Java 17 或更高版本，解压后有 `bin` 和 `lib` 目录 |
-| 游戏服 | 安装 Suite 和 LoginView，玩家直连，`online-mode=true`，关闭 BungeeCord、Velocity 转发 |
-| 身份来源 | 有可用的 OIDC 身份提供方；使用启动器时也须在中心登记启动器 |
-| 节点密钥 | 中心与对应游戏服使用同一个密钥，各自在运行环境中设置 |
+- 准备 Suite AuthCenter 独立发行包和 Java 17 或以上版本。示例使用同机游戏节点 `lobby`，账号和策略所属的 Realm 名为 `network`。
+- 准备一个 HTTPS 域名给玩家访问中心，以及一个支持 OpenID Connect（OIDC）的官网身份系统。向网站管理员取得发行者地址 `issuer`、授权端点 `authorize`、换码端点 `token`、应用 ID 及密钥、签名公钥编号和公钥。
+- 在网站的 OIDC 应用中登记完整回调 `https://auth.example.net/v1/external/callback`。将示例域名换为自己的域名。提供方需要支持授权码、S256、`client_secret_basic` 和 RS256，身份令牌含 `nonce`、`auth_time`。公钥使用 2048 至 4096 位 RSA 的 X.509 SubjectPublicKeyInfo DER，以 Base64 填入。
 
-本页使用的 `backend: center` 与 `ingress.type: external` 用于进服后的授权确认。只用中心账号完成 Minecraft 握手时，游戏服使用混合入口，并由启动器在启动游戏前兑换会话。
+## 编写中心配置
+
+将下例保存为发行包旁的 `center.json`。替换中心域名、官网端点、`clientId`、`keyId` 和 `rsaPublicKey`。`keyEnvironment` 和 `secretEnvironment` 填进程要读取的变量名。两个容量字段是中心启动必填项。
+
+```json
+{
+  "schemaVersion": 1,
+  "port": 25600,
+  "nonceCapacityPerNode": 120000,
+  "commandCapacityPerNode": 1000000,
+  "database": "data/auth-center.sqlite",
+  "external": {
+    "port": 25601,
+    "origin": "https://auth.example.net",
+    "minecraftSessions": false,
+    "providers": [{
+      "realm": "network",
+      "issuer": "https://id.example.net",
+      "authorize": "https://id.example.net/authorize",
+      "token": "https://id.example.net/token",
+      "clientId": "axs-center",
+      "secretEnvironment": "AXS_WEBSITE_OIDC_SECRET",
+      "keyId": "替换为官网签名公钥编号",
+      "rsaPublicKey": "替换为官网签名公钥的Base64"
+    }],
+    "launchers": []
+  },
+  "realms": [{
+    "id": "network",
+    "minLength": 8,
+    "maxLength": 128,
+    "gamePasswordEnabled": false,
+    "requireTerms": true,
+    "termsVersion": "1",
+    "termsLines": ["请遵守服务器规则。"],
+    "requireBinding": false,
+    "timezone": "Asia/Shanghai",
+    "loginTimeoutSeconds": 300
+  }],
+  "nodes": [{
+    "id": "lobby",
+    "realm": "network",
+    "audience": "lobby-node",
+    "keyEnvironment": "AXS_AUTH_LOBBY_KEY",
+    "scopes": ["auth"]
+  }]
+}
+```
+
+## HTTPS 转发配置
+
+`external.origin` 使用小写域名的 HTTPS 根地址，省略末尾斜线、路径和默认端口。两个服务都在中心机器的回环地址监听，反向代理保留完整请求路径。
+
+| 请求路径 | 本例转发目标 | 来访者 |
+| --- | --- | --- |
+| `/v1/external/` 下的请求 | `http://127.0.0.1:25601` | 玩家浏览器和启动器 |
+| `/v1/node/rpc` | `http://127.0.0.1:25600` | 异机部署的游戏节点，同机节点可直接使用此端口 |
+
+对外授权路径保留 `Origin`、Cookie 和中心响应的 `Referrer-Policy`。由可信的本机反向代理覆盖 `X-AXS-Client-IP` 为实际客户端地址。直接承接玩家请求的 Nginx 可设置 `proxy_set_header X-AXS-Client-IP $remote_addr;`。授权路径的访问日志应省略查询串、请求正文和 Cookie。
 
 ## 启动中心
 
-1. 在 PowerShell 7 生成节点密钥。每个游戏节点使用不同的值。
+每个游戏节点各生成一份 32 字节随机密钥，中心和该节点使用同一份 Base64 值。可在 PowerShell 7.2 以上运行 `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))` 生成。将结果保存到这两个服务的运行环境，重启时沿用同一个值。
 
-   ```powershell
-   [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-   ```
+从发行包目录启动。首次使用时，让中心创建 `database` 指向的数据目录。若目录已存在，仅允许运行中心的账号访问该目录。下面的 PowerShell 命令读取节点密钥和官网分配的应用密钥，并将配置文件的**绝对路径**传给入口程序。
 
-2. 按[外部授权配置](/docs/loginview/external-authorization#外部授权配置)填写完整的 `center.json`，配置 OIDC 提供方和公开 HTTPS 地址。Realm 使用 `gamePasswordEnabled: false`。
-3. 在中心进程中设置节点密钥和 OIDC 应用密钥，再启动中心。下例的启动脚本与配置文件位于 `D:/AXSAuth/`。
+```powershell
+$env:AXS_AUTH_LOBBY_KEY = Read-Host '节点密钥' -MaskInput
+$env:AXS_WEBSITE_OIDC_SECRET = Read-Host '官网 OIDC 应用密钥' -MaskInput
+$centerConfig = (Resolve-Path -LiteralPath './center.json').Path
+& './bin/auth-center.bat' $centerConfig
+```
 
-   ```powershell
-   $env:AXS_AUTH_LOBBY_KEY = '粘贴生成的节点密钥'
-   $env:AXS_WEBSITE_OIDC_SECRET = '粘贴身份提供方分配的应用密钥'
-   & 'D:\AXSAuth\bin\auth-center.bat' 'D:\AXSAuth\center.json'
-   ```
-
-样例使用 `127.0.0.1:25600` 接收节点请求，`127.0.0.1:25601` 接收外部授权转发。两个端口用途不同。环境变量只传给启动它们的进程；使用服务或面板时，在对应启动环境设置。
+Linux 在同样的服务环境中运行 `./bin/auth-center "$(realpath center.json)"`。看到中心日志报告已监听节点端口后，再启动游戏节点。从面板或系统服务启动时，应在相应服务中设置环境变量。
 
 ## 游戏节点配置
 
-在游戏服的 `plugins/ArcartX-Suite/authentication.yml` 中填写：
+要在**进服后**确认官网身份，玩家需用可通过 Minecraft 在线握手的账号直连该游戏服。`server.properties` 使用 `online-mode=true`，关闭 BungeeCord 和 Velocity 转发，启用 LoginView。
+
+将下面的完整节点配置写入 `plugins/ArcartX-Suite/authentication.yml`。在游戏服的运行环境设置 `AXS_AUTH_LOBBY_KEY` 为该节点的密钥，再重启游戏服。
 
 ```yaml
 schema-version: 1
@@ -59,17 +110,30 @@ center:
   key-environment: AXS_AUTH_LOBBY_KEY
 ```
 
-| 游戏服字段 | 中心字段 | 本例值 |
-| --- | --- | --- |
-| `realm-id` | `realms[].id`、`nodes[].realm` | `network` |
-| `center.node-id` | `nodes[].id` | `lobby` |
-| `ingress.audience` | `nodes[].audience` | `lobby-node` |
-| `center.key-environment` | `nodes[].keyEnvironment` | `AXS_AUTH_LOBBY_KEY` |
+`realm-id` 对应中心的 `realms[].id` 和 `nodes[].realm`，`node-id` 对应 `nodes[].id`，`audience` 对应 `nodes[].audience`。异机节点将 `center.url` 改为转发节点接口的 HTTPS 根地址，并保持两端系统时间同步。条款和绑定在中心设置。[准入要求与登录界面](/docs/loginview/configuration#准入要求)
 
-`key-environment` 填变量名。游戏服进程中的变量值与该节点在中心的值相同；游戏服不需要 OIDC 应用密钥。异机游戏服使用 HTTPS 的 `center.url`，将 `/v1/node/rpc` 转发到中心节点端口，并保持机器时钟同步。
+## 玩家在游戏内确认授权
 
-## 验证准入
+1. 玩家进入游戏，记下 LoginView 显示的授权地址和本次游戏授权码，保持游戏连接。
+2. 在浏览器打开该地址，输入游戏授权码，前往官网登录。在授权页核对玩家名和目标服，确认后记下网页给出的 8 位核对码。
+3. 回到原游戏连接，点击「刷新状态」。确认游戏显示的是同一个核对码，再点「确认授权」。
+4. 上面的配置开启了服规。首次登录的玩家还要确认条款，完成后应能移动和交互。若中途断线，重新连接并使用新显示的游戏授权码。
 
-执行 `axs status` 确认 LoginView 启用，再让测试玩家以在线账号直连。游戏应显示授权地址和当前连接的授权码。完成[浏览器或启动器授权](/docs/loginview/external-authorization)后，在原连接核对并确认。开启条款或 QQ 绑定时，完成相应步骤后才允许操作。
+## 登记启动器
 
-中心的节点或 Realm 配置改变后重启中心；游戏服的 `authentication.yml` 改动后重启游戏服。[界面设置](/docs/loginview/configuration#界面配置)可以单独重载。
+需要启动器时，在 `external.launchers` 数组中加入一项。例如启动器名为 `example-launcher`，它在玩家本机监听端口 `43981`。
+
+```json
+{
+  "id": "example-launcher",
+  "realm": "network",
+  "redirect": "http://127.0.0.1:43981/callback"
+}
+```
+
+| 玩家要做什么 | 服主接下来设置什么 |
+| --- | --- |
+| 玩家已在游戏里，用启动器代替网页完成授权 | `minecraftSessions` 保持 `false`。重启中心，启动器按[游戏连接配对](/docs/loginview/external-api#游戏连接配对)提交游戏授权码，玩家回到游戏确认 |
+| 玩家用官网账号启动游戏，直接完成 Minecraft 握手 | 在 `external` 内设置 `minecraftSessions: true` 并重启中心。按[加入 Suite AuthCenter](/docs/loginview/mixed-login#加入-suite-authcenter)把中心接入游戏服或代理的混合网关 |
+
+启动器回调必须与登记的 `http://127.0.0.1:端口/路径` 完全一致。官网回调仍指向中心的 HTTPS 地址。两者各自接收对应的授权结果。

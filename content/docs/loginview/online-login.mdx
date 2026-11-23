@@ -1,0 +1,29 @@
+---
+title: "微软账号直连"
+description: "为微软在线直连的游戏服配置原生会话验证，确认账号通过握手后能正常进服或继续阅读服规。"
+---
+
+玩家在启动器登录微软账号，随后直接连接游戏服。Minecraft 在建立连接时验证在线会话，LoginView 负责显示该玩家仍需完成的进服要求。
+
+## 配置原生在线入口
+
+在 `server.properties` 设置 `online-mode=true`。关闭 `spigot.yml` 中的 `settings.bungeecord`，使用 Paper 时同时关闭 `config/paper-global.yml` 中的 `proxies.velocity.enabled`。以正常游戏服启动命令运行，保持 Minecraft 原生微软会话服务。如果这台服正在用混合启动脚本接收 LittleSkin 等账号，请沿用[单服混合认证](/docs/loginview/mixed-login#单服混合认证)。
+
+启用 LoginView 后，在 `plugins/ArcartX-Suite/authentication.yml` 使用下例。`local` 是新服示例，已有服保留自己的 `realm-id`。
+
+```yaml
+schema-version: 1
+backend: standalone
+realm-id: local
+ingress:
+  type: online
+requirements:
+  terms: false
+  qq-binding: false
+```
+
+## 验证在线账号
+
+重启游戏服，用已登录的微软账号直连。这个示例关闭了条款和绑定，预期是玩家通过在线握手后即可移动和交互，无需输入本服密码。已安装 PlaceholderAPI 时，在游戏服控制台执行 `papi parse 玩家名 %axsauth_provider%`，应返回 `microsoft`。
+
+如果希望在线账号首次进服也能看到服规，按[要求阅读服规](/docs/loginview/configuration#要求阅读服规)启用条款。使用尚未同意该版本的账号重连，确认能阅读规则、提交同意并继续游戏。

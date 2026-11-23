@@ -1,121 +1,63 @@
 ---
-title: "混合账号认证"
-description: "在同一套混合登录中验证微软、LittleSkin 和 Suite AuthCenter 账号，支持单服直连和可信代理转发。"
+title: "单服与代理混合登录"
+description: "配置微软和 LittleSkin 的混合账号认证，支持单服直连、Velocity 和 BungeeCord，也可接入中心账号。"
 ---
 
-混合网关默认验证微软与 LittleSkin。启用 Suite AuthCenter 会话后，中心账号通过启动器完成授权，就可以直接进入同一台服务器。身份验证完成后，玩家继续完成游戏服要求的条款与 QQ 绑定。
-
-| 连接拓扑 | 认证入口 | 网关部署位置 |
-| --- | --- | --- |
-| 玩家直接连接游戏服 | 单服混合认证，`local-mixed` | 与游戏服同一台机器 |
-| 玩家通过 BungeeCord 或 Velocity 进入子服 | 代理转发认证，`signed-proxy` | 与代理同一台机器 |
-
-通过混合网关完成账号验证后，按游戏服配置完成[准入要求](/docs/loginview/configuration#准入要求)。
+混合网关在 Minecraft 在线握手时识别账号来源。看玩家在多人游戏列表里填的是哪个地址。填游戏服地址，配置下方单服路线。填代理地址，只在代理上运行网关，由每个子服校验代理转发的身份。
 
 ## 单服混合认证
 
 ### 生成启动脚本
 
-游戏服需要安装 Suite 和 LoginView。在宿主 `config.yml` 中设置以下 `auth` 配置，保留文件里的其他设置。
+1. 在游戏服的 `plugins/ArcartX-Suite/config.yml` 找到已有的 `auth` 段，设置以下字段。示例端口 `25599` 要在本机空闲，认证源末尾保留 `?mixed`。
 
-```yaml
-auth:
-  enabled: true
-  auto-check-version: false
-  yggdrasil-source: "https://littleskin.cn/api/yggdrasil?mixed"
-  mixed-proxy-port: 25599
-  mixed-proxy-host: "127.0.0.1"
-  mixed-proxy-token: ""
-```
+   ```yaml
+   auth:
+     enabled: true
+     yggdrasil-source: "https://littleskin.cn/api/yggdrasil?mixed"
+     mixed-proxy-host: "127.0.0.1"
+     mixed-proxy-port: 25599
+   ```
 
-设置 `auth.enabled: true` 后重启游戏服，在控制台执行 `axs auth setup`。游戏内执行 `/axs auth setup` 同时需要 `arcartxsuite.admin` 和 `arcartxsuite.auth.admin`。
-
-确认服务器根目录生成 `start-mixed-auth.bat` 和 `start-mixed-auth.sh`，然后停服。脚本会先启动本机网关，再带着所需的认证参数启动游戏服。
+2. 启动游戏服，在控制台执行 `axs auth setup`。看到根目录生成 `start-mixed-auth.bat` 和 `start-mixed-auth.sh` 后停服。这一步只需要 Suite 的认证工具。游戏内执行该命令需要 `arcartxsuite.admin` 和 `arcartxsuite.auth.admin`。
 
 ### 配置游戏服入口
 
-在 `server.properties` 中设置 `online-mode=true`。
-
-将以下完整内容保存到游戏服的 `plugins/ArcartX-Suite/authentication.yml`。
+在 `server.properties` 设置 `online-mode=true`，关闭 BungeeCord 和 Velocity 转发。对于没有 Mojang 聊天签名密钥的档案，在支持该设置的服务端将 `enforce-secure-profile=false`。启用 LoginView，在 `plugins/ArcartX-Suite/authentication.yml` 写入下例。示例中的网关端口与上一步一致，已有服保留自己的 `realm-id`。
 
 ```yaml
 schema-version: 1
 backend: standalone
 realm-id: local
-timezone: Asia/Shanghai
-login-timeout-seconds: 300
 ingress:
   type: local-mixed
   gateway-url: http://127.0.0.1:25599
-  password-login: false
 requirements:
-  terms: true
+  terms: false
   qq-binding: false
-terms:
-  version: '1'
-  lines:
-    - '请遵守服务器规则，保护账号凭据。'
-performance:
-  workers: 2
-  queue-capacity: 128
 ```
 
-`gateway-url` 的端口必须与上一步的 `mixed-proxy-port` 一致，地址使用本机 `127.0.0.1`。
-
-### 启动游戏服
-
-Windows 使用 `start-mixed-auth.bat`，Linux 使用 `start-mixed-auth.sh`。主机面板需要实际执行对应脚本，或完整保留脚本里的启动顺序和 Java 启动参数。
-
-认证入口同时检查网关和实际 Java 启动参数，游戏服须通过生成的混合启动脚本启动。
-
-### 加入 Suite AuthCenter
-
-1. 按[外部授权配置](/docs/loginview/external-authorization#外部授权配置)部署中心并登记启动器，在 `center.json` 的 `external` 段设置 `minecraftSessions: true`。公网 HTTPS 继续将 `/v1/external/` 转发到中心的外部授权端口。
-2. 游戏服保持 `online-mode=true` 和 `local-mixed`。使用中心档案时，将直接游戏服的 `enforce-secure-profile` 设为 `false`，允许不带 Mojang 聊天签名密钥的中心档案连接。在线握手仍由混合网关验证。
-3. 在启动混合网关的环境中设置中心的 HTTPS 根地址。不要在地址后附带 `/v1/external` 或接口路径。
-
-   ```powershell
-   $env:AXS_MIXED_CENTER_ORIGIN = 'https://auth.example.net'
-   & .\start-mixed-auth.bat
-   ```
-
-4. 启动器完成中心的浏览器或设备授权，按[启动器接口](/docs/loginview/external-api#兑换-minecraft-会话)兑换 Minecraft 会话。用返回的档案、凭据和会话地址启动客户端，即可进服，无需先选择微软或 LittleSkin 账号。
-
-网关对中心分配的 `AXS_…` 档案先查询 AuthCenter，会话通过后由 LoginView 识别为 `center`。微软和 LittleSkin 玩家仍使用各自的登录方式。中心档案的名称和 UUID 由中心分配并持久保存，与其他来源的档案分开。
-
-如果在代理端运行混合网关，在代理启动环境设置同一个变量，并将 `center` 加到子服相应的 `trusted-proxies[].providers` 列表。代理维持在线验证。
-
-### 加入独立认证服务
-
-也可接入其他提供 Yggdrasil HTTPS `hasJoined` 的独立服务。客户端使用对应服务登录。下列变量填写完整接口地址，且不能与 `AXS_MIXED_CENTER_ORIGIN` 同时设置。
-
-```powershell
-$env:AXS_MIXED_CENTER_HAS_JOINED = 'https://identity.example.net/sessionserver/session/minecraft/hasJoined'
-& .\start-mixed-auth.bat
-```
-
-替换示例域名和路径。混合网关将此入口标记为 `center`。它按当前在线握手核验身份。公开资料查询地址和单纯的网页登录地址不能用作该接口。
-
-在代理端接入该服务时，在代理启动环境设置变量，并将 `center` 加到子服对应的 `trusted-proxies[].providers` 列表。
-
-### 验证身份与准入
-
-分别用微软、LittleSkin 和中心启动器账号验证登录。通过后，玩家应进入条款步骤或直接进入游戏。中心会话凭据只能用于一次连接；握手过期或已消费时，在启动器重新授权和兑换。
+Windows 运行 `.\start-mixed-auth.bat`，Linux 运行 `bash ./start-mixed-auth.sh`。脚本先启动网关，再带着指向该网关的 `-javaagent` 参数启动游戏服。使用面板时，将实际启动命令指向这个脚本。然后[验证账号来源](#验证身份与准入)。
 
 ## 代理转发认证
 
-BungeeCord 或 Velocity 验证玩家身份，子服校验代理传入的认证结果。
+以下示例把子服在代理里的注册名设为 `lobby`。玩家连接代理地址，子服的游戏端口只允许代理访问。
 
 ### 配置玩家信息转发
 
-在代理的 `servers` 中登记子服。下文使用子服名称 `lobby`。两种代理的子服都在 `server.properties` 中设置 `online-mode=false`，并在网络上限制只有代理可以连接子服。
+| 修改位置 | Velocity | BungeeCord |
+| --- | --- | --- |
+| 代理本身 | `velocity.toml` 设 `online-mode = true`、`player-info-forwarding-mode = "modern"`，在 `[servers]` 登记 `lobby` | 代理的 `config.yml` 设 `online_mode: true`、`ip_forward: true`，在 `servers` 登记 `lobby` |
+| 使用没有 Mojang 聊天签名公钥的档案 | 在支持该选项的 `velocity.toml` 中设 `force-key-authentication = false` | 在支持该选项的代理 `config.yml` 中设 `enforce_secure_profile: false` |
+| 子服 `server.properties` | `online-mode=false` | `online-mode=false` |
+| 子服 `spigot.yml` | `settings.bungeecord: false` | `settings.bungeecord: true` |
+| Paper 子服 `config/paper-global.yml` | 开启 `proxies.velocity.enabled` 和 `proxies.velocity.online-mode`，将 `proxies.velocity.secret` 填为代理转发密钥文件的内容 | 开启 `proxies.bungee-cord.online-mode`，关闭 `proxies.velocity.enabled` |
 
-- **Velocity** 在 `velocity.toml` 中设置 `online-mode=true` 和 `player-info-forwarding-mode="modern"`。Paper 子服在 `config/paper-global.yml` 中开启 `proxies.velocity.enabled`，设置 `proxies.velocity.online-mode: true`，并使 `proxies.velocity.secret` 与代理一致。子服的 `spigot.yml` 使用 `settings.bungeecord: false`。 [Velocity 转发说明](https://docs.papermc.io/velocity/player-information-forwarding/#configuring-modern-forwarding-for-paper)
-- **BungeeCord** 在代理自己的 `config.yml` 中设置 `online_mode: true` 和 `ip_forward: true`。子服的 `spigot.yml` 使用 `settings.bungeecord: true`。Paper 子服还需在 `config/paper-global.yml` 中设置 `proxies.bungee-cord.online-mode: true`，并关闭 `proxies.velocity.enabled`。[Paper 代理配置](https://docs.papermc.io/paper/reference/global-configuration/#proxies)
+表中列的是当前 Paper 的文件位置，其他支持版本按其服务端文档找到同一项设置。代理保持在线握手，玩家信息转发和聊天签名要求分别配置。[Velocity 玩家信息转发](https://docs.papermc.io/velocity/player-information-forwarding/) · [Velocity 代理选项](https://docs.papermc.io/velocity/configuration/) · [BungeeCord 代理配置](https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/conf/Configuration.java) · [Paper 代理设置](https://docs.papermc.io/paper/reference/global-configuration/#proxies)
 
 ### 生成代理启动脚本
 
-安装与代理类型对应的 Suite 代理端插件。编辑插件生成的 `proxy-config.yml`，先配置以下内容。
+安装与代理平台对应的 Suite 代理插件。在它生成的 `proxy-config.yml` 中调整下面的字段。第一次启动时先关闭 `auth-forwarding`，以便用代理控制台生成混合启动脚本。
 
 ```yaml
 deny-offline: true
@@ -123,19 +65,16 @@ auth-forwarding:
   enabled: false
 auth:
   enabled: true
-  auto-check-version: false
   yggdrasil-source: "https://littleskin.cn/api/yggdrasil?mixed"
-  mixed-proxy-port: 25599
   mixed-proxy-bind-host: "127.0.0.1"
-  mixed-proxy-token: ""
-  mixed-proxy-allow-ips: []
+  mixed-proxy-port: 25599
 ```
 
-启动一次代理，在代理控制台执行 `axsproxy auth setup`。生成脚本后停止代理。后续使用代理目录里的 `start-mixed-auth` 脚本启动，保持代理的在线模式开启。
+启动代理，在代理控制台执行 `axsproxy auth setup`。生成脚本后停止代理。两种代理的游戏内管理权限都是 `arcartxsuite.proxy.admin`。
 
 ### 启用认证转发
 
-将代理 `proxy-config.yml` 中的 `auth-forwarding` 整段替换为以下内容，再用新脚本启动代理。
+用下面的内容替换同一份 `proxy-config.yml` 中的 `auth-forwarding` 段。`targets` 下每个键使用代理里已登记的子服名称。
 
 ```yaml
 auth-forwarding:
@@ -148,60 +87,51 @@ auth-forwarding:
       audience: lobby-node
 ```
 
-在代理启动日志中找到以 `[AuthForwarding]` 开头、包含 `public-key=` 的一行。复制其中完整的公钥值，下一步填到子服。代理生成的私钥文件留在代理端。
+在代理目录运行 `.\start-mixed-auth.bat` 或 `bash ./start-mixed-auth.sh`。从代理的 `[AuthForwarding]` 启动日志复制 `public-key=` 后的完整公钥。Velocity 的玩家信息转发密钥和这把 Suite 公钥分别填在各自的配置位置。
 
 ### 配置子服信任项
 
-子服安装 Suite 和 LoginView。将下面完整配置保存到子服的 `plugins/ArcartX-Suite/authentication.yml`，把公钥占位符换成刚复制的值。
+在 `lobby` 子服启用 LoginView，子服的 Suite `config.yml` 保持 `auth.enabled: false`。把下例写入子服的 `plugins/ArcartX-Suite/authentication.yml`，替换公钥后重启子服。
 
 ```yaml
 schema-version: 1
 backend: standalone
 realm-id: network
-timezone: Asia/Shanghai
-login-timeout-seconds: 300
 ingress:
   type: signed-proxy
   audience: lobby-node
-  password-login: false
   trusted-proxies:
     - issuer: proxy-main
       public-key: "替换为代理日志中的完整公钥"
       providers: [microsoft, littleskin]
 requirements:
-  terms: true
+  terms: false
   qq-binding: false
-terms:
-  version: '1'
-  lines:
-    - '请遵守服务器规则，保护账号凭据。'
-performance:
-  workers: 2
-  queue-capacity: 128
 ```
 
-子服的宿主 `config.yml` 中 `auth.enabled` 保持 `false`，混合网关由代理启动。开启子服的 LoginView，然后重启子服。
+逐项对齐两端。`targets.lobby.realm` 对应子服的 `realm-id`，`targets.lobby.audience` 对应 `ingress.audience`，代理的 `issuer` 对应信任列表中的 `issuer`。添加另一台子服时，在 `targets` 增加该服的注册名，并按它的目标标识填写对应的子服配置。
 
-| 代理上的字段 | 子服上要对应的字段 | 本例 |
-| --- | --- | --- |
-| `targets` 下的子服名称 | 代理上的子服注册名称 | `lobby` |
-| `targets.lobby.realm` | `realm-id` | `network` |
-| `targets.lobby.audience` | `ingress.audience` | `lobby-node` |
-| `issuer` | `trusted-proxies` 中的 `issuer` | `proxy-main` |
-| 启动日志的 `public-key` | `trusted-proxies` 中的 `public-key` | 复制完整公钥 |
+## 加入 Suite AuthCenter
 
-### 验证代理入口
+当玩家要用官网账号**启动游戏**时，在现有混合网关增加这个来源。
 
-玩家通过代理地址进入。分别用微软和 LittleSkin 账号连接，子服应接受验证结果并继续条款步骤。
+1. 在[认证中心登记启动器](/docs/loginview/center#登记启动器)，开启 `external.minecraftSessions`，让中心的 `/v1/external/` 路径可通过 HTTPS 访问。
+2. 在**启动网关的进程**中设置 `AXS_MIXED_CENTER_ORIGIN`，填写中心的 HTTPS 根地址。下例在 Windows 的游戏服目录或代理目录运行。
 
-若一直等待可信验证，先核对上表五项，再检查实际连接是否来自已配置的 `lobby` 子服及其转发设置。
+   ```powershell
+   $env:AXS_MIXED_CENTER_ORIGIN = 'https://auth.example.net'
+   & .\start-mixed-auth.bat
+   ```
 
-代理连接连续超过 12 小时后，若切服时身份验证未通过，请断开代理并重新连接，再进入子服。
+3. 单服维持 `local-mixed`。代理路线在每个接收中心账号的子服将 `trusted-proxies[].providers` 改为 `[microsoft, littleskin, center]` 并重启。
+4. 启动器经官网授权，按[兑换 Minecraft 会话](/docs/loginview/external-api#兑换-minecraft-会话)取得中心档案，使用返回的档案和凭据启动客户端。中心为账号分配独立的 `AXS_` 档案，进服后可查到来源 `center`。
 
-## 部署约束
+### 加入独立认证服务
 
-| 配置情况 | 处理要求 |
-| --- | --- |
-| 玩家通过代理进入，而子服配置了 `local-mixed` | 将子服认证入口设为 `signed-proxy`，把网关部署在代理端 |
-| 单服提示需要在线模式 | 单服混合认证的游戏服必须设置 `online-mode=true` |
-| 游戏服采用 `backend: center`，需要进服后确认授权 | 按[独立认证中心](/docs/loginview/center)配置游戏节点 |
+自有 Yggdrasil 服务提供 HTTPS `hasJoined` 时，让客户端先用该服务登录，在网关进程把 `AXS_MIXED_CENTER_HAS_JOINED` 设为它完整的 `hasJoined` 接口地址。此变量与 `AXS_MIXED_CENTER_ORIGIN` 二选一，重启网关生效。通过代理接入时，子服也要允许来源 `center`。
+
+## 验证身份与准入
+
+分别使用微软、LittleSkin 和实际启用的中心账号，经玩家平时使用的地址进服。可在[认证状态查询](/docs/loginview/commands#认证状态查询)核对来源，预期依次为 `microsoft`、`littleskin`、`center`。示例关闭了条款与绑定，握手完成即可游戏。新增要求后，使用未完成要求的账号复测。
+
+单服一直等待验证时，先检查实际启动命令和网关端口。代理服则先看玩家是否连到代理、`lobby` 是否注册正确，再核对子服的 Realm、目标标识、签发者、公钥及允许的来源。中心账号的会话用于一次连接，掉线后由启动器重新授权和兑换。

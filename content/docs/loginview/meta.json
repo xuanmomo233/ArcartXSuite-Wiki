@@ -2,11 +2,15 @@
   "title": "登录认证",
   "pages": [
     "getting-started",
+    "---登录方式---",
+    "password-login",
+    "online-login",
     "mixed-login",
     "center",
+    "---服务器管理---",
     "configuration",
-    "external-authorization",
-    "external-api",
-    "commands"
+    "commands",
+    "---启动器开发---",
+    "external-api"
   ]
 }

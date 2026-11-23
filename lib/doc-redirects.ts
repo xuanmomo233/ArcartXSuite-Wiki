@@ -201,12 +201,63 @@ export const docRedirects: Record<string, DocRedirect> = {
       '属性键值对与文本行': '/docs/title/title-definitions/#展示属性display-attributes',
     },
   },
+  'loginview': {
+    sections: {
+      '部署流程': '/docs/loginview/getting-started/#启用-loginview',
+      '与其他登录插件配合': '/docs/loginview/getting-started/#与其他登录插件配合',
+    },
+  },
+  'loginview/getting-started': {
+    sections: {
+      '离线模式与游戏内密码': '/docs/loginview/password-login/#设置离线直连',
+      '配置密码入口': '/docs/loginview/password-login/#配置密码入口',
+      '注册与重新登录': '/docs/loginview/password-login/#注册与重新登录',
+    },
+  },
+  'loginview/mixed-login': {
+    sections: {
+      '启动游戏服': '/docs/loginview/mixed-login/#配置游戏服入口',
+      '验证代理入口': '/docs/loginview/mixed-login/#验证身份与准入',
+      '部署约束': '/docs/loginview/#选择登录入口',
+    },
+  },
+  'loginview/center': {
+    sections: { '验证准入': '/docs/loginview/center/#玩家在游戏内确认授权' },
+  },
+  'loginview/external-authorization': {
+    destination: '/docs/loginview/center/',
+    sections: {
+      '身份系统要求': '/docs/loginview/center/#部署条件',
+      '授权域名与回调登记': '/docs/loginview/center/#部署条件',
+      '外部授权配置': '/docs/loginview/center/#编写中心配置',
+      'https-转发配置': '/docs/loginview/center/#https-转发配置',
+      '环境变量与启动': '/docs/loginview/center/#启动中心',
+      '官网授权验证': '/docs/loginview/center/#玩家在游戏内确认授权',
+      '启动器接入': '/docs/loginview/center/#登记启动器',
+      '身份与连接': '/docs/loginview/center/#玩家在游戏内确认授权',
+    },
+  },
   'loginview/configuration': {
     sections: {
-      '本机离线密码': '/docs/loginview/getting-started/#离线模式与游戏内密码',
-      '密码与准入配置': '/docs/loginview/getting-started/#配置密码入口',
-      '启动与验证本机密码': '/docs/loginview/getting-started/#注册与重新登录',
-      '微软在线直连': '/docs/loginview/#选择登录入口',
+      '模块启用': '/docs/loginview/getting-started/#启用-loginview',
+      '本机离线密码': '/docs/loginview/password-login/#设置离线直连',
+      '密码与准入配置': '/docs/loginview/password-login/#配置密码入口',
+      '启动与验证本机密码': '/docs/loginview/password-login/#注册与重新登录',
+      '微软在线直连': '/docs/loginview/online-login/#配置原生在线入口',
+      '验证准入': '/docs/loginview/#配置验证',
+      '界面加载排查': '/docs/loginview/commands/#故障排查',
+    },
+  },
+  'loginview/commands': {
+    sections: { '本机密码入口校验': '/docs/loginview/password-login/#设置离线直连' },
+  },
+  'loginview/external-api': {
+    sections: {
+      '发起授权': '/docs/loginview/external-api/#浏览器授权流程',
+      '回调验证与授权码兑换': '/docs/loginview/external-api/#浏览器授权流程',
+      '申请设备码': '/docs/loginview/external-api/#设备授权流程',
+      '轮询授权结果': '/docs/loginview/external-api/#轮询与取消',
+      '取消授权': '/docs/loginview/external-api/#轮询与取消',
     },
   },
 };

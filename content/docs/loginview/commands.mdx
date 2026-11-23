@@ -1,60 +1,48 @@
 ---
-title: "管理与故障排查"
-description: "查询管理命令和认证状态，根据故障现象定位配置项与处理步骤。"
+title: "管理命令与故障排查"
+description: "服主进行账号管理与故障排查时，可在这里查询命令权限、玩家身份来源和最终放行状态。"
 ---
 
 ## 常用命令
 
-| 命令 | 用途 |
-| --- | --- |
-| `/axs loginview status` | 显示模块与宿主认证的职责提示 |
-| `/axs loginview open <玩家>` | 为在线玩家尝试打开登录或账号界面 |
-| `/axs reload loginview` | 重载 LoginView 界面和打开延迟配置 |
-| `/axs unload loginview` | 卸载 LoginView，解除该模块的操作限制 |
+以下是游戏服的管理命令。玩家执行时需要 `arcartxsuite.admin`，游戏服控制台执行时省略开头的 `/`。
 
-以上管理操作需要 `arcartxsuite.admin`。认证后端、入口和登录策略在 `authentication.yml` 中配置，改动后重启游戏服。中心的账号策略改动后重启中心。
-
-`status` 用于确认模块命令已注册。中心连通性和认证入口状态需要结合启动日志及实际登录结果验证。
+| 命令 | 什么时候用 | 预期结果 |
+| --- | --- | --- |
+| `/axs status` | 开服后检查安装 | 在模块列表中确认 LoginView 的加载状态 |
+| `/axs loginview status` | 检查模块指令是否已注册 | 返回 LoginView 负责界面、宿主负责认证的说明 |
+| `/axs loginview open <玩家>` | 为在线玩家重新打开当前步骤 | 待登录或待准入的玩家看到相应界面，已放行的本服密码玩家可修改密码 |
+| `/axs reload loginview` | 修改界面或打开延迟后 | 模块重新读取界面配置。修改 `authentication.yml` 需要重启游戏服 |
+| `/axs unload loginview` | 管理员主动停止使用该模块 | Suite 解除 LoginView 的限制，其他插件继续管理自己的进服规则 |
 
 ## 账号管理界面
 
-已启用游戏内密码入口时，管理员可用 `/axs loginview open <玩家>` 为已登录的在线玩家打开账号界面，玩家在其中修改本服密码。使用外部账号的玩家通过自己的身份服务管理凭据。
-
-## 故障排查
-
-| 故障现象 | 检查项 | 处理方法 |
-| --- | --- | --- |
-| 完全没有登录界面 | 模块加载结果、ArcartX 客户端、`modules.loginview.enabled` | 确认模块已安装并启用，再用 open 命令测试 |
-| 改了认证方式却没生效 | 是否只执行了 reload | 重启游戏服，中心策略有变时也重启中心 |
-| 中心节点进服后没有授权提示 | `ingress.type`、Realm 的外部授权配置 | 游戏服使用 `external`，中心为该 Realm 配置 OIDC 提供方 |
-| 中心提示缺少节点密钥 | 启动中心及游戏服的环境变量 | 两个进程都设置同名、同值的节点密钥 |
-| 节点请求被拒绝 | `realm-id`、`node-id`、audience、密钥和机器时钟 | 按中心教程的对照表逐项核对 |
-| 单服混合提示需要在线模式 | 游戏服的 `server.properties` | 单服混合认证使用 `online-mode=true` |
-| 入口校验提示游戏内密码仅支持本机直连 | `ingress.type`、`online-mode`、监听地址及代理转发 | 按[入口校验说明](#本机密码入口校验)确认实际启动方式 |
-| 混合入口提示握手回执不存在或过期 | 实际启动脚本、网关地址和端口 | 使用生成的混合脚本重启，然后重新连接 |
-| Velocity 子服一直等待验证 | 代理注册名称、转发设置、公钥、Realm 和目标标识 | 按代理转发配置的字段对应表核对 |
-| 官网登录成功但游戏仍等待 | 玩家是否刷新并核对确认码 | 回原游戏连接刷新，再确认本次授权 |
-| 已验证身份但仍不能操作 | 条款或 QQ 绑定步骤 | 完成界面列出的要求 |
-| 只有别的登录插件在限制玩家 | 对应插件的状态 | 按该插件的命令完成登录，LoginView 缺席时由对应插件管理限制 |
-
-### 本机密码入口校验
-
-启动时，`standalone` 的 `auto` 在在线模式下选择 `online`，在离线模式下选择 `password`，随后继续校验入口条件。要使用游戏内密码，按[使用入门](/docs/loginview/getting-started#离线模式与游戏内密码)配置同机直连。混合登录或代理子服出现此提示时，按[登录入口](/docs/loginview#选择登录入口)显式选择对应方式。
+游戏内密码玩家通过当前登录后，管理员可执行 `/axs loginview open 玩家名`。玩家在账号界面填写旧密码、新密码并确认新密码。改好后重新连接，用新密码登录。已放行的外部账号执行同一操作时会收到前往身份提供方管理密码的提示。
 
 ## 认证状态查询
 
-安装 PlaceholderAPI 且 LoginView 已加载时，可用以下命令查询自己的准入状态。
+安装 PlaceholderAPI 且 LoginView 已加载时，在游戏服控制台执行 `papi parse 玩家名 %axsauth_stage%`，将「玩家名」替换为在线测试账号。玩家有 PlaceholderAPI 查询权限时，可以用 `/papi parse me %axsauth_admitted%` 查看自己。
 
-```text
-/papi parse me %axsauth_admitted%
-```
-
-| 占位符 | 用途与返回内容 |
+| 占位符 | 怎样解读 |
 | --- | --- |
-| `%axsauth_admitted%` | 是否已完成全部要求并放行，返回 true 或 false |
-| `%axsauth_verified%` | 是否已证明身份，返回 true 或 false |
-| `%axsauth_stage%` | 当前步骤，例如 awaiting_identity、awaiting_requirements、admitted |
-| `%axsauth_provider%` | 验证方式，例如 local-password、microsoft、littleskin、center、oidc |
-| `%axsauth_registered%` | 账号登记状态，返回 registered、unregistered 或 unknown |
+| `%axsauth_stage%` | `awaiting_identity` 表示等待身份验证，`awaiting_requirements` 表示等待条款或绑定，`admitted` 表示已放行。还可能返回 `absent`、`loading`、`restricted` 或 `closed` |
+| `%axsauth_verified%` | 已确认账号身份时返回 `true` |
+| `%axsauth_admitted%` | 当前连接已获准参与游戏时返回 `true`。检查能否操作时看此项 |
+| `%axsauth_provider%` | 当前身份来源，如 `local-password`、`microsoft`、`littleskin`、`center` 或 `oidc`。来源尚未确定时返回 `unknown` |
+| `%axsauth_registered%` | 账号登记状态，可能为 `registered`、`unregistered` 或 `unknown` |
 
-已验证身份仍可能在等待条款或绑定。业务条件通常使用 `%axsauth_admitted%` 判断玩家是否可以参与游戏。
+如果 `verified=true`、`admitted=false`，优先查看玩家界面剩余的准入要求。开启其他登录插件的服，还应按该插件自己的状态判断其登录是否完成。
+
+## 故障排查
+
+| 玩家或服主看到的现象 | 先检查什么 |
+| --- | --- |
+| 新玩家直接进服，看不到预期的注册或条款界面 | 用 `axs status` 检查模块，再核对该账号的登录方式与待办要求。微软原生在线验证且无附加要求时会直接放行 |
+| 有待办要求，但玩家看不到界面 | 检查客户端 ArcartX、服务端界面加载日志和玩家是否在线。用 `/axs loginview open <玩家>` 重开该玩家的当前步骤 |
+| 无法启用游戏内密码 | `auto` 会按游戏服的 `online-mode` 选择 `online` 或 `password`。密码入口还会校验监听地址及转发。按[设置离线直连](/docs/loginview/password-login#设置离线直连)逐项核对 |
+| 选了单服混合登录却收不到握手结果 | 检查实际启动的脚本、`-javaagent` 所用网关和 `ingress.gateway-url` 的端口。[配置游戏服入口](/docs/loginview/mixed-login#配置游戏服入口) |
+| 能进代理，在子服一直等待身份验证 | 核对子服注册名、玩家信息转发、签发者、公钥、Realm、目标标识和允许的来源。[配置子服信任项](/docs/loginview/mixed-login#配置子服信任项) |
+| 长时间在线后切服才被拒绝 | 代理上的原始认证已超过 12 小时时，断开并重新连接代理，再进入目标子服 |
+| 中心启动报缺少字段或密钥 | 核对完整 `center.json` 的必填字段，以及中心**进程**实际取得的节点密钥和 OIDC 应用密钥。[编写中心配置](/docs/loginview/center#编写中心配置) |
+| 中心已启动，游戏节点仍连不上 | 确认节点连接节点端口，核对 Realm、节点 ID、目标标识、密钥值和系统时间。[游戏节点配置](/docs/loginview/center#游戏节点配置) |
+| 网页已授权，游戏还在等待 | 回到发起授权的那一次游戏连接，刷新、比对核对码、点击确认，再完成条款或绑定。[游戏内确认步骤](/docs/loginview/center#玩家在游戏内确认授权) |

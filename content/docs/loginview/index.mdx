@@ -1,41 +1,31 @@
 ---
 title: "登录认证"
-description: "选择离线密码、混合登录、代理转发或中心授权，配置 LoginView 的进服流程。"
+description: "按玩家使用的账号和连接方式选择 LoginView 登录流程，设置进服要求并检查是否放行。"
 ---
 
-LoginView 把账号验证与进服要求接在同一条流程里。先选择玩家使用的账号和连接方式，再配置身份验证后需要完成的条款和 QQ 绑定。
+LoginView 在玩家进入服务器时显示当前要做的事。使用本服密码的玩家在游戏里注册或登录。使用在线账号的玩家先由 Minecraft、代理或认证中心验证身份。服主开启了条款或 QQ 绑定时，玩家完成这些要求后才能移动和交互。
+
+## 第一次使用
+
+先阅读[使用入门](/docs/loginview/getting-started)，确认模块装在哪里、认证入口由哪份文件控制。已经装好 LoginView 的服主可以直接按下表选教程。
 
 ## 选择登录入口
 
-| 服主的目标 | 认证入口 | 配置教程 |
-| --- | --- | --- |
-| 同机离线直连，玩家在游戏内注册并输入本服密码 | 游戏服使用 `standalone` + `password` | [离线模式与游戏内密码](/docs/loginview/getting-started#离线模式与游戏内密码) |
-| 同一台游戏服接受微软、LittleSkin 或接入后的 AuthCenter 账号 | 游戏服使用 `standalone` + `local-mixed` | [单服混合认证](/docs/loginview/mixed-login#单服混合认证) |
-| 玩家经 Velocity 或 BungeeCord 进入群组服 | 代理验证账号，子服使用 `standalone` + `signed-proxy` | [代理转发认证](/docs/loginview/mixed-login#代理转发认证) |
-| 玩家连接游戏服后，还须在原连接内确认官网或启动器授权 | 游戏服使用 `center` + `external` | [独立认证中心](/docs/loginview/center) |
+| 你的玩家怎样进服 | 去哪里配置 |
+| --- | --- |
+| 客户端与游戏服在同一台机器，玩家用本服密码注册、登录 | [离线模式与游戏内密码](/docs/loginview/password-login) |
+| 玩家用微软账号直连，服务器沿用 Minecraft 原生在线验证 | [微软账号直连](/docs/loginview/online-login) |
+| 微软、LittleSkin 等不同来源的账号直连同一台游戏服 | [单服混合认证](/docs/loginview/mixed-login#单服混合认证) |
+| 玩家先连接 Velocity 或 BungeeCord，再进入子服 | [代理转发认证](/docs/loginview/mixed-login#代理转发认证) |
+| 玩家已经连进游戏，需要用官网或启动器确认这一次连接 | [进服后确认官网身份](/docs/loginview/center#玩家在游戏内确认授权) |
 
-使用 Minecraft 原生在线会话的直连服可选 `standalone` + `online`，随后配置[准入要求](/docs/loginview/configuration#准入要求)。如果 AuthCenter 账号需要直接完成 Minecraft 握手，走[混合登录的 AuthCenter 会话接入](/docs/loginview/mixed-login#加入-suite-authcenter)。
-
-## 部署流程
-
-1. 为当前服务器装备 LoginView，在 Suite 的 `config.yml` 中设置 `modules.loginview.enabled: true`。
-2. 按所选教程修改 `authentication.yml` 和服务器配置，再设置[准入要求与界面](/docs/loginview/configuration)，重启相关进程。
-3. 在控制台执行 `axs status`，确认 LoginView 已启用。
-4. 使用所选入口的测试账号进服。核对进服身份和已开启的条款、QQ 绑定等准入要求。存在待完成的要求时，先确认移动和交互受限，完成后再确认恢复。
-
-登录入口和认证策略在 `plugins/ArcartX-Suite/authentication.yml`。界面延迟在 `data/loginview/config.yml`，外观在 `ui/auth_v1.yml`，两者都相对于 Suite 数据目录。
+希望玩家**用官网账号启动 Minecraft** 时，先在认证中心[登记启动器](/docs/loginview/center#登记启动器)，再把中心接入[混合登录网关](/docs/loginview/mixed-login#加入-suite-authcenter)。这条路在玩家启动游戏前取得 Minecraft 会话。
 
 ## 配置验证
 
-启用模块后，用普通账号走完所选登录方式。安装 PlaceholderAPI 的服务器可按[认证状态查询](/docs/loginview/commands#认证状态查询)核对是否放行。
-
-## 与其他登录插件配合
-
-由其他插件负责登录时，将 `modules.loginview.enabled` 设为 `false`。LoginView 停用或启动失败时，Suite 恢复普通进服流程。需要认证的服务器应在开放玩家连接前核对模块状态与实际准入。
+用普通玩家账号进服。第一次连接应出现所选教程描述的界面或握手结果。若玩家还需同意条款或绑定 QQ，操作会受到限制。完成最后一项要求后，确认玩家可以正常移动、打开容器。已安装 PlaceholderAPI 的服可以分别查看[身份验证和放行状态](/docs/loginview/commands#认证状态查询)。
 
 ## 相关文档
 
-- [使用入门](/docs/loginview/getting-started)说明如何启用模块并跑通游戏内密码注册和登录。
-- [外部身份接入](/docs/loginview/external-authorization)说明如何登记网站身份系统和启动器，以及如何确认本次游戏连接。
-- [启动器授权接口](/docs/loginview/external-api)提供浏览器和设备授权的请求示例、返回字段与错误码。
-- [管理与故障排查](/docs/loginview/commands)列出管理命令、认证状态占位符以及常见配置问题的核对方法。
+- 要求玩家阅读服规或绑定 QQ 时，按[准入要求与登录界面](/docs/loginview/configuration)设置，并用一个尚未完成要求的账号验收。
+- 玩家卡在某一步时，按[管理命令与故障排查](/docs/loginview/commands)核对当前连接。自研启动器使用[启动器授权接口](/docs/loginview/external-api)接入中心。

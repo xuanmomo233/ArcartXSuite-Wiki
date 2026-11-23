@@ -1,51 +1,31 @@
 ---
 title: "使用入门"
-description: "启用 LoginView，配置离线模式下的游戏内密码登录，并验证首次注册和重新进服。"
+description: "为游戏服启用 LoginView，找到认证入口配置，选择测试账号并验证首次进服。"
 ---
 
-为当前服务器装备 LoginView，在 Suite 本体 `config.yml` 中确认 `modules.loginview.enabled: true`。测试玩家使用与服务器匹配的 ArcartX 客户端。
+准备一台已装好 Suite 的游戏服，以及能连入它的 ArcartX 客户端。服务器和客户端选择支持该 Minecraft 版本的配套发行版。[本体安装与配置](/docs/guide/first-run)
 
-本页演示离线模式下在游戏内注册和输入密码。要用微软、LittleSkin、代理转发或 AuthCenter 账号进服，从[选择登录入口](/docs/loginview#选择登录入口)进入对应教程。
+## 启用 LoginView
 
-## 离线模式与游戏内密码
+1. 在 Suite 云端为这台游戏服装备 LoginView。群组服在需要执行准入检查的每台子服装备。
+2. 在 `plugins/ArcartX-Suite/config.yml` 已有的 `modules` 下启用 `loginview`。保留同级的其他模块。
 
-此入口供游戏客户端和游戏服运行在同一台机器时使用。停服后在游戏服根目录的 `server.properties` 设置：
+   ```yaml
+   modules:
+     loginview:
+       enabled: true
+   ```
 
-```properties
-online-mode=false
-server-ip=127.0.0.1
-```
+3. 确定玩家实际连接的入口，再编辑游戏服的 `plugins/ArcartX-Suite/authentication.yml`。首次启用时 Suite 会释放默认文件，也可以在启动前按所选教程写好配置。已有账号的服务器沿用原有 `realm-id`，它标识这些账号所属的范围。
 
-将 `spigot.yml` 的 `settings.bungeecord` 设为 `false`。使用 Paper 时，也将 `config/paper-global.yml` 的 `proxies.velocity.enabled` 设为 `false`。启动后，客户端用 `127.0.0.1` 和游戏服实际端口直连。
+默认入口 `auto` 根据游戏服的 `online-mode` 选择[微软账号直连](/docs/loginview/online-login)或[离线模式与游戏内密码](/docs/loginview/password-login)。混合账号、代理子服和官网授权需要显式配置入口。按[连接方式对照表](/docs/loginview#选择登录入口)找到对应教程，写好配置后重启游戏服。
 
-## 配置密码入口
+## 验收第一名玩家
 
-在 `plugins/ArcartX-Suite/authentication.yml` 配置下例。已有配置时，保留正在使用的 `realm-id`，在原有小节中修改。
+1. 在游戏服控制台执行 `axs status`，在模块列表找到 `loginview: 已启用`。
+2. 使用普通测试账号，从玩家平时使用的地址进入。按照所选教程完成注册、在线握手或中心授权。有待办要求时，确认玩家在完成前仍受限。
+3. 完成最后一步，尝试移动并打开容器，再断开重连。若身份已验证却仍不能操作，按[认证状态查询](/docs/loginview/commands#认证状态查询)查看当前步骤。需要加入服规或 QQ 绑定时，再设置[准入要求](/docs/loginview/configuration#准入要求)。
 
-```yaml
-schema-version: 1
-backend: standalone
-realm-id: local
-ingress:
-  type: password
-  password-login: true
-password:
-  min-length: 8
-  max-length: 128
-  max-attempts: 5
-  cooldown-seconds: 300
-requirements:
-  terms: false
-  qq-binding: false
-```
+## 与其他登录插件配合
 
-示例先验证密码注册和登录。确认正常后，可按[准入要求](/docs/loginview/configuration#准入要求)启用条款和 QQ 绑定。
-
-## 注册与重新登录
-
-1. 启动游戏服，在控制台执行 `axs status`，确认 LoginView 已启用。
-2. 用尚未注册的普通测试账号进服。在注册界面输入并确认一份合规密码，提交成功后检查能否移动和交互。
-3. 断开后用同一个账号重新进服。先输错一次密码，确认仍停留在登录界面，且移动和交互受限。再输入正确密码，确认能进入游戏。
-4. 已安装 PlaceholderAPI 时，可按[认证状态查询](/docs/loginview/commands#认证状态查询)核对放行结果。
-
-启动时提示密码入口与实际连接方式不符，按[本机密码入口校验](/docs/loginview/commands#本机密码入口校验)核对监听地址、在线模式和转发设置。
+如果服主把注册与登录交给 AuthMe 等其他插件，在 Suite 中关闭 `modules.loginview.enabled` 并重启。LoginView 未安装、停用或加载失败时，Suite 按普通进服流程放行，其他登录插件自行执行它们的限制。测试时用该插件自己的状态或登录结果确认玩家身份。
