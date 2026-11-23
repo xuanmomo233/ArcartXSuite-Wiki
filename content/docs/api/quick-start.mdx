@@ -5,11 +5,15 @@ description: "构建一个通过命令打开 Suite 菜单的最小 Bukkit 插件
 
 ## 准备依赖
 
-将与服务器配套的 API JAR 保存为 `libs/axs-api.jar`，在 Gradle 中声明为 `compileOnly`。
+将与目标 Suite 发行版配套的 `axs-api` JAR 保存为项目中的 `libs/axs-api.jar`。使用 `compileOnly`，运行时由游戏服中的 Suite 提供这些类。
 
-Gradle Kotlin DSL：
+在使用 Gradle 的插件项目中，将以下内容写入 `build.gradle.kts`。Bukkit API 依赖和 Java 工具链按目标游戏服选择，下方为一组编译示例。
 
 ```kotlin
+plugins {
+    java
+}
+
 repositories {
     mavenCentral()
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
@@ -26,11 +30,11 @@ java {
 }
 ```
 
-按目标服务端选择 Spigot API 和 Java 版本。
+使用更高版本的服务端时，按需替换 Bukkit API 坐标，并核对插件的 Java 目标版本与服务器 JVM 兼容。
 
 ## 声明插件依赖
 
-在你插件的 `plugin.yml` 中声明 `ArcartX-Suite` 依赖，将插件 JAR 放入服务器 `plugins/`。
+在 `src/main/resources/plugin.yml` 声明依赖。插件名取自 Suite 随包的 `plugin.yml`，这里是 `ArcartX-Suite`。
 
 ```yaml
 name: SuiteBridgeExample
@@ -49,7 +53,7 @@ permissions:
 
 ## 完整最小示例
 
-下面的命令为玩家打开 Menu 模块中 `id: example` 的菜单。
+将类保存为 `src/main/java/example/SuiteBridgeExample.java`。它调用 Menu 打开 `id: trial_menu` 的测试菜单。
 
 ```java
 package example;
@@ -74,7 +78,7 @@ public final class SuiteBridgeExample extends JavaPlugin {
                     player.sendMessage("菜单功能暂不可用。");
                     return true;
                 }
-                if (!menu.openMenu(player, "example")) {
+                if (!menu.openMenu(player, "trial_menu")) {
                     player.sendMessage("菜单未能打开，请联系管理员检查配置。");
                 }
                 return true;
@@ -85,10 +89,10 @@ public final class SuiteBridgeExample extends JavaPlugin {
 
 ## 游戏内验证
 
-1. 在 Suite 中启用 Menu，确认 `example` 菜单存在。
-2. 安装你的插件并重启，使用匹配的 ArcartX 客户端进入。
-3. 执行 `/servermenu`，应打开配置菜单。
-4. 菜单未打开时，检查 Menu 是否已启用、菜单 ID 是否正确以及玩家权限。
+1. 按[菜单最小示例](/docs/menu/configuration#从一个可验证的按钮开始)创建 `trial_menu` 并启用 Menu。
+2. 用 Gradle 执行 `build`，将 `build/libs/` 中的桥接插件 JAR 放入游戏服 `plugins/` 后重启。
+3. 用 ArcartX 客户端和具有 `suitebridge.menu` 的测试玩家执行 `/servermenu`，应打开「试炼入口」。菜单定义另有打开权限或条件时，玩家也须满足。
+4. 在测试服停用 Menu 后执行同一命令，应收到「菜单功能暂不可用」。模块重新启用后再次执行，应重新打开菜单。
 
 ## 可选接入
 
@@ -96,8 +100,7 @@ public final class SuiteBridgeExample extends JavaPlugin {
 
 ## 调用约定
 
-- 方法体片段放在接入插件的方法中。`player` 为在线 `Player`，`plugin` 为调用方的 `JavaPlugin` 实例。导入示例所用的 Java、Bukkit 和 Suite API 类型。
-- 每次操作时获取接口，避免长时间缓存实例。
-- 需要 Bukkit 对象的操作放在主线程执行。
-- 异步方法使用回调，并处理失败结果。
-- 配置 ID、对象参数和返回类型以对应接口页及配套 JAR 为准。
+- 每次业务操作通过 `AxsCapabilities.get(接口.class)` 获取能力。本体未就绪、模块未启用或该功能尚未注册时，结果为 `null`。注册长期回调时，另外保留注销需要的句柄或订阅 ID。
+- 只复制方法体的片段放在自己的方法里，导入所用类型。`player` 为在线 `Player`，`plugin` 为调用方的 `JavaPlugin`。
+- 在 Bukkit 主线程发起使用玩家、物品或容器的调用。异步方法用回调处理结果与异常；回到主线程操作玩家前，确认仍是原连接。
+- 使用目标模块配置中的实际 ID。根据对应接口的返回值判断状态和结果。

@@ -24,6 +24,11 @@ boolean admitted = auth.snapshot(player.getUniqueId()).admitted();
 
 ```java
 public interface AuthRuntimeCapability {
+    record Result(boolean success, String code, AuthSnapshot snapshot) {}
+    record ExternalPrompt(UUID requestId, String verificationUrl, String userCode,
+                          long expiresAt, String confirmation) {}
+    record Terms(boolean enabled, String version, List<String> lines) {}
+
     Terms terms();
     boolean passwordRegistrationAllowed();
     boolean passwordAuthenticationAllowed();
@@ -51,18 +56,22 @@ public interface AuthRuntimeCapability {
 | `snapshot(playerId)` | 读取不可变、无 I/O 的当前连接快照 |
 | `eligibleNanos(playerId)` | 读取当前连接累计的有效准入时长 |
 | `terms()` | 获取当前条款开关、版本和正文 |
-| `passwordAuthenticationAllowed()`、`passwordRegistrationAllowed()` | 读取密码入口可用性 |
+| `passwordAuthenticationAllowed()` | 是否允许当前服务使用游戏内密码验证 |
+| `passwordRegistrationAllowed()` | 是否允许通过游戏内密码创建账号 |
 | `refresh(playerId, connectionId)` | 刷新当前连接的状态 |
 | `authenticate(playerId, connectionId, password, register, agreed, termsVersion)` | 注册或验证密码，条款同意绑定展示版本 |
 | `changePassword(playerId, connectionId, oldPassword, newPassword)` | 由本地密码身份修改密码 |
-| `confirmBinding(playerId, connectionId, code)`、`acceptTerms(playerId, connectionId, version)` | 提交准入要求 |
-| `externalPrompt(playerId)`、`externalLinkAvailable()` | 读取外部授权提示及关联入口状态 |
-| `beginExternalLink(playerId, connectionId)`、`confirmExternal(playerId, connectionId, requestId)` | 申请显式关联或确认原连接授权 |
-| `revoke(accountId, reason)` | 按账号 ID 撤销准入，填写业务原因；中心模式要求节点获授权 |
+| `confirmBinding(playerId, connectionId, code)` | 以当前连接提交 QQ 绑定验证码 |
+| `acceptTerms(playerId, connectionId, version)` | 提交玩家确认的条款版本 |
+| `externalPrompt(playerId)` | 读取该玩家的 `ExternalPrompt`，无提示时返回 `null` |
+| `externalLinkAvailable()` | 是否提供外部身份关联入口 |
+| `beginExternalLink(playerId, connectionId)` | 为原连接申请外部身份关联 |
+| `confirmExternal(playerId, connectionId, requestId)` | 使用授权提示中的请求 ID 确认原连接 |
+| `revoke(accountId, reason)` | 按账号 ID 撤销准入。异步返回 `CompletionStage<Void>`，中心模式要求节点获授权 |
 
-带玩家参数的调用使用玩家 UUID。需要连接 ID 时使用同一玩家最新快照中的 `connectionId()`。`requestId` 来自外部授权提示。`eligibleNanos` 的单位为纳秒。
+带玩家参数的调用使用玩家 UUID。需要连接 ID 时，从同一玩家的最新 `AuthSnapshot` 读取 `connectionId()`，缺少连接 ID 时等待新的快照。`eligibleNanos` 的单位为纳秒。
 
-修改状态的方法异步返回 `Result`，包含 `success`、业务状态码 `code` 及操作后的 `snapshot`。`externalPrompt` 在当前没有提示时返回 `null`。
+返回 `CompletionStage<Result>` 的操作通过 `success()` 表示业务结果，并附带 `code()` 和 `snapshot()`，异常完成需另外处理。快照的完整类型是 `xuanmo.arcartxsuite.api.auth.AuthSnapshot`。
 
 ## 调用注意事项
 

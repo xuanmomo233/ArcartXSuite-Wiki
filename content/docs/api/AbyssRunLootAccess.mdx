@@ -22,8 +22,11 @@ public interface AbyssRunLootAccess {
 
 ## 参数与返回值
 
-在 Bukkit 主线程调用。异步回调如需访问 Bukkit 对象，请切回主线程。首屏将 `cursor` 传为 `null`，每页查询 1～100 条。
-接入插件应从当前玩家会话取得 `viewerId`。只有本局原始成员能查询。`PERSONAL` 条目仅向归属人返回，`SHARED` 条目对原始成员可见。
+| 方法 | 参数 | 返回值 |
+| --- | --- | --- |
+| `snapshot` | `runId` 为实例 UUID，`viewerId` 为当前会话的玩家 UUID，首次 `cursor` 传 `null`，`limit` 为 1～100 | `CompletionStage<LootSnapshot>`，从回执读取记录和下页游标 |
+
+在 Bukkit 主线程发起查询。只有本局原始成员能查询。`PERSONAL` 条目仅向归属人返回，`SHARED` 条目对原始成员可见。
 成员离场和实例结束后，原始成员仍可回看记录。
 
 返回值包含 runId、revision、runState、entries、nextCursor、complete 和 code。

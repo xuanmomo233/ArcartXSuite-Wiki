@@ -64,7 +64,7 @@ public record AxsMailAttachmentView(
 
 ## 收件箱查询条件（AxsMailQuery）
 
-用于选择收件箱页码、每页数量、邮件状态与搜索文字。只查看还有可领附件的邮件时，使用 `hasAvailableAttachments` 条件。
+页码从 1 开始。`defaults()` 查询第 1 页，每页 20 条；`unread(pageSize)` 查询未读。`hasAvailableAttachments` 在读取该页后过滤不可领的邮件，因此 `claimable(pageSize)` 返回未满页时，后续仍可能有可领邮件。
 
 完整类型：`xuanmo.arcartxsuite.api.mail.AxsMailQuery`。
 
@@ -110,7 +110,7 @@ Builder 的可用方法（声明速查）：
     AxsMailRequest build();
 ```
 
-`item` 添加 Bukkit 物品，`currency` 添加指定货币附件，`command` 添加命令附件。`deliverAt` 和 `expireAt` 使用 `Instant`；不设置时使用模块默认行为。
+`item` 增加物品附件，`currency` 的 `provider` 填实际可用的 Suite 货币 ID。`command` 增加领取时执行的命令。当前直接发送在调用后尝试入库，`deliverAt` 不负责定时调度。`expireAt` 留空时直接邮件默认在发送后 30 天过期。完整的回执判断见[幂等发送与重试](/docs/api/AxsMailService#幂等发送与重试)。
 
 ## 邮件状态（AxsMailState）
 

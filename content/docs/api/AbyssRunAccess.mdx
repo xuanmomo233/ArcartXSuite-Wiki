@@ -68,7 +68,8 @@ public interface AbyssRunAccess {
 | 方法 | 参数 | 返回类型 |
 | --- | --- | --- |
 | `snapshot(runId)` | 活动实例 UUID | `Snapshot` |
-| `entities(runId) / entity(entityId)` | 实例 UUID / 实体 UUID | `List<Entity> / Entity` |
+| `entities(runId)` | 实例 UUID | 该局已登记的实体列表 |
+| `entity(entityId)` | 实体 UUID | 对应的 `Entity`，未登记时返回 `null` |
 | `audience(runId)` | 实例 UUID | `List<UUID>` |
 | `execute(operation)` | 实例操作请求 Operation | `OperationResult` |
 | `executeAsync(operation)` | 撤离操作请求 | 异步返回 `OperationReceipt` |
@@ -120,8 +121,11 @@ AbyssRunAccess.Operation request = new AbyssRunAccess.Operation(
     operationId, runId, snapshot.revision(), owner,
     AbyssRunAccess.Action.LEAVE, playerId, null, null);
 api.executeAsync(request).whenComplete((receipt, error) -> {
-    // 保存原 request。COMPLETED 才显示撤离完成。
-    // 回调内不直接操作 Bukkit 玩家，切回主线程后更新战术面板。
+    if (error != null) {
+        plugin.getLogger().warning("撤离结果待核对，操作 ID：" + request.operationId());
+        return;
+    }
+    plugin.getLogger().info("撤离状态：" + receipt.state() + "，结果：" + receipt.code());
 });
 ```
 

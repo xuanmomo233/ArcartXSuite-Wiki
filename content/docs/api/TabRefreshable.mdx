@@ -12,15 +12,7 @@ description: "向 Velocity 重新上报子服玩家的准入与隐身状态。"
 
 ## 获取接口
 
-```java
-import xuanmo.arcartxsuite.api.AxsCapabilities;
-import xuanmo.arcartxsuite.api.capability.TabRefreshable;
-
-TabRefreshable api = AxsCapabilities.get(TabRefreshable.class);
-if (api == null) return;
-```
-
-每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
+通过 `AxsCapabilities.get(TabRefreshable.class)` 获取接口，按[调用约定](/docs/api/quick-start#调用约定)处理不可用结果。
 
 ## 方法声明
 

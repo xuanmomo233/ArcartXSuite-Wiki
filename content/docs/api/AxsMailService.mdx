@@ -10,15 +10,7 @@ description: "异步发送、查询、领取与删除邮件"
 
 ## 获取接口
 
-```java
-import xuanmo.arcartxsuite.api.AxsCapabilities;
-import xuanmo.arcartxsuite.api.mail.AxsMailService;
-
-AxsMailService api = AxsCapabilities.get(AxsMailService.class);
-if (api == null) return;
-```
-
-每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
+通过 `AxsCapabilities.get(AxsMailService.class)` 获取接口，按[调用约定](/docs/api/quick-start#调用约定)处理不可用结果。
 
 ## 方法声明
 
@@ -53,13 +45,13 @@ public interface AxsMailService {
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
 | `usesSharedHostStorage` | 检查邮件是否写入 Suite 宿主共享 MySQL。跨服持久奖励需要此检查通过。 | 无 | `boolean` |
-| `send` | 发送一封系统邮件。 收件人无需在线，邮件存入收件箱，玩家上线后查看领取附件。 使用 `AxsMailRequest#idempotencyKey()` 作为去重标识。 | `request`：邮件发送请求 | 异步回执，`AxsDeliveryReceipt#isNoOp()` 为 true 表示模块未就绪 |
+| `send` | 发送系统邮件，收件人无需在线。 | `request`：含稳定去重键的邮件请求 | 异步回执，`isNoOp()` 表示本次未投递或无法确认已有投递 |
 | `sendDurable` | 根据持久化的待发记录重试发送，使用与 `send` 相同的事务和去重语义。 | `request`：邮件发送请求 | 异步回执 |
 | `sendPresetDurable` | 按业务凭证发送指定的邮件预设。 | 收件人 UUID、预设 ID、来源模块及操作键 | 异步回执 |
-| `getMail` | 查询玩家自己的单封邮件。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步邮件视图，不存在时返回 `null` |
-| `getInbox` | 查询玩家收件箱。 | `playerId`：玩家 UUID；`query`：查询条件 | 异步邮件视图列表 |
-| `getUnreadCount` | 查询玩家未读邮件数量。 | `playerId`：玩家 UUID | 异步未读数量 |
-| `markRead` | 标记邮件为已读并返回详情。 如果邮件已经是已读或更后状态，不改变状态但仍返回邮件视图。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步邮件视图，不存在时返回 `null` |
+| `getMail` | 查询玩家自己的单封邮件。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步视图。无记录或读取失败时可得到 `null` |
+| `getInbox` | 查询玩家收件箱。 | `playerId`：玩家 UUID；`query`：从第 1 页起的查询条件 | 异步视图列表，读取失败时也可能返回空列表 |
+| `getUnreadCount` | 查询玩家未读邮件数量。 | `playerId`：玩家 UUID | 异步未读数量，读取失败时会记录日志并回退为 0 |
+| `markRead` | 标记邮件为已读并返回详情。已读或后续状态保持原状态。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步视图。无记录或处理失败时可得到 `null` |
 | `claim` | 领取邮件的全部可领附件。 领取物品附件需要玩家在线（发放到背包）。玩家离线时返回 `AxsClaimResult#playerOffline()`。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步领取结果 |
 | `delete` | 删除没有受保护附件的邮件。 还有未领取附件时返回 `AxsDeleteResult#protectedAttachments()`。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步删除结果 |
 
@@ -73,7 +65,7 @@ public interface AxsMailService {
 
 一个订单含多个邮件预设时，每项使用各自的操作键，例如订单编号加预设序号。收到正数邮件 ID 表示该项已入库。用同一个键核对已经入库的预设，即使该预设后来停用或删除，也能取得原邮件 ID。
 
-多人发送异常时，用原请求重试尚未收到的收件人。`recipientCount()` 返回本次新收件人数；`mailId()` 仅是首位收件人的邮件 ID。
+多人发送可能部分入库后异常完成。沿用原请求重试时，已入库的收件人会按原键去重。`recipientCount()` 是本次新增收件人数，`mailId()` 是首位收件人的邮件 ID。
 
 发送回执确认邮件已入库，玩家是否领取需另行查询。保留自己的待发记录，直到收到有效回执；`isNoOp()` 为 `true` 或发生异常时，继续保留并安排重试。`send` 和 `sendDurable` 都直接尝试入库，`deliverAt` 不会延迟调用，定时发放需由调用方安排触发时间。
 

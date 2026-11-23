@@ -32,23 +32,26 @@ if (result.state() == RegionProtectionQueryable.State.DENY) {
 public interface RegionProtectionQueryable {
     String REGION_CHANGE_TOPIC = "axs.regions.region_change";
 
-    Decision decide(String world, int x, int y, int z, String flag, Player player);
-    List<Boundary> boundaries(String world);
+    @NotNull Decision decide(@NotNull String world, int x, int y, int z,
+                             @NotNull String flag, @Nullable Player player);
+    @NotNull List<Boundary> boundaries(@NotNull String world);
 
     enum State { NONE, ALLOW, DENY }
     enum Reason { UNSET, BYPASS, DIRECT, INHERITED, MEMBER_EXEMPT }
     enum Kind { MANAGED, CLAIM, GLOBAL }
 
-    record Identity(UUID uuid, String world, String id, Kind kind) {}
+    record Identity(@NotNull UUID uuid, @NotNull String world, @NotNull String id,
+                    @NotNull Kind kind) {}
 
     record Boundary(
-        Identity region,
+        @NotNull Identity region,
         int minX, int minY, int minZ,
         int maxX, int maxY, int maxZ,
         int priority
     ) {}
 
-    record Decision(State state, Reason reason, Identity matched, Identity source) {}
+    record Decision(@NotNull State state, @NotNull Reason reason,
+                    @Nullable Identity matched, @Nullable Identity source) {}
 }
 ```
 

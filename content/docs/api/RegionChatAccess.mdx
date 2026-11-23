@@ -32,8 +32,8 @@ for (var recipient : recipients) {
 
 ```java
 public interface RegionChatAccess {
-    boolean canSendPublic(Player sender);
-    boolean canReceivePublic(Player recipient);
+    boolean canSendPublic(@NotNull Player sender);
+    boolean canReceivePublic(@NotNull Player recipient);
 }
 ```
 

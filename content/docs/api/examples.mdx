@@ -7,16 +7,7 @@ description: "打开菜单、发放称号、查询和发送邮件。"
 
 ## 打开功能菜单
 
-```java
-import xuanmo.arcartxsuite.api.AxsCapabilities;
-import xuanmo.arcartxsuite.api.capability.MenuOpenable;
-
-MenuOpenable menus = AxsCapabilities.get(MenuOpenable.class);
-boolean opened = menus != null && menus.openMenu(player, "example");
-if (!opened) player.sendMessage("菜单暂不可用。");
-```
-
-`player` 为当前在线玩家，`example` 为菜单 ID。
+见[菜单接入的完整最小插件](/docs/api/quick-start#完整最小示例)，包含注册命令、查找能力和处理打开失败。
 
 ## 发放限时称号
 
@@ -26,17 +17,18 @@ import xuanmo.arcartxsuite.api.capability.TitleGrantable;
 
 TitleGrantable titles = AxsCapabilities.get(TitleGrantable.class);
 boolean granted = titles != null && titles.giveTitle(
-    player.getUniqueId(), "hero", "7d", "MyPlugin");
+    player.getUniqueId(), "adventurer", "7d", "MyPlugin");
 if (!granted) player.sendMessage("称号未发放，请稍后重试。");
 ```
 
-先在 Title 中创建 `hero`。有效期格式及重复授予行为见[称号使用说明](/docs/title/player-state)。调用成功后再记录你的活动奖励已发放状态。
+启用 Title 和随包的 `adventurer`，或替换为已有称号 ID。显示和装备规则见[称号使用说明](/docs/title/player-state)。检查布尔结果后再记录活动奖励状态。
 
 ## 异步查询未读邮件
 
 ```java
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import xuanmo.arcartxsuite.api.AxsCapabilities;
@@ -51,18 +43,22 @@ public void showUnread(JavaPlugin plugin, Player player) {
     UUID playerId = player.getUniqueId();
     mail.getUnreadCount(playerId).whenComplete((count, error) -> {
         if (!plugin.isEnabled()) return;
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            Player online = Bukkit.getPlayer(playerId);
-            if (online != player || !online.isOnline()) return;
-            online.sendMessage(error == null
-                ? "未读邮件：" + count
-                : "查询失败，请稍后重试。");
-        });
+        try {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                Player online = Bukkit.getPlayer(playerId);
+                if (online != player || !online.isOnline()) return;
+                online.sendMessage(error == null
+                    ? "未读邮件：" + count
+                    : "查询失败，请稍后重试。");
+            });
+        } catch (IllegalPluginAccessException ignored) {
+            // 插件在提交回调期间停用。
+        }
     });
 }
 ```
 
-回到主线程后只向原连接发送结果。 [邮件接口](/docs/api/AxsMailService) · [请求与结果类型](/docs/api/data-types)
+回到主线程后只向原连接发送结果。未读数在读取失败时也可能回退为 0，适合展示，不宜作为判断邮件是否已送达的凭据。 [邮件接口](/docs/api/AxsMailService) · [请求与结果类型](/docs/api/data-types)
 
 ## 发送活动奖励邮件
 
@@ -88,8 +84,8 @@ mail.send(request).whenComplete((receipt, error) -> {
         // 记录失败并安排重试；重试保持 rewardKey 不变。
         return;
     }
-    if (receipt.mailId() <= 0) {
-        // 邮件服务暂不可用，保留待发记录。
+    if (receipt.isNoOp() || receipt.mailId() <= 0) {
+        // 本次未确认入库，保留待发记录。
         return;
     }
     // receipt.mailId() 是邮件标识；duplicate() 表示本次是重复请求。

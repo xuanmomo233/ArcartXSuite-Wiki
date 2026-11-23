@@ -10,15 +10,7 @@ description: "注册地图点位、导航目标与回调"
 
 ## 获取接口
 
-```java
-import xuanmo.arcartxsuite.api.AxsCapabilities;
-import xuanmo.arcartxsuite.api.capability.MapNavigable;
-
-MapNavigable api = AxsCapabilities.get(MapNavigable.class);
-if (api == null) return;
-```
-
-每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
+通过 `AxsCapabilities.get(MapNavigable.class)` 获取接口，按[调用约定](/docs/api/quick-start#调用约定)处理不可用结果。
 
 ## 方法声明
 
@@ -79,6 +71,7 @@ public interface MapNavigable {
 | `removeExternalTarget` | 删除指定来源的单个外部目标，同时更新视图。 | `player`：目标玩家；`source`：来源标识；`targetId`：外部目标 ID | `true` 表示已删除 |
 | `reconcileExternalTargets` | 用给定集合原子替换某来源的全部外部目标（reconcile）。 与"先 `#clearExternalTargets` 再 `#upsertExternalTargets`"的区别： 单次视图同步，且选中态按最终集合回收——仍存在的目标保持选中不闪断。 适合来源周期性全量推送"当前所有目标"的场景。 | `player`：目标玩家；`source`：来源标识；`specs`：最终目标集合（空列表 = 清空该来源全部目标） | 无返回值 |
 | `clearExternalTargets` | 清除指定来源的所有外部导航目标。 | `player`：目标玩家；`source`：来源标识；空字符串表示清除全部来源；`syncView`：是否安排视图刷新 | 无返回值 |
+| `setExternalNavigated` | 更新外部导航目标的追踪状态 | `player`：目标玩家；`targetId`：已登记的目标 ID；`navigated`：是否标为追踪中 | 无返回值；开启内置导航使用 `navigateExternalTarget` |
 | `navigateExternalTarget` | 由地图内置导航栈开始导航指定外部目标（"地图代导航"命令式入口）。 与 spec 的 `useMapNavigation` 标志等价，适用于来源想在 `MapNavigationHandler#onNavigateRequest` 里按需决策的场景； 也可独立调用。效果等同玩家在面板点击"导航"： 地图建立客户端路标与路径标记、记录导航态、目标按钮切换为"取消"。 到达判定/命令钩子/标题模板使用地图 `navigation.*` 配置。 本方法不经过全局委托（委托只拦截面板点击）；取消时来源不会收到 `onCancelRequest`（该导航由地图执行）。 | `player`：目标玩家；`targetId`：已推送的外部目标 id | `true` 表示导航已开始（已在导航同目标也返回 true）； `false` 表示目标不存在或地图导航不可用 |
 | `registerNavigationSource` | 注册外部目标导航回调（按 source 归属）。 玩家在地图面板点击该来源目标的"导航"/"取消"时回调 handler。 同一 source 重复注册会覆盖旧 handler。 | `owner`：归属插件（用于插件禁用时自动注销回调）；`source`：来源标识（须与 spec 中的 source 一致）；`handler`：导航回调 | 无返回值 |
 | `unregisterNavigationSource` | 注销指定来源的导航回调。 | `source`：来源标识 | 无返回值 |

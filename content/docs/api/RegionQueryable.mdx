@@ -26,17 +26,17 @@ if (api != null) {
 
 ```java
 public interface RegionQueryable {
-    List<RegionInfo> regionsAt(String world, int x, int y, int z);
-    List<RegionInfo> regionsInWorld(String world);
-    List<RegionInfo> allRegions();
-    int countRegionsByOwner(UUID owner);
+    @NotNull List<RegionInfo> regionsAt(@NotNull String world, int x, int y, int z);
+    @NotNull List<RegionInfo> regionsInWorld(@NotNull String world);
+    @NotNull List<RegionInfo> allRegions();
+    int countRegionsByOwner(@NotNull UUID owner);
 
     record RegionInfo(
-        String id, String world,
+        @NotNull String id, @NotNull String world,
         int minX, int minY, int minZ,
         int maxX, int maxY, int maxZ,
-        int priority, String parentId,
-        Set<UUID> owners, Set<UUID> members
+        int priority, @Nullable String parentId,
+        @NotNull Set<UUID> owners, @NotNull Set<UUID> members
     ) {}
 }
 ```
@@ -50,7 +50,7 @@ public interface RegionQueryable {
 | `allRegions` | 无 | 全部世界的有界区域 |
 | `countRegionsByOwner` | 玩家 UUID `owner` | 玩家直接列在所有者中的区域数，权限组身份另行计算 |
 
-`RegionInfo` 返回区域名、世界、包含边界的三维坐标、优先级、可空的父区 ID，以及直接列出的所有者和成员 UUID。权限组列表和旗标结果通过相应功能查询。
+`RegionInfo` 返回包含边界的三维坐标、优先级、可空的父区 ID 和不可变的直接成员列表。`contains(world, x, y, z)` 检查坐标是否落在该区域内。`hasAccess(playerUuid)` 检查是否直接列为所有者或成员。
 
 ## 调用注意事项
 

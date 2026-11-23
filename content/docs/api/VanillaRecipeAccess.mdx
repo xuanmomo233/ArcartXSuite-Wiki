@@ -22,16 +22,17 @@ public VanillaRecipeAccess.Registration registerRecipe(Plugin plugin) {
     VanillaRecipeAccess api = AxsCapabilities.get(VanillaRecipeAccess.class);
     if (api == null) return null;
 
-    var ingredient = new VanillaRecipeAccess.Ingredient(List.of(Material.IRON_INGOT), List.of());
+    var ingredient = new VanillaRecipeAccess.Ingredient(List.of(Material.COPPER_INGOT), List.of());
     var definition = new VanillaRecipeAccess.Definition(
-        "demo_iron_nuggets", VanillaRecipeAccess.Station.SHAPELESS, List.of(ingredient),
-        new ItemStack(Material.IRON_NUGGET, 9), "", 0, 0, null
+        "demo_copper_books", VanillaRecipeAccess.Station.SHAPELESS, List.of(ingredient),
+        new ItemStack(Material.BOOK, 2), "", 200, 0.0f,
+        VanillaRecipeAccess.SmithingData.INHERIT_BASE
     );
     return api.register(plugin, definition);
 }
 ```
 
-在 Bukkit 主线程调用 `registerRecipe`，保存返回的注册句柄。返回 `null` 表示接口不可用。停用插件时调用句柄的 `close()` 注销配方。
+启用 Vanilla 和 `recipes.enabled` 后，在 Bukkit 主线程调用 `registerRecipe`。句柄的 `key()` 是注册的配方键。用测试玩家放入一枚铜锭，应能从工作台取出两本书。停用接入插件时调用句柄的 `close()` 注销配方。
 
 ## 方法声明
 
@@ -54,9 +55,11 @@ public interface VanillaRecipeAccess {
 | `registerModule` | 注册 Suite 模块配方 | `ownerModuleId` 为调用模块 ID，`definition` 为配方定义 | 可关闭的 `Registration` |
 | `recipes` | 查询配方 | 无参数 | 配方条目列表 |
 | `recipe` | 查询指定配方 | `key` 为配方的命名空间键 | `Optional<Entry>`，查无结果时为空 |
-| `preview` | 预览玩家可用材料 | `player` 为目标玩家，`key` 为配方键 | 异步返回配方及是否可填料 |
-| `fill` | 向当前工作区填料 | `player` 为目标玩家，`key` 为配方键，`expectedRevision` 取自查询结果 | 异步返回是否填入、配方版本和提示 |
+| `preview` | 预览玩家可用材料 | `player` 为目标玩家，`key` 为配方键 | 异步 `Preview`，含配方条目和 `canFill()`。配方不存在时会在返回 Future 前抛出 `IllegalArgumentException` |
+| `fill` | 向当前工作区填料 | `player` 为目标玩家，`key` 为配方键，`expectedRevision` 取自 `Entry.revision()` | 异步回执，`placed()` 表示是否填入，另有配方版本和提示 |
 
 ## 调用注意事项
 
 有序合成按从左到右、从上到下填写九格，空格用 `Ingredient.blank()`。无序合成填写一至九项。锻造依次填写模板、基材、添加物，酿造填写瓶中原料和酿造材料。每项材料只选类型或精确物品其中一种。
+
+`Definition` 中的 `cookingTicks` 至少为 1，`experience` 是有限且非负的值，注册时所有工位均会校验。工作台配方可沿用示例中的 `200` 和 `0.0f`。

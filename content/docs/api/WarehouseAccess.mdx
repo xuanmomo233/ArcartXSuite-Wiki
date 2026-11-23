@@ -10,15 +10,7 @@ description: "操作仓库物品与查询容量"
 
 ## 获取接口
 
-```java
-import xuanmo.arcartxsuite.api.AxsCapabilities;
-import xuanmo.arcartxsuite.api.capability.WarehouseAccess;
-
-WarehouseAccess api = AxsCapabilities.get(WarehouseAccess.class);
-if (api == null) return;
-```
-
-每次调用前获取接口。模块不可用时返回 `null`。 [调用约定](/docs/api/quick-start#调用约定)
+通过 `AxsCapabilities.get(WarehouseAccess.class)` 获取接口，按[调用约定](/docs/api/quick-start#调用约定)处理不可用结果。
 
 ## 方法声明
 

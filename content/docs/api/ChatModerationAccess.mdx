@@ -27,7 +27,7 @@ public interface ChatModerationAccess {
 
 ## 参数与返回值
 
-玩家操作者须通过准入，并具有 `arcartxsuite.admin` 或 `arcartxsuite.chat.review`。结果直接发送给 `operator`，此方法不返回查询列表。
+`inspect` 接收实际操作者、操作名和字符串参数。玩家操作者须通过准入，并具有 `arcartxsuite.admin` 或 `arcartxsuite.chat.review`。结果以消息发送给 `operator`，调用返回 `void`。
 
 | `action` | `argument` | 用途 |
 | --- | --- | --- |

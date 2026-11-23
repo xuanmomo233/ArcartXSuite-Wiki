@@ -119,7 +119,8 @@ public interface AbyssAdmissionAccess {
 | `integrationInfo()` | 无 | `IntegrationInfo` |
 | `catalog()` | 无 | `List<Dungeon>` |
 | `playerState(player)` | 玩家 UUID | `PlayerState` |
-| `run(runId) / activeRuns()` | 实例 UUID / 无 | `Run / List<Run>` |
+| `run(runId)` | 实例 UUID | 匹配的 `Run`，找不到时返回 `null` |
+| `activeRuns()` | 无 | 当前活动副本的 `List<Run>` |
 | `preflight(intent)` | 本次 Intent | `Preflight` |
 | `requestEntry(intent, token)` | 同一请求、预检令牌 | `Entry` |
 | `entryStatus(owner, requestId)` | 所有者、稳定请求 UUID | `Entry` |

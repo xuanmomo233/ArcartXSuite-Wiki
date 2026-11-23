@@ -28,6 +28,8 @@ public interface ChatExternalRelay {
 
 ## 参数与返回值
 
+调用 `receive` 返回 `CompletionStage<Boolean>`。连接器应使用自己的绑定校验结果和频道配置。
+
 | 参数 | 用途 |
 | --- | --- |
 | `channelId` | Chat 中允许外部消息进入的频道 ID |
