@@ -43,20 +43,13 @@ description: "安装物品提示客户端扩展，并选择枪械浏览界面的
 
 ## 管理员：枪械浏览界面双模式
 
-服务端 `plugins/ArcartX-Suite/data/tooltip/config.yml`：
-
-| `gun-list.mode` | 玩家看到的界面 |
-|---|---|
-| `ax` | 服务端下发的 AX 自定义 UI（`ui/gun_list.yml`，可自定义皮肤布局） |
-| `mod` | 客户端本地界面（服务端只推模式，界面在客户端渲染） |
-
-- 修改后 `axs reload tooltip` 生效，自动向全部在线玩家补推新模式
-- `/axs tooltip push <玩家>` 手动重推指定玩家（排查用）
-- `/axs tooltip status` 查看当前模式与推送通道
+界面模式由[服务端配置](/docs/tooltip/configuration#主配置文件configyml)选择。出现界面不符时，可按[管理命令](/docs/tooltip/commands)查看当前模式并向在线玩家重推。
 
 ## tip UI 编写：Aria 函数
 
 命名空间 `axstooltip`，均为全局函数，在 `texts`/`visible` 等属性表达式中直接调用，每帧求值实时刷新：
+
+词条函数读取当前物品提示。验证时从带词条的装备快速移到普通物品，后者应继续显示自己的说明。未悬停物品或当前提示无法读取物品时，扩展词条按空列表处理。
 
 | 函数 | 返回 | 说明 |
 |---|---|---|
@@ -73,24 +66,4 @@ description: "安装物品提示客户端扩展，并选择枪械浏览界面的
 
 ### tip yml 最小示例
 
-```yaml
-tacz信息:
-  type: Text
-  val: tacz
-  attribute:
-    texts: axstooltip.getTaczLore()
-    fontSize: 38
-    visible: axstooltip.hasTacz()
-lore:
-  type: Text
-  val: lore
-  attribute:
-    texts: var.lore列表
-    visible: axstooltip.loreVisible()
-按键提示:
-  type: Text
-  attribute:
-    point: ~bottom_right
-    texts: "'§8按 ' + axstooltip.loreKeyName() + (axstooltip.loreVisible() ? ' 隐藏说明' : ' 显示说明')"
-    fontSize: 32
-```
+配置目录、外层 `root_control` 和函数写法见[物品提示样例](/docs/tooltip/tip-example#完整配置)。

@@ -5,8 +5,8 @@ description: "在 Velocity 代理中汇总参与子服的玩家，验证准入�
 
 ## 启用跨服名单
 
-1. 在各参与子服的 `plugins/ArcartX-Suite/data/tab/config.yml` 中设置 `settings.proxy-roster: true`，执行 `/axs reload tab`。
-2. 在 Suite Velocity 插件的 `proxy-config.yml` 中加入以下设置，保存后重启代理。
+1. 在连接这些子服的代理上安装 Suite Velocity。子服启用 Tab，在各自的 `plugins/ArcartX-Suite/data/tab/config.yml` 中设置 `settings.proxy-roster: true`，再执行 `axs reload tab`。
+2. 在 Velocity 的 Suite 插件目录中编辑已生成的 `proxy-config.yml`，合并以下设置后重启代理。
 
 ```yaml
 tab-list:
@@ -20,4 +20,4 @@ tab-list:
 
 ## 检查显示与隐身
 
-用两个账号分别进入不同子服，按 Tab 核对名单，再让其中一人隐身并切服，确认另一人的名单仍隐藏该玩家。
+用两个已准入的测试账号分别进入子服 A 和 B，按 Tab 确认双方都能看到对方。再用有权限的账号开启隐身，先确认另一人的名单中已消失，然后切服并重新查看名单。关闭隐身后，确认可见玩家重新出现。

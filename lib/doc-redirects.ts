@@ -171,6 +171,36 @@ export const docRedirects: Record<string, DocRedirect> = {
       '配置管理': '/docs/tooltip/configuration/#主配置文件configyml',
     },
   },
+  'chat/configuration': {
+    sections: {
+      '频道字段表': '/docs/chat/channels/#频道定义字段',
+      '普通频道normalyml': '/docs/chat/channels/#创建一个附近频道',
+      '全服频道globalyml': '/docs/chat/channels/#频道模式',
+      '私聊频道privateyml': '/docs/chat/channels/#频道模式',
+      '管理频道staffyml': '/docs/chat/channels/#权限模型',
+    },
+  },
+  'mail/configuration': {
+    sections: {
+      '物品附件': '/docs/mail/presets/#物品附件item-attachments',
+      '货币附件': '/docs/mail/presets/#货币附件currency-attachments',
+      '领取命令': '/docs/mail/presets/#领取命令claim-commands',
+    },
+  },
+  'questgps/gate': {
+    sections: {
+      '拦截行为': '/docs/questgps/gate/#分类拦截',
+      '拦截行为-1': '/docs/questgps/gate/#命令拦截',
+      '拦截行为-2': '/docs/questgps/gate/#模块入口拦截',
+      '拦截行为-3': '/docs/questgps/gate/#事件规则拦截',
+    },
+  },
+  'title/configuration': {
+    sections: {
+      '称号定义字段表': '/docs/title/title-definitions/#称号定义字段全表',
+      '属性键值对与文本行': '/docs/title/title-definitions/#展示属性display-attributes',
+    },
+  },
 };
 
 export function getDocRedirect(slugs: string[] = []) {

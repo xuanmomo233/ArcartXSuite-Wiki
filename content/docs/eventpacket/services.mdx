@@ -3,20 +3,22 @@ title: "定时命令"
 description: "按整点、指定时间或固定间隔运行游戏服控制台命令。"
 ---
 
-定时规则在配置了该规则的游戏服执行。把下例加入 `config.yml` 的 `rules` 段，执行 `/axs reload eventpacket`。
+定时规则在配置了该规则的游戏服执行。先将下例加到 `plugins/ArcartX-Suite/data/eventpacket/config.yml` 的 `rules` 段，并执行 `axs reload eventpacket`。
 
 ```yaml
 rules:
-  save-every-ten-minutes:
+  trial-timer:
     trigger: schedule
     schedule:
       mode: interval
-      interval-minutes: 10
+      interval-seconds: 15
     actions:
       - type: command
         executor: console
-        command: save-all
+        command: "say EventPacket 定时测试"
 ```
+
+等待两轮，核对游戏聊天中的定时测试消息。验证完后删除 `trial-timer` 或设为 `enabled: false`，再重载。需要在群组服只执行一次的业务，只在负责该任务的子服开启规则。
 
 | `schedule.mode` | 用途 | 字段示例 |
 | --- | --- | --- |

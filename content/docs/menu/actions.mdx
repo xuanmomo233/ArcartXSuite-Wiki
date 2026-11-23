@@ -5,23 +5,14 @@ description: "为菜单按钮配置命令、消息、音效、菜单跳转与延
 
 ## 最常用的写法
 
-在按钮的 `actions` 列表中逐行填写动作。下面的按钮先关闭菜单，等待 10 ticks，再执行玩家命令。
-
-```yaml
-actions:
-  - "close"
-  - "delay: 10"
-  - "command: warehouse open"
-```
-
-`20 ticks = 1 秒`。动作中的命令不带开头的 `/`。
+在按钮的 `actions` 列表中按执行顺序填写动作。命令省略开头的 `/`，延迟使用游戏刻，正常 20 TPS 下 20 刻约为 1 秒。
 
 ## 动作速查
 
 | 动作 | 示例 | 效果 |
 | --- | --- | --- |
 | 玩家命令 | `command: spawn` | 按玩家已有权限执行命令 |
-| 控制台命令 | `console: say %player_name% 打开了菜单` | 以控制台身份执行 |
+| 控制台命令 | `console: say {player} 打开了菜单` | 以控制台身份执行 |
 | 发消息 | `message: &a欢迎来到服务器` | 向当前玩家发送消息 |
 | 聊天 | `chat: 大家好` | 以玩家身份发送聊天 |
 | 打开菜单 | `open: teleport` | 打开 ID 为 teleport 的菜单 |
@@ -30,6 +21,7 @@ actions:
 | 延迟 | `delay: 10` | 等待后继续下一条动作 |
 | 音效 | `sound: UI_BUTTON_CLICK` | 播放音效，名称以服务端支持为准 |
 | 切服 | `connect: survival` | 切换到已配置的子服 |
+| 发送信号 | `signal: welcome_demo` | 向 EventPacket 发送同名信号 |
 
 ## 给按钮添加动作
 
@@ -46,7 +38,22 @@ warehouse:
     - "command: warehouse open"
 ```
 
-需要启用 Warehouse，并确认玩家可执行对应命令。
+先启用 Warehouse，用普通玩家手动执行 `/warehouse open` 验证权限和界面。按钮应先关闭菜单，再打开仓库。
+
+## 按钮发送信号
+
+先按[用信号播放字幕](/docs/eventpacket/actions#用信号播放字幕)准备 Announcer 字幕组和 EventPacket 规则，并确认管理员手动触发时字幕正常。再将下例放入已有菜单一页的 `buttons`：
+
+```yaml
+welcome_notice:
+  text: "播放欢迎字幕"
+  icon:
+    material: PAPER
+  actions:
+    - "signal: welcome_demo"
+```
+
+重载 Menu 后，用普通玩家点击按钮。应播放已验证的字幕。规则需要额外匹配字段时，可以写 `signal: welcome_demo|source=menu`，在对应 EventPacket 规则中用 `when.source: menu` 核对。
 
 ## 菜单与页面有什么区别
 

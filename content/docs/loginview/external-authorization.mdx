@@ -128,17 +128,7 @@ https://auth.example.net/v1/external/callback
 
 ## 环境变量与启动
 
-中心进程需要游戏节点密钥，以及身份提供方分配的应用密钥。在启动中心的 PowerShell 窗口中设置以下环境变量。
-
-```powershell
-$env:AXS_AUTH_LOBBY_KEY = '与游戏服相同的节点密钥'
-$env:AXS_WEBSITE_OIDC_SECRET = '网站为 axs-center 分配的应用密钥'
-& 'D:\AXSAuth\bin\auth-center.bat' 'D:\AXSAuth\center.json'
-```
-
-游戏服只需要 `AXS_AUTH_LOBBY_KEY`。网站应用密钥配置在中心进程。
-
-中心启动失败时，根据日志核对环境变量、公钥格式和身份提供方的 HTTPS 端点。配置前替换样例中的全部占位参数。
+按[独立认证中心的启动步骤](/docs/loginview/center#启动中心)设置环境变量并启动中心。`AXS_WEBSITE_OIDC_SECRET` 填网站为 `axs-center` 分配的应用密钥，游戏服进程只需配置自己的节点密钥。中心启动失败时，根据日志核对变量名、密钥与身份提供方的 HTTPS 端点。
 
 ## 官网授权验证
 

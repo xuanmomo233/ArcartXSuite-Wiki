@@ -100,49 +100,7 @@ description: "调整presets/ 邮件预设、附件、有效期与清理设置；
 
 ## 邮件附件配置
 
-邮件附件分为三种类型（`MailAttachmentType` 枚举）：
-
-| 附件类型 | 枚举值 | 配置字段 | 说明 |
-|---|---|---|---|
-| 物品附件 | `ITEM` | `item-attachments` | 序列化为 Base64 存储完整 NBT/附魔/自定义模型数据 |
-| Vault 货币 | `VAULT` | `currency-attachments`（currency 为 `money`） | 走 Vault 经济桥接 |
-
-### 物品附件
-
-物品附件支持两种配置方式：
-
-1. **`item-data`**（推荐）：完整 Base64 物品数据，保留 customModelData/附魔/PDC/自定义 NBT 等全部字段。管理员 UI 保存预设时自动生成。
-2. **`source` + `id`**：按配置生成物品，支持以下来源：
-
-| source 值 | 物品库 | id 格式 |
-|---|---|---|
-| `minecraft` | 原版物品 | 材质名（如 `APPLE`、`DIAMOND`） |
-| `mythic` | MythicMobs | MythicMobs 内部物品名 |
-| `neige` | NeigeItems | NeigeItems 物品 ID |
-| `overture` | Overture | Overture 物品 ID |
-| `mmoitems` | MMOItems | `类型ID;物品ID`（如 `SWORD;LEGENDARY_SWORD`） |
-
-物品附件还支持 `name`（自定义名称）、`lore`（自定义描述）、`custom-model-data`、`nbt` 等属性，详见 [物品来源](/docs/guide/item-sources)。
-
-### 货币附件
-
-货币附件配置在 `currency-attachments` 列表中，每个条目包含：
-
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `amount` | double | 货币数量（必须 `>` 0） |
-| `description` | String | 附件展示描述（可选，默认为 `货币ID 数量`） |
-| `icon` | Icon | 货币附件展示图标（可选，与 menu 模块 IconDefinition 一致） |
-
-### 领取命令
-
-`claim-commands` 列表定义玩家领取邮件时额外执行的命令，支持 `{player}` 等变量：
-
-```yaml
-claim-commands:
-  - "tell {player} 你领取了奖励。"
-  - "lp user {player} permission set vip.reward true"
-```
+预设邮件的附件写在预设文件中。查看[物品附件](/docs/mail/presets#物品附件item-attachments)、[货币附件](/docs/mail/presets#货币附件currency-attachments)或[领取命令](/docs/mail/presets#领取命令claim-commands)的字段和示例。货币 ID 来自[本体货币配置](/docs/guide/currencies)。
 
 ## 邮件过期/清理配置
 

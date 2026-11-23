@@ -3,7 +3,9 @@ title: "tip 配置示例"
 description: "参考完整物品提示界面示例，调整说明文字与显示布局。"
 ---
 
-以下是配合客户端 mod `axstooltip.*` 函数的完整物品 tip 配置，可直接放入 `plugins/ArcartX-Suite/tips/` 使用（材质路径 `/tippz/` 按实际资源调整）。
+把示例放在 **ArcartX 服务端配置目录**下的 `tooltip/` 中。它使用客户端扩展的 `axstooltip.*` 函数和客户端背景贴图。先把背景引用指向已下发的资源，再用 ArcartX 的重载入口加载。 [ArcartX 物品提示文档](https://wiki.arcartx.com/docs/arcartx_v2/9_tip/1_info)
+
+`tip.match: "default"` 会用于未匹配到其他模板的物品。测试时可先改成专用测试物品名称中的一段文字，并只在测试服加载。
 
 ## 效果
 

@@ -211,7 +211,7 @@ footer-buttons:
 
 ### UI 注册
 
-自定义 UI 文件需放置在 `ArcartXSuite/ui/` 目录下，文件名为 `<ui-id>.yml`。模块启动时自动注册所有 `ui-targets` 中声明的非内置 UI：文件不存在或注册失败时记录警告。
+自定义 UI 文件放在 `plugins/ArcartX-Suite/ui/`，文件名为 `<ui-id>.yml`。自定义 `ui-id` 填不带命名空间的注册名，例如 `trial_panel` 对应 `trial_panel.yml`。重载 Menu 后检查注册日志。
 
 ### 可见性过滤
 

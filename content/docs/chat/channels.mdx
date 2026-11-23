@@ -59,7 +59,7 @@ Chat 模块支持五种频道模式：
 | `send-permission` | `string` | `""` | 发送所需权限，空串表示无限制 |
 | `receive-permission` | `string` | 继承 `send-permission` | 接收所需权限 |
 | `cross-server` | `boolean` | `mode` 为 `global`/`staff` 时 `true` | 是否跨服传输 |
-| `range` | `double` | `0` | 本地聊天半径（0 表示全图），仅 `normal` 模式生效 |
+| `range` | `double` | `0` | `normal` 可设置同世界的接收距离。设为 `0` 时不按距离过滤 |
 | `format` | `string` | `&7[{channel}] &f{player_name}&7: &r{message}` | 常规消息格式模板 |
 | `console-format` | `string` | `[{channel}] {player_name}: {message}` | 控制台消息格式模板 |
 | `sender-format` | `string` | `&d[私聊 -> {target_name}] ...` | 私聊发送者视角格式模板 |
@@ -75,38 +75,20 @@ Chat 模块支持五种频道模式：
 - 频道定义文件位于 `channels-directory` 指定的目录下（默认 `chat/channels/`）
 - 文件名（去掉 `.yml` 后缀）即为频道 ID，自动转为小写
 - `enabled: false` 的频道会被跳过
-- 首次启动时自动释放 `Normal.yml`、`Global.yml`、`Private.yml`、`Staff.yml` 四个默认频道
+- 频道目录为空时，会导出 `Normal.yml`、`Global.yml`、`Private.yml`、`Staff.yml`。模块还会补齐缺失的 `Party.yml`，已有自定义文件保留
 - `settings.default-channel` 指定玩家首次加入时的默认频道；配置的 ID 不存在时自动回退到首个有效频道
-
-<Callout type="warn">
-如果频道目录为空（没有任何 `.yml` 文件），所有聊天功能将不可用。
-</Callout>
 
 ## 范围聊天
 
-`normal` 模式频道支持 `range` 字段实现附近聊天。当 `range` 大于 0 时，消息仅发送给**同世界**且距离发送者 `range` 格内的玩家；`range: 0` 为全图广播。
+`normal` 模式下，`range` 大于 0 时，消息仅发送给同世界且在距离内的玩家。设为 `0` 时，符合接收条件的本服玩家不受世界或距离限制。
 
 <Callout type="info">
-范围聊天仅对 `normal` 模式生效。`global`、`staff` 模式忽略 `range` 字段，`private` 模式不涉及范围判定。
+范围聊天仅对 `normal` 模式生效。其他模式填正数 `range` 会导致频道配置校验失败。
 </Callout>
 
 ### 范围聊天配置示例
 
-```yaml
-# 附近频道示例：仅 50 格内玩家可见
-enabled: true
-display-name: "附近"
-mode: "normal"
-send-permission: ""
-receive-permission: ""
-cross-server: false
-range: 50
-format: "&8[附近] &f{player_name}&7: &r{message}"
-console-format: "[附近] {player_name}: {message}"
-sender-format: "&d[私聊 -> {target_name}] &f{player_name}&7: &r{message}"
-recipient-format: "&d[私聊 <- {player_name}] &f{player_name}&7: &r{message}"
-spy-format: "&5[监听 {player_name} -> {target_name}] &r{message}"
-```
+从[附近频道示例](#创建一个附近频道)开始。调整 `range` 后，用两名玩家在同一世界的边界内外分别发送，再跨世界复测。
 
 ## 权限模型
 
@@ -116,7 +98,7 @@ spy-format: "&5[监听 {player_name} -> {target_name}] &r{message}"
 - **接收权限**：接收消息时校验 `receive-permission`，未配置时继承 `send-permission`
 
 <Callout type="info">
-频道切换仅校验 `send-permission`，不校验 `receive-permission`。这意味着玩家可以切换到一个自己无法接收的频道（但发送时会被 `send-permission` 拦截）。
+拥有发送权限的玩家可以切换并发言。缺少接收权限时仍能看到自己的发言，但收不到频道内其他玩家的消息。
 </Callout>
 
 ## 跨服同步

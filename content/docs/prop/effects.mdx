@@ -226,7 +226,7 @@ effects:
 
 ### BattlePass 只统计指定道具的消耗
 
-在对应 BattlePass 任务定义中使用以下字段。示例只统计实际消耗了 `field_ration` 的使用事件，手持、按键和自动使用都可计入。若只统计一种入口，可再按 `trigger` 加一条事件载荷条件。 [BattlePass 任务条件](/docs/battlepass/tasks)
+按[战令任务示例](/docs/battlepass/tasks#任务配置示例)创建一条测试任务，将原来的 `bukkit-event` 和 `conditions` 换成下列字段。示例统计 [`field_ration` 补给](/docs/prop#第一次使用)实际消耗的次数；若只统计一种使用入口，再按 `trigger` 添加条件。
 
 ```yaml
 event-topic: "axs.prop.prop_used"
@@ -241,9 +241,11 @@ conditions:
     value: "true"
 ```
 
+用已经领取该任务且饱食度未满的玩家右键使用一份补给，检查物品减少一个、任务进度增加 1。
+
 ### EventPacket 按道具使用触发动作
 
-将规则加入 EventPacket 主配置 `data/eventpacket/config.yml` 的 `rules`，保留已有规则。示例在玩家自动使用 `first_aid` 后发送一条消息。
+先按[自动触发教程](/docs/prop/keybinds#自动触发)配置 `first_aid`。将规则加入 EventPacket 主配置 `data/eventpacket/config.yml` 的 `rules` 并重载。示例在玩家自动使用急救包后发送消息。
 
 ```yaml
 rules:
@@ -259,6 +261,8 @@ rules:
       - type: message
         text: "&a已自动消耗一份急救包。"
 ```
+
+把急救包放入已绑定的额外槽位，并在测试服将玩家生命降到 8 点或以下。成功自动使用后应恢复生命、消耗一个急救包并显示消息。身上没有急救包或生命高于阈值时不应触发。
 
 ## 排错
 

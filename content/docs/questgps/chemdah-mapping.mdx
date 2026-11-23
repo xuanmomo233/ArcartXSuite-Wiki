@@ -7,43 +7,7 @@ QuestGPS 自动展示 Chemdah 已加载的任务。任务定义、接取条件�
 
 ## 从任务文件开始
 
-在 `plugins/Chemdah/core/quest/suite_demo.yml` 中写：
-
-```yaml
-suite_demo_hunt:
-  meta:
-    name: "初次讨伐"
-    type: "主线"
-  task:
-    kills:
-      meta:
-        name: "击败三个僵尸"
-      objective: player kill
-      condition:
-        victim: zombie
-      goal:
-        amount: 3
-      addon:
-        track:
-          center: "world 100 64 100"
-          name: "讨伐区域"
-          description:
-            - "前往目的地击败僵尸。"
-  addon:
-    ui:
-      icon: iron_sword
-      description:
-        - "村外有僵尸出没，请清理三只。"
-  agent:
-    accepted: |
-      tell "你已接取初次讨伐。"
-    completed: |
-      tell "初次讨伐已完成。"
-```
-
-将 `world 100 64 100` 换成实际目的地。任务 ID `suite_demo_hunt`、目标 ID `kills` 可自行命名，但在同一任务或其他引用中保持一致。已有任务时直接使用其现有定义，不必为 QuestGPS 再复制任务逻辑。
-
-可使用 QuestGPS 数据目录的 `examples/chemdah-quest.yml` 测试任务界面。 [奖励预览](#奖励预览)
+新建任务时，从[Chemdah 接入教程的任务文件](/docs/questgps/chemdah-walkthrough#第三步在同一份任务文件中写清内容)复制完整例子，并将导航坐标改为实际目的地。已有可接取任务时，直接使用它的任务 ID 和文件，在原 `addon` 中补充展示选项。
 
 ## Chemdah 数据与显示项
 

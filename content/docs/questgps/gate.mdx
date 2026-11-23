@@ -13,7 +13,7 @@ description: "按主线任务进度设置分类和玩法入口的解锁条件。
 | `gate.blocked-categories` | `List<String>` | `[]` | 未过关时锁定的分类 ID |
 | `gate.blocked-command-prefixes` | `List<String>` | `["warp", "rtp", "shop"]` | 未过关时拦截的命令前缀（不含 `/`） |
 | `gate.blocked-module-entries` | `List<String>` | `[]` | 未过关时锁定的模块入口 ID |
-| `gate.blocked-event-rule-ids` | `List<String>` | `[]` | 未过关时不触发的 EventPacket 规则 ID |
+| `gate.blocked-event-rule-ids` | `List<String>` | `[]` | 未过关时跳过的 EventPacket 玩家实时规则 ID |
 | `gate.deny-message` | `String` | `"&c你需要先完成必要主线任务。"` | 拦截提示消息 |
 | `gate.deny-chat-card` | `String` | `""` | 可选，ArcartX 聊天卡片 ID |
 | `gate.deny-subtitle` | `String` | `""` | 可选，Suite announcer 字幕组 ID |
@@ -53,7 +53,7 @@ example_side_quest:
 
 > 单任务前置仅在接取时检查，不影响任务在菜单中的显示。门禁拦截的分类 Tab 中的任务不会显示。
 
-### 拦截行为
+### 分类拦截
 
 未过关时，`blocked-categories` 中的分类 Tab 被锁定：
 
@@ -65,7 +65,7 @@ example_side_quest:
 
 > 已过关的玩家不受分类锁定限制。锁定的分类 Tab 中的任务不会出现在任务列表中。
 
-### 拦截行为
+### 命令拦截
 
 未过关时，玩家输入以 `blocked-command-prefixes` 中任一前缀开头的命令会被拦截：
 
@@ -79,24 +79,17 @@ example_side_quest:
 
 命令前缀匹配不区分大小写、自动忽略 `/` 与首尾空白。前缀不含 `/`，如配置 `"warp"` 会拦截 `/warp`、`/warpall`、`/warpxxx` 等所有以 `warp` 开头的命令。
 
-### 拦截行为
+### 模块入口拦截
 
-其他模块在打开自身 UI 前，可调用 `QuestGpsNavigable.moduleEntryLocked` 检查入口是否被门禁锁定：
+模块在实际入口接入门禁后，QuestGPS 才能限制该入口。
 
 ### 入口 ID 约定
 
-`blocked-module-entries` 中的 ID 为各模块约定的入口标识符，示例：
+随套件提供的副本入口使用 `abyss.<地牢ID>`，例如 `abyss.button_trial`。其他插件接入时，填写该插件实际调用[任务导航接口](/docs/api/QuestGpsNavigable)时使用的 ID。
 
-| 入口 ID | 对应模块 | 说明 |
-|---|---|---|
-| `market` | 商店/拍卖行 | 商店模块入口 |
-| `regions_warp` | 区域传送 | 区域传送面板入口 |
+### 事件规则拦截
 
-> 入口 ID 由各模块自行约定，QuestGPS 仅负责存储和查询。模块开发者需与服主协商一致的 ID 命名。
-
-### 拦截行为
-
-EventPacket 模块在触发规则前，可调用 `QuestGpsNavigable.eventRuleLocked` 检查规则是否被门禁锁定：
+EventPacket 在执行带在线玩家的实时信号或事件动作前检查门禁。定时控制台命令和持久邮件走各自的执行流程。
 
 ### 规则 ID 约定
 
@@ -116,40 +109,29 @@ EventPacket 模块在触发规则前，可调用 `QuestGpsNavigable.eventRuleLoc
 
 ### 新手引导
 
+先按[Chemdah 接入教程](/docs/questgps/chemdah-walkthrough#第三步在同一份任务文件中写清内容)建立 `suite_demo_hunt`，再按[按钮试炼](/docs/abyss/walkthrough)建立 `button_trial`。在 QuestGPS 的 `config.yml` 合并：
+
 ```yaml
 gate:
   required-mainline-quest-ids:
-    - "tutorial_quest"
-  blocked-categories:
-    - side
-    - encounter
-  blocked-command-prefixes:
-    - "warp"
-    - "rtp"
-    - "shop"
-    - "market"
+    - "suite_demo_hunt"
   blocked-module-entries:
-    - "market"
-    - "auction"
-  deny-message: "&e请先完成新手引导任务，再探索更多内容！"
+    - "abyss.button_trial"
+  deny-message: "&e请先完成初次讨伐。"
 ```
 
-> 玩家完成 `tutorial_quest` 后，所有分类 Tab、命令、模块入口自动解锁。
+执行 `axs reload questgps`。用未完成任务的测试玩家执行 `/abyss enter button_trial`，应看到前置提示。完成任务后用同一账号再试，应通过门禁并进入已启用的副本。
 
 ### 分阶段解锁
 
+先配置 [试炼入口信号规则](/docs/eventpacket/configuration#测试一条信号规则)。要让该规则在完成任务后才执行，在上一例的 `gate` 内加入：
+
 ```yaml
-gate:
-  required-mainline-quest-ids:
-    - "chapter_1_final"
-  blocked-categories:
-    - encounter
-  blocked-event-rule-ids:
-    - "chapter_2_trigger"
-  deny-message: "&c请先完成第一章主线。"
+blocked-event-rule-ids:
+  - trial-open-message
 ```
 
-> 玩家完成第一章后，奇遇分类和第二章触发规则自动解锁。
+重载 QuestGPS 后，选一名尚未完成示例任务的玩家，让管理员在该玩家完成任务前后各触发一次。控制台两次都可显示入队成功，首次应跳过动作，第二次测试玩家应收到「试炼入口已触发」。
 
 ## 条件评估
 

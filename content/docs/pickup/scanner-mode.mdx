@@ -8,7 +8,7 @@ description: "用快捷键选择和收取附近掉落物，配置分组清单、
 ## 收取示例
 
 1. 在 `plugins/ArcartX-Suite/data/pickup/config.yml` 中设置下方配置。
-2. 在宿主 `plugins/ArcartX-Suite/config.yml` 中确认本页列出的按键注册存在，重启宿主使新增按键注册生效。只调整模块设置时执行 `/axs reload pickup`。
+2. 在本体 `config.yml` 确认[按键注册](#在宿主注册按键)。修改本体按键后执行 `axs reload all` 并重新进服；只改扫描模块设置时执行 `axs reload pickup`。
 3. 执行 `/pickup on`，丢出铁锭和金锭两种物品，等待默认约 2 秒的拾取冷却结束；默认过滤不会屏蔽这两种材料。
 4. 按拾取键收取当前类，再用切换键选择另一类；核对背包、仓库和 HUD 汇总数量。
 

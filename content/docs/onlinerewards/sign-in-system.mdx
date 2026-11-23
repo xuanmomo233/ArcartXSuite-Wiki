@@ -390,28 +390,23 @@ makeup:
 
 ## 签到历史查询
 
-玩家可通过命令查看签到历史：
-
-```bash
-# 查看最近 6 个月签到历史
-/onlinerewards history
-
-# 查看最近 12 个月签到历史
-/onlinerewards history 12
-```
-
-输出示例：
-
-```
-◆ ArcartXSuite | 最近 6 个月签到历史：
-2025-01: 25 / 31 天
-2024-12: 30 / 31 天
-2024-11: 20 / 30 天
-```
+需要查询更早的月份时，使用[签到历史命令](/docs/onlinerewards/commands#history-签到历史)。日历仍按当前月及相邻月份浏览。
 
 ## 签到信号
 
-签到成功后，模块通过 `SignalDispatchable` 发送 `signin_success` 信号，其他模块可监听该信号触发联动逻辑。
+在线玩家签到成功后会发送 `signin_success`。启用 EventPacket，并将以下规则加入其主配置的 `rules`：
+
+```yaml
+rules:
+  daily-signin-message:
+    trigger: signal
+    signal: signin_success
+    actions:
+      - type: message
+        text: "今天已签到，已连续签到 {streak} 天。"
+```
+
+执行 `axs reload eventpacket` 后，用当天未签到的测试玩家执行 `/onlinerewards signin`，核对签到成功和连续天数消息。同一玩家当日再次执行时，确认不会重复收到联动消息。
 
 | 信号变量 | 说明 |
 |---|---|
@@ -420,11 +415,11 @@ makeup:
 | `date` | 签到日期 |
 | `day_of_month` | 当月第几天 |
 
-> 信号机制详见 [在线奖励与签到使用说明](/docs/onlinerewards) 页面的 SignalDispatchable 章节。
+战令统计签到时使用 `axs.onlinerewards.signin_completed` 业务事件，见[战令联动任务](/docs/battlepass/tasks#启用联动任务)。
 
 ## 配置注意事项
 
-1. **`sign-in.yml` 为必需文件**：模块启动时如果找不到该文件会抛出异常并阻止加载
+1. **文件位置**：由 OnlineRewards 主配置的 `sign-in-file` 决定，默认 `sign-in.yml`。文件不存在时模块会尝试导出内置示例。
 2. **里程碑"恰好等于"**：连续/累计里程碑只在天数恰好等于阈值时触发，不会在超过后重复触发
 3. **补签不跨月**：补签仅限本月今天之前的日期，不支持跨月补签
 4. **权限组单选**：多组权限匹配时只取 `priority` 最高的一组，不会叠加发放
