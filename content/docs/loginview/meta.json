@@ -1,6 +1,7 @@
 {
   "title": "登录认证",
   "pages": [
+    "getting-started",
     "mixed-login",
     "center",
     "configuration",

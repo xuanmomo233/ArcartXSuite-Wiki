@@ -203,9 +203,9 @@ export const docRedirects: Record<string, DocRedirect> = {
   },
   'loginview/configuration': {
     sections: {
-      '本机离线密码': '/docs/loginview/commands/#本机密码入口校验',
-      '密码与准入配置': '/docs/loginview/configuration/#准入要求',
-      '启动与验证本机密码': '/docs/loginview/configuration/#验证准入',
+      '本机离线密码': '/docs/loginview/getting-started/#离线模式与游戏内密码',
+      '密码与准入配置': '/docs/loginview/getting-started/#配置密码入口',
+      '启动与验证本机密码': '/docs/loginview/getting-started/#注册与重新登录',
       '微软在线直连': '/docs/loginview/#选择登录入口',
     },
   },

@@ -1,0 +1,51 @@
+---
+title: "使用入门"
+description: "启用 LoginView，配置离线模式下的游戏内密码登录，并验证首次注册和重新进服。"
+---
+
+为当前服务器装备 LoginView，在 Suite 本体 `config.yml` 中确认 `modules.loginview.enabled: true`。测试玩家使用与服务器匹配的 ArcartX 客户端。
+
+本页演示离线模式下在游戏内注册和输入密码。要用微软、LittleSkin、代理转发或 AuthCenter 账号进服，从[选择登录入口](/docs/loginview#选择登录入口)进入对应教程。
+
+## 离线模式与游戏内密码
+
+此入口供游戏客户端和游戏服运行在同一台机器时使用。停服后在游戏服根目录的 `server.properties` 设置：
+
+```properties
+online-mode=false
+server-ip=127.0.0.1
+```
+
+将 `spigot.yml` 的 `settings.bungeecord` 设为 `false`。使用 Paper 时，也将 `config/paper-global.yml` 的 `proxies.velocity.enabled` 设为 `false`。启动后，客户端用 `127.0.0.1` 和游戏服实际端口直连。
+
+## 配置密码入口
+
+在 `plugins/ArcartX-Suite/authentication.yml` 配置下例。已有配置时，保留正在使用的 `realm-id`，在原有小节中修改。
+
+```yaml
+schema-version: 1
+backend: standalone
+realm-id: local
+ingress:
+  type: password
+  password-login: true
+password:
+  min-length: 8
+  max-length: 128
+  max-attempts: 5
+  cooldown-seconds: 300
+requirements:
+  terms: false
+  qq-binding: false
+```
+
+示例先验证密码注册和登录。确认正常后，可按[准入要求](/docs/loginview/configuration#准入要求)启用条款和 QQ 绑定。
+
+## 注册与重新登录
+
+1. 启动游戏服，在控制台执行 `axs status`，确认 LoginView 已启用。
+2. 用尚未注册的普通测试账号进服。在注册界面输入并确认一份合规密码，提交成功后检查能否移动和交互。
+3. 断开后用同一个账号重新进服。先输错一次密码，确认仍停留在登录界面，且移动和交互受限。再输入正确密码，确认能进入游戏。
+4. 已安装 PlaceholderAPI 时，可按[认证状态查询](/docs/loginview/commands#认证状态查询)核对放行结果。
+
+启动时提示密码入口与实际连接方式不符，按[本机密码入口校验](/docs/loginview/commands#本机密码入口校验)核对监听地址、在线模式和转发设置。
