@@ -1,116 +1,59 @@
 ---
-title: "本机离线密码与微软在线直连"
-description: "配置本机断网密码测试或微软在线免密直连，调整条款、QQ 绑定和登录界面。"
+title: "准入要求与登录界面"
+description: "设置身份验证后的服务器条款、QQ 绑定要求和 LoginView 界面。"
 ---
 
-单服由游戏服保存账号。只有本机离线直连可输入游戏内密码；微软在线直连通过 Minecraft 的在线握手验证。两种入口都可以启用条款和 QQ 绑定。
+先在[登录认证首页](/docs/loginview#选择登录入口)选择适合游戏服的接入方式，配置身份验证。然后按本页设置玩家验证身份后需要完成的条款、绑定和界面提示。
 
 ## 模块启用
 
-安装 LoginView 后，在宿主 `config.yml` 的 `modules` 配置中启用该模块。以下为相关配置项，编辑时保留其他模块设置。
+为当前服务器装备 LoginView，并在本体 `plugins/ArcartX-Suite/config.yml` 中确认 `modules.loginview.enabled: true`。按所选入口配置认证后重启，在控制台执行 `axs status` 检查模块状态。
+
+## 准入要求
+
+`backend: standalone` 的游戏服在 `plugins/ArcartX-Suite/authentication.yml` 中设置准入要求。下面是局部片段，保留所选入口的 `ingress` 和其他设置。
 
 ```yaml
-modules:
-  loginview:
-    enabled: true
-```
-
-## 本机离线密码
-
-本入口用于单机断网测试。将游戏服根目录的 `server.properties` 设为以下值，客户端使用 `127.0.0.1` 直连。
-
-```properties
-online-mode=false
-server-ip=127.0.0.1
-```
-
-关闭 `spigot.yml` 的 `settings.bungeecord`；使用 Paper 时，同时关闭 `config/paper-global.yml` 的 `proxies.velocity.enabled`。留空监听地址、使用非回环地址或开启转发时，游戏内密码入口不会启用。
-
-### 密码与准入配置
-
-将以下完整配置保存到 `plugins/ArcartX-Suite/authentication.yml`。样例启用服务器条款，关闭 QQ 绑定，适合验证基础密码流程。
-
-```yaml
-schema-version: 1
-backend: standalone
-realm-id: local
-timezone: Asia/Shanghai
-login-timeout-seconds: 300
-ingress:
-  type: password
-password:
-  min-length: 8
-  max-length: 128
-  max-attempts: 5
-  cooldown-seconds: 300
 requirements:
   terms: true
   qq-binding: false
 terms:
-  version: '1'
+  version: "1"
   lines:
-    - '请遵守服务器规则，保护账号凭据。'
-performance:
-  workers: 2
-  queue-capacity: 128
+    - "请先阅读并确认服务器规则。"
 ```
 
-| 字段 | 用途 | 配置说明 |
-| --- | --- | --- |
-| `realm-id` | 区分本服的账号范围 | 单服可使用 `local`，投入使用后保持该值稳定 |
-| `login-timeout-seconds` | 玩家最多等待多久完成登录 | 默认 300 秒，范围 30 至 1800 秒 |
-| `password.min-length` | 新密码的最短长度 | 样例为 8 个字符 |
-| `password.max-length` | 密码最长长度 | 最多 128 个字符，且不能小于最短长度 |
-| `password.max-attempts` | 进入冷却前的失败次数 | 样例为 5 次，范围 1 至 20 |
-| `password.cooldown-seconds` | 失败后的冷却时间 | 样例为 300 秒 |
-| `requirements.terms` | 是否要求同意服务器条款 | 使用条款时填写 `true` |
-| `requirements.qq-binding` | 是否要求绑定 QQ 后才放行 | 完成 QQBot 接入与绑定验证后再启用 |
-| `terms.version` | 当前条款版本 | 使用字符串值，修改条款正文时同步更新版本 |
-| `terms.lines` | 界面显示的条款 | 最多 3 行，每行不超过 60 个字符 |
-| `performance` | 登录请求处理容量 | 初次使用保留样例值 |
+- `requirements.terms` 开启条款确认。启用时填写版本和 1 至 3 行正文，每行最多 60 个字符。修改正文时同步更改版本，让玩家重新确认。
+- `requirements.qq-binding` 决定是否要求玩家绑定 QQ 后才能操作。按下文先验证 QQBot。
+- `login-timeout-seconds` 控制玩家完成准入的等待时间，默认 300 秒，允许 30 至 1800 秒。
 
-账号使用宿主配置的 SQLite 或 MySQL 存储。普通单服可以先沿用宿主现有的存储设置。
+`backend: center` 的节点由[独立认证中心](/docs/loginview/center#游戏节点配置)提供策略。条款和绑定要求在对应 Realm 中设置，游戏服的 `authentication.yml` 保持节点配置。
+
+## QQ 绑定要求
+
+先按[QQBot 绑定流程](/docs/qqbot/binding-whitelist#绑定)确认测试账号能从群里申请验证码，并在游戏里确认。单服策略在 `requirements.qq-binding` 开启，中心策略在 Realm 的 `requireBinding` 开启。
+
+使用已验证身份、尚未绑定 QQ 的测试账号进服。玩家应看到绑定提示，输入群里申请的验证码后，再确认剩余要求和最终准入状态。
 
 ## 界面配置
 
-界面的实际配置文件为 `plugins/ArcartX-Suite/data/loginview/config.yml`，内容如下。
+界面延迟在 `plugins/ArcartX-Suite/data/loginview/config.yml`：
 
 ```yaml
 config-version: 1
 open-delay-ticks: 20
 ```
 
-`open-delay-ticks` 控制进服后尝试打开界面的延迟，范围为 0 至 600 tick。样例值 20 约为 1 秒，认证要求由 `authentication.yml` 控制。
+`open-delay-ticks` 控制进服后尝试打开界面的时机，取值 0 至 600 tick。示例的 20 tick 约为 1 秒。自定义外观使用 Suite 数据目录中的 `ui/auth_v1.yml`。
 
-### 启动与验证本机密码
+修改界面或延迟后执行 `axs reload loginview`。修改游戏服的认证入口、后端或准入策略后重启游戏服。调整中心 Realm 策略后重启中心。
 
-在测试服用匹配的 ArcartX 客户端和一名未登记的普通玩家验收。
+## 验证准入
 
-1. 重启游戏服，控制台执行 `axs status`，确认 `loginview` 已启用。若提示「本机直连服」，核对在线模式、监听地址和代理开关，再重启。未启用 LoginView 时，游戏服继续使用常规准入。
-2. 首次连接后应打开注册界面。提交两次不同的密码，应提示不一致。未完成认证时尝试走动和使用方块，两项都应受限。
-3. 用两次相同的合规密码注册并确认条款。界面应关闭，玩家可以移动和使用方块。
-4. 重新连接后应打开登录界面。输错一次密码，确认仍在登录界面且无法操作。随后输入正确密码，确认界面关闭、玩家可正常操作。
-5. 安装了 PlaceholderAPI 时，按[认证状态查询](/docs/loginview/commands#认证状态查询)核对放行结果。
-
-界面外观或打开延迟改变后，可以用 `/axs reload loginview` 重载。修改认证后端、密码策略、条款或入口后，重启游戏服。
-
-## 微软在线直连
-
-将 `server.properties` 中的 `online-mode` 设为 `true`，并关闭 BungeeCord、Velocity 转发。保留原生微软会话服务。启用了 authlib-injector 或要接入其他会话来源时，使用[混合账号认证](/docs/loginview/mixed-login)。
-
-在上面的 `authentication.yml` 基础上，将 `ingress` 改为：
-
-```yaml
-ingress:
-  type: online
-```
-
-重启后用微软账号直连。Minecraft 握手验证通过时，玩家无需输入本服密码。如果服务器启用了条款或 QQ 绑定，LoginView 会展示这些要求。核对 `%axsauth_provider%` 为 `microsoft`，完成全部要求后 `%axsauth_admitted%` 为 `true`。
-
-## QQ 绑定要求
-
-完成 QQBot 的连接和群内绑定验证后，将 `requirements.qq-binding` 设为 `true` 并重启。玩家验证身份后，须在群内申请验证码并回到登录界面确认，完成绑定后才允许操作。[QQ 绑定流程](/docs/qqbot/binding-whitelist)
+1. 按所选入口使用测试账号进服，核对该账号实际通过的身份来源。
+2. 开启条款时，使用尚未同意当前版本的账号。确认提示出现，完成要求前无法移动或交互，完成后恢复。
+3. 开启绑定时，使用未绑定的账号复测。已安装 PlaceholderAPI 时，可按[认证状态查询](/docs/loginview/commands#认证状态查询)分别检查身份验证和最终准入。
 
 ## 界面加载排查
 
-界面未显示时，检查 LoginView 的加载结果和客户端 ArcartX 环境。管理员可执行 `/axs loginview open 玩家名` 测试界面。已通过认证的连接通常不会再次自动打开登录页。[管理与排错](/docs/loginview/commands)
+先用 `axs status` 查看模块状态，再核对客户端 ArcartX 环境和玩家当前是否仍有待完成的要求。管理员可用 `/axs loginview open <玩家>` 为在线玩家尝试打开界面。入口或策略报错按[管理与故障排查](/docs/loginview/commands#故障排查)处理。

@@ -10,7 +10,7 @@ description: "在同一套混合登录中验证微软、LittleSkin 和 Suite Aut
 | 玩家直接连接游戏服 | 单服混合认证，`local-mixed` | 与游戏服同一台机器 |
 | 玩家通过 BungeeCord 或 Velocity 进入子服 | 代理转发认证，`signed-proxy` | 与代理同一台机器 |
 
-通过混合网关验证的玩家免输本服密码。本机断网测试使用独立的[本机离线密码入口](/docs/loginview/configuration)，不使用混合网关。
+通过混合网关完成账号验证后，按游戏服配置完成[准入要求](/docs/loginview/configuration#准入要求)。
 
 ## 单服混合认证
 
@@ -204,7 +204,4 @@ performance:
 | --- | --- |
 | 玩家通过代理进入，而子服配置了 `local-mixed` | 将子服认证入口设为 `signed-proxy`，把网关部署在代理端 |
 | 单服提示需要在线模式 | 单服混合认证的游戏服必须设置 `online-mode=true` |
-| 在中心模式中使用混合入口 | 中心节点按独立中心教程配置，当前中心入口要求直连 |
-| 只在本机做离线测试 | 使用回环监听的 `password` 入口，游戏服保持 `online-mode=false` |
-
-本机游戏内密码的部署步骤见[本机离线密码](/docs/loginview/configuration)。
+| 游戏服采用 `backend: center`，需要进服后确认授权 | 按[独立认证中心](/docs/loginview/center)配置游戏节点 |

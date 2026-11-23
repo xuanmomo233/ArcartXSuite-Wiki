@@ -1,28 +1,24 @@
 ---
 title: "登录认证"
-description: "按服务器的连接方式选择 LoginView 入口，配置本机离线密码、在线身份、混合登录或中心授权。"
+description: "配置单服或代理混合登录、中心授权，以及登录后的条款和 QQ 绑定。"
 ---
 
-LoginView 显示登录状态，并在身份验证后引导玩家完成服务器条款、QQ 绑定等要求。玩家通过在线身份验证后，游戏内无需再输入本服密码。
+LoginView 把账号验证与进服要求接在同一条流程里。先选择玩家使用的账号和连接方式，再配置身份验证后需要完成的条款和 QQ 绑定。
 
 ## 选择登录入口
 
-| 服务器场景 | `server.properties` | 认证入口 | 玩家如何验证 |
-| --- | --- | --- | --- |
-| 本机离线直连 | `online-mode=false`，`server-ip=127.0.0.1` 或 `::1` | `standalone` + `password` | 在 LoginView 注册或输入本服密码。[配置方法](/docs/loginview/configuration) |
-| 微软在线直连 | `online-mode=true` | `standalone` + `online` | Minecraft 使用微软会话验证，通过后进入准入步骤。[配置方法](/docs/loginview/configuration#微软在线直连) |
-| 混合在线直连 | `online-mode=true` | `standalone` + `local-mixed` | 使用微软或已配置的第三方账号完成 Minecraft 握手。可按需加入 Suite AuthCenter 作为会话来源。[配置方法](/docs/loginview/mixed-login#单服混合认证) |
-| 在线进服后由中心准入 | `online-mode=true` | `center` + `external` | 玩家完成游戏在线握手后，在原连接确认网页或启动器授权。[配置方法](/docs/loginview/center) |
-| 可信代理后的子服 | 子服通常为 `online-mode=false`，由代理完成在线身份验证 | `standalone` + `signed-proxy` | 子服校验代理对本次连接的签名。[配置方法](/docs/loginview/mixed-login#代理转发认证) |
+| 服主的目标 | 认证入口 | 配置教程 |
+| --- | --- | --- |
+| 同一台游戏服接受微软、LittleSkin 或接入后的 AuthCenter 账号 | 游戏服使用 `standalone` + `local-mixed` | [单服混合认证](/docs/loginview/mixed-login#单服混合认证) |
+| 玩家经 Velocity 或 BungeeCord 进入群组服 | 代理验证账号，子服使用 `standalone` + `signed-proxy` | [代理转发认证](/docs/loginview/mixed-login#代理转发认证) |
+| 玩家连接游戏服后，还须在原连接内确认官网或启动器授权 | 游戏服使用 `center` + `external` | [独立认证中心](/docs/loginview/center) |
 
-`backend` 决定账号由本服还是中心管理。`ingress.type` 决定使用哪条验证路径。单服的 `auto` 根据 `online-mode` 选择微软在线入口或本机密码入口。混合、中心和代理入口需要显式配置。
-
-离线密码入口面向本机断网测试，游戏服须绑定回环地址，并关闭 BungeeCord 和 Velocity 转发。公开服务器需要使用表中的在线或可信代理入口。不同来源的同名账号不会自动合并。
+使用 Minecraft 原生在线会话的直连服可选 `standalone` + `online`，随后配置[准入要求](/docs/loginview/configuration#准入要求)。如果 AuthCenter 账号需要直接完成 Minecraft 握手，走[混合登录的 AuthCenter 会话接入](/docs/loginview/mixed-login#加入-suite-authcenter)。
 
 ## 部署流程
 
 1. 为当前服务器装备 LoginView，在 Suite 的 `config.yml` 中设置 `modules.loginview.enabled: true`。
-2. 按所选教程修改 `authentication.yml` 和必要的服务器配置，重启相关进程。
+2. 按所选教程修改 `authentication.yml` 和服务器配置，再设置[准入要求与界面](/docs/loginview/configuration)，重启相关进程。
 3. 在控制台执行 `axs status`，确认 LoginView 已启用。
 4. 使用所选入口的测试账号进服。核对进服身份和已开启的条款、QQ 绑定等准入要求。存在待完成的要求时，先确认移动和交互受限，完成后再确认恢复。
 

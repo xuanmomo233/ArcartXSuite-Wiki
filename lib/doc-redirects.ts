@@ -201,6 +201,14 @@ export const docRedirects: Record<string, DocRedirect> = {
       '属性键值对与文本行': '/docs/title/title-definitions/#展示属性display-attributes',
     },
   },
+  'loginview/configuration': {
+    sections: {
+      '本机离线密码': '/docs/loginview/commands/#本机密码入口校验',
+      '密码与准入配置': '/docs/loginview/configuration/#准入要求',
+      '启动与验证本机密码': '/docs/loginview/configuration/#验证准入',
+      '微软在线直连': '/docs/loginview/#选择登录入口',
+    },
+  },
 };
 
 export function getDocRedirect(slugs: string[] = []) {
