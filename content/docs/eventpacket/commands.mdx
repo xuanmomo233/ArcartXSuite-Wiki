@@ -12,6 +12,8 @@ description: "手动触发信号、查看已注册的主题和规则处理状态
 | `/axs eventpacket topics` | 列出实时主题和副本规则 ID。 |
 | `/axs eventpacket fire <信号> <玩家> [key=value...]` | 向指定在线玩家触发信号，可附加字段和取值。 |
 
+状态显示「共享 MySQL 副本结果编排需要客户版有效授权」时，请核对当前服务器的 EventPacket 客户水印席位和同批次安装包。单服可用 SQLite 运行[副本通关邮件规则](/docs/eventpacket/actions#副本通关邮件)。
+
 ### 测试信号
 
 按[规则示例](/docs/eventpacket/configuration#测试一条信号规则)发送信号。显示「信号已入队」后，核对玩家收到的消息。命令提交失败时，检查信号名、玩家准入状态和队列容量。入队后未收到消息时，用 `/axs eventpacket topics` 检查规则是否注册，用 `/axs eventpacket status` 查看动作失败计数。

@@ -44,9 +44,9 @@ public interface AxsMailService {
 
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
-| `usesSharedHostStorage` | 检查邮件是否写入 Suite 宿主共享 MySQL。跨服持久奖励需要此检查通过。 | 无 | `boolean` |
+| `usesSharedHostStorage` | 检查 Mail 是否使用 Suite 宿主共享 MySQL。 | 无 | `boolean` |
 | `send` | 发送系统邮件，收件人无需在线。 | `request`：含稳定去重键的邮件请求 | 异步回执，`isNoOp()` 表示本次未投递或无法确认已有投递 |
-| `sendDurable` | 根据持久化的待发记录重试发送，使用与 `send` 相同的事务和去重语义。 | `request`：邮件发送请求 | 异步回执 |
+| `sendDurable` | 尝试投递调用方保存的待发请求，使用与 `send` 相同的事务和去重语义。调用方负责保存待发状态并安排重试。 | `request`：邮件发送请求 | 异步回执 |
 | `sendPresetDurable` | 按业务凭证发送指定的邮件预设。 | 收件人 UUID、预设 ID、来源模块及操作键 | 异步回执 |
 | `getMail` | 查询玩家自己的单封邮件。 | `playerId`：玩家 UUID；`mailId`：邮件 ID | 异步视图。无记录或读取失败时可得到 `null` |
 | `getInbox` | 查询玩家收件箱。 | `playerId`：玩家 UUID；`query`：从第 1 页起的查询条件 | 异步视图列表，读取失败时也可能返回空列表 |
@@ -69,4 +69,4 @@ public interface AxsMailService {
 
 发送回执确认邮件已入库，玩家是否领取需另行查询。保留自己的待发记录，直到收到有效回执；`isNoOp()` 为 `true` 或发生异常时，继续保留并安排重试。`send` 和 `sendDurable` 都直接尝试入库，`deliverAt` 不会延迟调用，定时发放需由调用方安排触发时间。
 
-跨服奖励需让 EventPacket、Abyss 和 Mail 使用同一个 Suite 宿主共享 MySQL。Mail 单独配置数据库时，`usesSharedHostStorage()` 返回 `false`，即使该数据库也是 MySQL。
+EventPacket 通过共享 MySQL 读取 Abyss 结算并发放跨服邮件奖励时，三个模块须使用同一套宿主共享 MySQL，EventPacket 还须持有对应的客户水印授权。Mail 单独配置数据库时，`usesSharedHostStorage()` 返回 `false`，即使该数据库也是 MySQL。 [EventPacket 规则与动作](/docs/eventpacket/actions)

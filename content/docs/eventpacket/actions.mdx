@@ -17,6 +17,8 @@ description: "设置字幕、任务、消息、命令和持久邮件的参数。
 
 ## 副本通关邮件
 
+单服可用 SQLite 处理本服副本通关结果。通过共享 MySQL 处理跨服副本结果时，EventPacket 需要当前服务器的有效客户水印席位，EventPacket、Abyss 和 Mail 须使用同一套宿主共享 MySQL。 [客户水印包](/docs/guide/module-delivery#安装客户水印包)
+
 ```yaml
 rules:
   abyss-clear:
@@ -35,7 +37,7 @@ rules:
         amount: 100
 ```
 
-填写实际的副本、难度和货币 ID，并启用 Abyss 与 Mail。纯通知可省略 `currency` 和 `amount`。保持规则与邮件动作 `id` 稳定，避免重复发奖。省略 `start-sequence` 时，从启用规则后的结果开始处理。跨服发奖须让三个模块使用同一共享 MySQL。
+填写实际的副本、难度和货币 ID，并启用 Abyss 与 Mail。纯通知可省略 `currency` 和 `amount`。保持规则与邮件动作 `id` 稳定，避免重复发奖。省略 `start-sequence` 时，从启用规则后的结果开始处理。用 `/axs eventpacket status` 检查持久规则状态。
 
 ## 用信号播放字幕
 

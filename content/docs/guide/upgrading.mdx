@@ -1,0 +1,23 @@
+---
+title: "版本更新"
+description: "下载新版 Suite 本体，更新云端模块并验证服务器状态。"
+---
+
+## 查看版本与下载
+
+登录 [Suite 云端下载中心](https://cloud.021209.xyz/download)，在「游戏服本体」查看当前版本。按运行 Minecraft 服务端的机器选择 Windows x86_64 或 Linux x86_64。代理服使用的 BungeeCord 和 Velocity 插件在「代理端配套」单独下载。
+
+## 升级已有服务器
+
+1. 下载新版，停服后用对应平台的本体 JAR 替换 `plugins/` 中原有的 Suite 本体。该目录只保留一份 Suite 本体 JAR。
+2. 保留 `plugins/ArcartX-Suite/` 中的服务器配置和数据。启动游戏服，等 Suite 完成运行库准备与云端连接，再执行 `axs status`。
+3. 核对正在使用的模块是否显示「已启用」。云端装备有变化时执行 `axs sync`，等同步结束后再检查状态。需要更新已加载的云端模块时可执行 `axs update <模块ID>`，或用 `axs update all` 更新全部已加载的云端模块。
+4. 通过实际操作验证服务器正在使用的功能。模块缺失或加载失败时，先检查对应服务器的装备、`modules.<模块ID>.enabled`、前置插件和控制台日志。 [日志与报错提示](/docs/guide/config-management)
+
+客户水印模块通过对应的发行包更新。使用前核对包对应的后台授权和服务器。 [云端模块与客户分发](/docs/guide/module-delivery)
+
+## 3.3.7 发布范围
+
+- 游戏服本体提供 Windows x86_64 和 Linux x86_64 两个构建，28 个正式模块通过云端免费装备。
+- Debug 供本地调试，单独构建。
+- 免费云端版可用基础跨服连接和单模块配置同步。共享 MySQL 的 EventPacket 高级跨服编排和 `/axs config apply all` 需要对应的客户水印授权。 [云端模块与客户分发](/docs/guide/module-delivery)

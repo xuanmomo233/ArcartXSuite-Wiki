@@ -15,6 +15,7 @@ description: "调整伤害飘字样式、连击设置与特效定义；附字段
 | `ui/combat_kill_effect.yml` | 击杀/命中特效 HUD | 是 |
 | `ui/combo_effect.yml` | 连击特效 HUD | 是 |
 | `ui/death_buffer.yml` | 死亡缓冲界面 | 是 |
+| `ui/skill_effect_hud.yml` | 技能效果 HUD | 是 |
 | `damage_display/ArcartXSuite-damage.yml` | 伤害飘字样式 | 是（导出到 ArcartX 目录） |
 | `damage_display/ArcartXSuite-heal.yml` | 治疗飘字样式 | 是 |
 | `damage_display/ArcartXSuite-critical.yml` | 暴击飘字样式 | 是 |
@@ -22,7 +23,7 @@ description: "调整伤害飘字样式、连击设置与特效定义；附字段
 | `damage_display/ArcartXSuite-advantaged.yml` | 元素克制优势飘字样式 | 是 |
 | `damage_display/ArcartXSuite-disadvantaged.yml` | 元素克制劣势飘字样式 | 是 |
 
-> UI 文件导出到 `plugins/ArcartX-Suite/data/combateffect/ui/`，damage_display 文件导出到 `plugins/ArcartX/damage_display/`（ArcartX 插件目录）。`ui.overwrite-ui-files` 为 `true` 时强制覆盖用户已修改的 UI 文件。
+表中的 `ui/` 文件位于 `plugins/ArcartX-Suite/ui/`。开启 `skill-effects.enabled` 后，服务器会注册技能效果 HUD。`ui.overwrite-ui-files` 为 `true` 时强制覆盖用户修改的 UI 文件。飘字文件位于 `plugins/ArcartX/damage_display/`。
 
 ### config-version 与 ui
 
