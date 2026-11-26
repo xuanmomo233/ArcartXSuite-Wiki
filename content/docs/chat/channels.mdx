@@ -103,6 +103,8 @@ Chat 模块支持五种频道模式：
 
 ## 跨服同步
 
+跨服同步适用于付费客户水印版。 [版本区别](/docs/guide#版本区别)
+
 1. 将参与跨服的游戏服接入同一个 MySQL 数据库。在各自的 Suite 主配置中为 `cross-server.node-id` 设置不同的值，例如 `lobby` 和 `survival`。 [MySQL 配置](/docs/guide/first-run#使用-mysql)
 2. 在各服 `plugins/ArcartX-Suite/data/chat/config.yml` 中合并以下设置。
 

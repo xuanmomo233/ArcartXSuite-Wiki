@@ -1,0 +1,28 @@
+---
+title: "探索与采集"
+description: "配置探索区域、原地读条、个人宝箱、采集奖励和奇遇。"
+---
+
+| 项目 | 说明 |
+| --- | --- |
+| 模块 ID | `exploration` |
+| 主配置 | `plugins/ArcartX-Suite/data/exploration/config.yml` |
+| 界面文件 | `plugins/ArcartX-Suite/ui/exploration/` 下的 `exploration_hud.yml` 与 `exploration_chest.yml` |
+| 重载 | `/axs reload exploration` |
+| 客户端按键 | `AXS_EXPLORE`，默认 V，玩家可在 ArcartX 按键设置中改绑 |
+
+## 第一次使用
+
+1. 用 `/axs status` 确认 Exploration 已启用，玩家使用 ArcartX 客户端。模块首次加载后会导出配置和 UI。
+2. 到选好的位置，记下世界文件夹名和区域两个对角方块的坐标。填到 `world`、`corner-a` 和 `corner-b`，然后把区域的 `enabled` 改为 `true`。
+3. 先把一种结果设为正权重，其余设为 `0`。执行重载后，让测试玩家走进区域，按提示键并在原地等进度条读满。热加载后若在线玩家的按键列表尚未更新，可重连一次。
+
+
+## 检查是否配置成功
+
+进区域后应出现按键提示。按键后读条，移动出容差应中断。先用一个采集结果验证背包到账，再启用宝箱，确认两个玩家站在同一位置时只对发现者显示模型。
+
+## 继续配置
+
+- [区域和探索结果](/docs/exploration/configuration)：配置坐标、权重和各类奇遇。
+- [操作与管理命令](/docs/exploration/commands)：查看玩家操作及模块重载方式。

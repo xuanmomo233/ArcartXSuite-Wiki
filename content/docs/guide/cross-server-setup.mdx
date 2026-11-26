@@ -1,13 +1,13 @@
 ---
 title: "跨服连接"
-description: "为游戏服配置 Redis 或代理转发，并验证子服之间的消息通道。"
+description: "为付费客户水印版配置 Redis 或代理转发，并验证子服之间的消息通道。"
 ---
 
 ## 开始前
 
-在两台已[完成安装](/docs/guide/first-run)的游戏服配置消息通道，下文以 `lobby` 和 `survival` 为例。各模块按业务另外设置自己的跨服开关与共享数据。
+跨服 Redis、ArcartXSuite Proxy 的转发与认证、跨服名单与传送、多服共享业务数据由付费客户水印版提供。免费云端版按单台游戏服配置。 [版本区别](/docs/guide#版本区别)
 
-免费云端版也可用 Redis 或代理转发跨服消息。使用共享 MySQL 跨服处理副本结果时，按[EventPacket 的副本通关邮件说明](/docs/eventpacket/actions#副本通关邮件)配置存储和客户席位。
+在两台已[完成安装](/docs/guide/first-run)的游戏服配置消息通道，下文以 `lobby` 和 `survival` 为例。各模块按业务另外设置自己的跨服开关与共享数据。代理插件通过客户分发渠道领取，云端下载中心提供游戏服本体。使用共享 MySQL 跨服处理副本结果时，按[EventPacket 的副本通关邮件说明](/docs/eventpacket/actions#副本通关邮件)配置存储和客户席位。
 
 ## 用 Redis 连接两台服
 
