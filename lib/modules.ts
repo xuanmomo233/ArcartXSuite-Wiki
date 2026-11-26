@@ -30,6 +30,7 @@ export const modules: ModuleInfo[] = [
   { slug: 'qqbot', name: 'QQBot', displayName: 'QQ 群互联', description: '同步群聊与游戏消息，提供账号绑定、群签到与积分红包。', color: '#5b8def', keywords: '群红包 群积分 OneBot SnowLuma QQ群' },
   { slug: 'menu', name: 'Menu', displayName: '功能菜单', description: '创建功能导航，绑定命令、物品或 ESC 菜单。', color: '#f472b6', keywords: '暂停菜单 服务器菜单 指南针菜单' },
   { slug: 'fishing', name: 'Fishing', displayName: '钓鱼', description: '配置钓鱼小游戏、鱼类、水域、鱼竿和鱼饵。', color: '#38bdf8' },
+  { slug: 'exploration', name: 'Exploration', displayName: '探索与采集', description: '在地图上配置探索区域，可发现采集物、私有宝箱、任务和秘境。', color: '#d4b675', keywords: '探宝 私有宝箱 采集 奇遇 秘境' },
   { slug: 'lottery', name: 'Lottery', displayName: '抽奖与开箱', description: '创建抽奖池、开箱动画、保底规则与积分兑换。', color: '#557c53' },
   { slug: 'battlepass', name: 'BattlePass', displayName: '战令', description: '配置赛季任务、经验等级与不同档位的奖励。', color: '#a78bfa' },
 
@@ -65,6 +66,7 @@ export const taskGroups: Record<string, string[]> = {
     "questgps",
     "map",
     "fishing",
+    "exploration",
     "entitytracker",
     "abyss"
   ],

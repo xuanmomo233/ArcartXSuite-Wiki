@@ -28,6 +28,10 @@ public interface QuestGpsNavigable {
 
     void offerQuest(@NotNull Player player, @NotNull String questId, boolean openMenu);
 
+    default boolean tryOfferQuest(@NotNull Player player, @NotNull String questId, boolean openMenu) {
+        return false;
+    }
+
     void acceptQuest(@NotNull Player player, @NotNull String questId);
 
     void openMenu(@NotNull Player player);
@@ -49,6 +53,7 @@ public interface QuestGpsNavigable {
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
 | `offerQuest` | 向玩家推送任务供选择 | `player`：目标玩家（`Player`）；`questId`：任务 ID（`String`）；`openMenu` 为 true 时同时打开任务菜单（`boolean`） | 无返回值 |
+| `tryOfferQuest` | 检查权限、分类、主线前置及任务状态，再推荐可接取的任务 | `player` 为目标玩家，`questId` 为任务 ID，`openMenu` 控制是否打开任务菜单 | `true` 表示已触发推荐，`false` 表示当前无法推荐 |
 | `acceptQuest` | 让玩家接受任务 | `player`：目标玩家（`Player`）；`questId`：任务 ID（`String`） | 无返回值 |
 | `openMenu` | 打开任务菜单 | `player`：目标玩家（`Player`） | 无返回值 |
 | `trackQuest` | 追踪任务 | `player`：目标玩家（`Player`）；`questId`：任务 ID（`String`） | 无返回值 |

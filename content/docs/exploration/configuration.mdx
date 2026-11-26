@@ -1,0 +1,70 @@
+---
+title: "探索区域与结果配置"
+description: "设置坐标范围、读条、抽取权重和探索结果。"
+---
+
+## 配置示例
+
+下面是一个林间遗迹的完整区域。把 `world` 和两个角点改为自己地图上的位置。此例每次完成约有 70% 的概率采到甜浆果、30% 的概率发现宝箱。
+
+```yaml
+config-version: 1
+default-key: V
+movement-tolerance: 0.15
+
+regions:
+  forest_ruins:
+    enabled: true
+    name: 林间遗迹
+    world: world
+    corner-a: [100, 60, 100]
+    corner-b: [112, 74, 116]
+    duration-ticks: 60
+    cooldown-seconds: 120
+    outcomes:
+      berries:
+        type: gather
+        weight: 70
+        items:
+          - { source: minecraft, id: SWEET_BERRIES, amount: 3 }
+      cache:
+        type: chest
+        weight: 30
+        title: 遗落的行囊
+        model: exploration_chest
+        scale: 1.0
+        items:
+          - { source: minecraft, id: IRON_INGOT, amount: 2 }
+          - { source: minecraft, id: EMERALD, amount: 1 }
+```
+
+| 字段 | 用途 |
+| --- | --- |
+| `corner-a`、`corner-b` | 两个角都包含在区域内，填写 `[x, y, z]` 整数坐标。重叠时按配置顺序选第一个可用区域。 |
+| `duration-ticks` | 读条时长。服务器 20 TPS 时，60 tick 约为 3 秒。 |
+| `movement-tolerance` | 读条期间允许离开起点的距离，范围 0 到 1 格。转动视角可以继续读条。 |
+| `cooldown-seconds` | 每位玩家在该区域的冷却时间，`0` 允许连续探索。 |
+| `weight` | 每次完成抽取一个结果，正权重越大越容易抽中。配置至少一个正权重。 |
+| `items` | 每项填写 `source`、`id` 和 `amount`，数量要符合单组堆叠上限。支持原版及已接入 Suite 的物品来源。 |
+
+## 配置宝箱模型
+
+`chest` 使用 Adyeshach 私有 NPC。安装 Adyeshach 后，把模块导出的 `data/exploration/client/ArcartX/resource/model/exploration_chest.bbmodel` 随 ArcartX 客户端资源包下发到 `ArcartX/resource/model/`。客户端加载模型后，发现者可右键宝箱打开战利品界面，点 **领取全部** 发放物品。自带模型可以通过 `model` 换成自定义模型 ID，`scale` 调整大小。
+
+关窗后还能右键重新打开。玩家离开原发现位置 32 格以上、换世界、死亡、下线或模块重载，都会清除未领取的宝箱。
+
+## 加入任务和奇遇
+
+在区域的 `outcomes` 节下按需加入以下条目，填入服务器已配置的目标 ID。
+
+```yaml
+lost_letter: { type: quest, weight: 15, quest: lost_letter }
+herbalist: { type: conversation, weight: 5, npc: herbalist }
+hidden_gate: { type: abyss, weight: 5, dungeon: example }
+```
+
+| 结果 | 联动要求 |
+| --- | --- |
+| `quest` | 填写 [QuestGPS](/docs/questgps) 中可接取的任务 ID。探索打开推荐界面，玩家自行接取。 |
+| `conversation` | 填写已绑定 Chemdah 会话的 [Adyeshach NPC](/docs/conversation/npc-interaction) ID。 |
+| `abyss` | 填写本服可单人进入的 [Abyss](/docs/abyss) 副本 ID。可选填 `plan`，并保留副本自己的准入、费用和冷却检查。 |

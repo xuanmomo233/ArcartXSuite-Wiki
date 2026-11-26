@@ -5,7 +5,9 @@ description: "在 Velocity 代理中汇总参与子服的玩家，验证准入�
 
 ## 启用跨服名单
 
-1. 在连接这些子服的代理上安装 Suite Velocity。子服启用 Tab，在各自的 `plugins/ArcartX-Suite/data/tab/config.yml` 中设置 `settings.proxy-roster: true`，再执行 `axs reload tab`。
+通过 Suite Velocity 汇总多个子服的名单适用于付费客户水印版。 [版本区别](/docs/guide#版本区别)
+
+1. 从客户分发渠道取得 Suite Velocity，在连接这些子服的代理上安装。子服启用 Tab，在各自的 `plugins/ArcartX-Suite/data/tab/config.yml` 中设置 `settings.proxy-roster: true`，再执行 `axs reload tab`。
 2. 在 Velocity 的 Suite 插件目录中编辑已生成的 `proxy-config.yml`，合并以下设置后重启代理。
 
 ```yaml

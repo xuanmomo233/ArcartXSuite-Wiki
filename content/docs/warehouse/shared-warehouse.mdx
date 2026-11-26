@@ -188,6 +188,8 @@ permission-tiers:
 
 ## 验证共享仓库
 
+免费云端版可在同一台游戏服内让玩家共用仓库。下面的双服验证适用于付费客户水印版的跨服仓库。
+
 1. 在两台服启用 Warehouse 和 PlaceholderAPI。在本体 `config.yml` 按[MySQL 配置](/docs/guide/first-run#使用-mysql)连接同一个数据库，再按[跨服连接](/docs/guide/cross-server-setup)配置消息通道。
 2. 在两台服的 Warehouse `config.yml` 合并下例，再重启。`storage.shared` 使用本体数据库，`cross-server.enabled` 启用跨服编辑锁。
 

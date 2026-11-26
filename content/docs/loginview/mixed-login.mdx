@@ -41,6 +41,8 @@ Windows 运行 `.\start-mixed-auth.bat`，Linux 运行 `bash ./start-mixed-auth.
 
 ## 代理转发认证
 
+ArcartXSuite Proxy 的代理转发认证适用于付费客户水印版。免费云端版可配置[单服混合认证](#单服混合认证)。 [版本区别](/docs/guide#版本区别)
+
 以下示例把子服在代理里的注册名设为 `lobby`。玩家连接代理地址，子服的游戏端口只允许代理访问。
 
 ### 配置玩家信息转发
@@ -59,7 +61,7 @@ Windows 运行 `.\start-mixed-auth.bat`，Linux 运行 `bash ./start-mixed-auth.
 
 ### 生成代理启动脚本
 
-安装与代理平台对应的 Suite 代理插件。在它生成的 `proxy-config.yml` 中调整下面的字段。第一次启动时先关闭 `auth-forwarding`，以便用代理控制台生成混合启动脚本。
+从客户分发渠道取得与代理平台对应的 Suite 代理插件并安装。在它生成的 `proxy-config.yml` 中调整下面的字段。第一次启动时先关闭 `auth-forwarding`，以便用代理控制台生成混合启动脚本。
 
 ```yaml
 deny-offline: true

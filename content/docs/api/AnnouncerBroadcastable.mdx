@@ -30,8 +30,8 @@ public interface AnnouncerBroadcastable {
 | 方法 | 用途 | 参数 | 返回值 |
 | --- | --- | --- | --- |
 | `broadcastNow` | 立即播报一条公告（强制打断当前展示，本服生效）。 | `text`：公告文本 | 无返回值 |
-| `broadcastNow` | 立即播报一条公告。 | `text`：公告文本；`forward`：是否跨服转发到其他子服 | 无返回值 |
-| `enqueue` | 将公告加入队列，当前展示结束后播报。 | `text`：公告文本；`forward`：是否跨服转发 | 无返回值 |
+| `broadcastNow` | 立即播报一条公告。 | `text`：公告文本；`forward`：付费客户水印版是否跨服转发 | 无返回值 |
+| `enqueue` | 将公告加入队列，当前展示结束后播报。 | `text`：公告文本；`forward`：付费客户水印版是否跨服转发 | 无返回值 |
 
 ## 调用注意事项
 

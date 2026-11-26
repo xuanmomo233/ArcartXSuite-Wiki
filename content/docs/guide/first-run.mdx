@@ -5,7 +5,7 @@ description: "从准备环境、安装本体到绑定云端、启用模块，完
 
 依次[准备环境](#准备环境)、[安装本体](#安装本体)和[绑定云端账号](#云端账号与服务器绑定)，再完成[首次验证](#首次验证与下一步)。
 
-已有服务器请按[版本更新](/docs/guide/upgrading)更换本体并核对模块状态。安装和更新时以[云端下载中心](https://cloud.021209.xyz/download)的当前发行版为准。启用模块前请核对前置插件。
+安装和更新时以[云端下载中心](https://cloud.021209.xyz/download)的当前发行版为准。部署前请核对[版本区别](/docs/guide#版本区别)和模块的前置插件。
 
 ## 准备环境
 
@@ -54,7 +54,7 @@ Suite 支持多种 Minecraft 版本。先确定游戏服使用的 Minecraft 版�
 | `potion-aura` | 控制持续药水效果 | 通常保留默认值 |
 | `mod-attributes` / `tacz-compat` | 模组属性与枪械伤害兼容 | 按服务端模组环境检查 |
 | `moderation` | 管理聊天、留言等内容的过滤规则 | 按服务器文字管理需求调整 |
-| `cross-server` | 配置多个子服之间的功能互通 | 单服保留关闭 |
+| `cross-server` | 配置付费客户水印版的多服互通 | 免费云端版和单服部署保留关闭 |
 | `command-throttle-per-tick` | 控制奖励命令分批执行的速度 | 通常保留 `20` |
 
 首次配置时依次填写云端信息、选择模块、核对货币和存储模式，然后重启并检查状态。其余功能可在基础流程正常后再调整。
@@ -89,7 +89,7 @@ cloud:
 3. 在控制台确认绑定成功。打开后台「我的服务器」，按已写入 `cloud.server-code` 的值确认对应服务器，然后在「装备模块」选中该服务器并装备 Announcer。
 4. 在控制台执行 `axs sync`，同步完成后执行 `axs status`。确认 `announcer` 已启用，且已生成 `plugins/ArcartX-Suite/data/announcer/config.yml`。缺少模块时，先分别核对「装备模块」的服务器选择和本地 `enabled` 值。
 
-正式云端模块可免费装备。先在后台为目标服务器装备模块，再通过本地 `enabled` 开关允许加载。已有服务器保留 `server-code`，通过 `axs sync` 刷新装备。客户水印分发的安装与授权见[云端模块与客户分发](/docs/guide/module-delivery)。
+正式云端模块可免费装备。先在后台为目标服务器装备模块，再通过本地 `enabled` 开关允许加载。已有服务器保留 `server-code`，通过 `axs sync` 刷新装备。
 
 ## 模块启用开关
 
@@ -119,7 +119,7 @@ modules:
 | Chemdah、Adyeshach | `conversation` |
 | Chemdah | `questgps` |
 
-其他模块没有额外的强制插件前置。单项功能可能另有要求，例如 [Market 的 NPC 商店](/docs/market/npc-exchange)需要 Adyeshach，[Tab 的跨服名单](/docs/tab/cross-server)需要 Suite Velocity。各模块的使用条件见[模块目录](/docs#按功能找模块)。
+其他模块没有额外的强制插件前置。单项功能可能另有要求，例如 [Market 的 NPC 商店](/docs/market/npc-exchange)需要 Adyeshach，付费客户水印版的 [Tab 跨服名单](/docs/tab/cross-server)需要 Suite Velocity。各模块的使用条件见[模块目录](/docs#按功能找模块)。
 
 ## 全局货币
 
@@ -174,7 +174,7 @@ storage:
 
 ### 使用 MySQL
 
-有数据库或群组服数据需求时，先创建数据库，再填写连接信息。所填账号需要能访问该库，并能创建 Suite 使用的表、读写数据。
+需要 MySQL 时，先创建数据库，再填写连接信息。所填账号需要能访问该库，并能创建 Suite 使用的表、读写数据。每台免费游戏服使用自己的数据库。同一台游戏服内的模块仍可共用宿主的 MySQL 连接池。多台游戏服共用业务数据的部署见[付费版跨服连接](/docs/guide/cross-server-setup)。
 
 ```yaml
 storage:
@@ -203,7 +203,7 @@ storage:
 
 某个模块若已有独立 `storage` 设置，还需要核对该模块配置，不能只改全局配置就认为全部模块已切换。
 
-修改存储设置后需重启服务器。需要跨服联动的群组服应另行配置[跨服功能](/docs/guide/cross-server-setup)。
+修改存储设置后需重启服务器。付费客户水印版的群组服可按需配置[跨服功能](/docs/guide/cross-server-setup)。
 
 ## 全局按键
 
@@ -319,7 +319,7 @@ potion-aura:
 
 ## 跨服功能
 
-单服保持 `cross-server.redis.enabled: false` 和 `cross-server.proxy.enabled: false`。群组服需先配置子服连接，再开启目标模块支持的跨服功能。
+免费云端版和单服部署保持 `cross-server.redis.enabled: false` 和 `cross-server.proxy.enabled: false`。使用 ArcartXSuite Proxy 或跨服 Redis 时，按[付费客户水印版的跨服连接步骤](/docs/guide/cross-server-setup)配置。
 
 | 常用字段 | 用途 |
 | --- | --- |

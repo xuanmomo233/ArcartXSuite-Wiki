@@ -10,10 +10,20 @@ description: "从安装和启用模块开始，按需查阅本体设置与共用
 | 文档 | 读完后能做什么 |
 | --- | --- |
 | [本体安装与配置](/docs/guide/first-run) | 完成安装与主配置，理解货币、存储、按键等全局功能，并检查模块是否正常启用 |
-| [版本更新](/docs/guide/upgrading) | 下载对应平台的新版，更新本体和模块并核对运行状态 |
-| [云端模块与客户分发](/docs/guide/module-delivery) | 启用免费云端模块，核对客户水印包的授权及功能范围 |
 | [常用命令](/docs/guide/commands) | 使用状态查询、同步、更新与重载等管理入口 |
 | [日志与报错提示](/docs/guide/config-management) | 看懂常见警告和失败提示，按原因定位问题 |
+
+## 版本区别
+
+| 能力 | 免费云端版 | 付费客户水印版 |
+| --- | --- | --- |
+| 模块获取 | 29 个正式模块可在云端免费装备 | 使用客户安装包提供的本体与水印模块，每台游戏服的模块分别授权 |
+| 游戏服连接 | 单台游戏服内使用 | 可配置[跨服 Redis 与 ArcartXSuite Proxy](/docs/guide/cross-server-setup)，使用 Suite 代理转发与认证 |
+| 模块功能 | 本服名单、传送、Market 商店与拍卖、共享仓库和 EventPacket 规则 | 可配置跨服名单、跨服传送及多服共享业务数据 |
+| 配置修复 | 用 `/axs config apply <模块ID>` 应用单个模块的修复建议 | 当前游戏服有有效客户模块席位时，可用 `/axs config apply all` 批量应用 |
+| EventPacket 副本通关邮件 | 使用 SQLite 处理本服副本结果 | EventPacket 持有有效客户席位时，可用共享 MySQL [跨服编排副本通关邮件](/docs/eventpacket/actions#副本通关邮件) |
+
+从群组服调整为单服部署时，保留原数据库中的已成交订单、店铺和仓库数据。
 
 ## 通用配置参考
 
@@ -29,7 +39,7 @@ description: "从安装和启用模块开始，按需查阅本体设置与共用
 | [货币系统](/docs/guide/currencies) | 连接经济插件，并在费用、奖励和商品中引用货币 |
 | [内容过滤](/docs/guide/text-moderation) | 配置词库、命中行为和 Redact 接入 |
 | [占位符速查](/docs/guide/placeholders) | 按模块查找 PAPI 变量，验证变量能否解析 |
-| [跨服连接](/docs/guide/cross-server-setup) | 配置 Redis 或代理转发，验证两服间的通道 |
+| [跨服连接](/docs/guide/cross-server-setup) | 付费客户水印版配置 Redis 或代理转发，验证两服间的通道 |
 
 ## 按需接入第三方插件
 

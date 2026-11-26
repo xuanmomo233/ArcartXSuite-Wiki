@@ -71,7 +71,7 @@ public interface EventBusCapability {
 
 回执订阅只接受 `axs.auth.profile_first_admitted`、`axs.auth.presence_day_started` 和 `axs.market.auction_purchased`。处理器按 `event_id` 去重，异步保存业务结果后再完成回执。认证主题没有回执订阅者时返回 `false`。
 
-拍卖成交主题是 `axs.market.auction_purchased`。已配置的 BattlePass 或 EventPacket 订阅尚未就绪时，Market 保留待处理事件。订阅方应同时保存 `event_id` 和处理结果。收到已完成的事件时返回成功。跨服运行同一订阅须共享存储。
+拍卖成交主题是 `axs.market.auction_purchased`。已配置的 BattlePass 或 EventPacket 订阅尚未就绪时，Market 保留待处理事件。订阅方应同时保存 `event_id` 和处理结果。收到已完成的事件时返回成功。付费客户水印版跨服运行同一订阅时须共享存储。
 
 ## 区域进出事件
 

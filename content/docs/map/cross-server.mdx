@@ -5,7 +5,7 @@ description: "让玩家浏览其他子服的世界，并配置跨服落地和传
 
 ## 从双服浏览开始
 
-假设玩家在生存服，需要浏览大厅服的 `world`。先按[跨服部署](/docs/guide/cross-server-setup)配置两个子服，为它们设置不同的节点 ID，并确认代理中的服务器名称分别为 `survival` 和 `lobby`。
+跨服地图和跨服传送适用于付费客户水印版。假设玩家在生存服，需要浏览大厅服的 `world`。先按[跨服部署](/docs/guide/cross-server-setup)配置两个子服，为它们设置不同的节点 ID，并确认代理中的服务器名称分别为 `survival` 和 `lobby`。
 
 在两个子服的 `plugins/ArcartX-Suite/data/map/config.yml` 中修改 `cross-server` 小节。下面是大厅服的示例。生存服也开启 `enabled` 和 `terrain-relay`，并把 `display-name` 和 `proxy-name` 分别改成「生存服」和 `survival`。
 
