@@ -5,7 +5,7 @@ description: "从准备环境、安装本体到绑定云端、启用模块，完
 
 依次[准备环境](#准备环境)、[安装本体](#安装本体)和[绑定云端账号](#云端账号与服务器绑定)，再完成[首次验证](#首次验证与下一步)。
 
-本 Wiki 说明 Suite 2.0.0 主线功能。实际可安装的发行版以云端下载中心和服务器的模块状态为准。启用模块前核对本体与模块版本，以及该模块要求的前置插件。
+已有服务器请按[版本更新](/docs/guide/upgrading)更换本体并核对模块状态。安装和更新时以[云端下载中心](https://cloud.021209.xyz/download)的当前发行版为准。启用模块前请核对前置插件。
 
 ## 准备环境
 
@@ -15,7 +15,7 @@ Suite 支持多种 Minecraft 版本。先确定游戏服使用的 Minecraft 版�
 | --- | --- | --- |
 | Minecraft 服务端与 Java | Suite 主线的服务端基线为 Minecraft 1.20.1 及以上的 Spigot / Paper，Java 至少为 17。选择 Suite 和 ArcartX 均支持的组合，Java 同时满足所选服务端的要求。 | 在游戏服实际使用的启动环境执行 `java -version`；使用面板时，核对实例选择的 Java。 [Paper 的 Java 要求](https://docs.papermc.io/paper/getting-started/#requirements) |
 | ArcartX 服务端 | 选择支持当前 Minecraft 版本和服务端类型的 ArcartX 发行版。 | 将 ArcartX 服务端插件放入 `plugins/`。 [ArcartX 下载](https://arcartx.com/resources/16/) |
-| Suite 本体 | 支持 Windows x86_64 和 Linux x86_64。按游戏服的系统选择对应 JAR。 | 在云端下载中心的「游戏服本体」下载 `ArcartX-Suite` JAR。 [Suite 云端下载中心](https://cloud.021209.xyz/download) |
+| Suite 本体 | 支持 Windows x86_64 和 Linux x86_64。按游戏服的系统选择对应 JAR。 | 登录云端，在「下载中心 → 游戏服本体」下载 `ArcartX-Suite` JAR。 [Suite 云端下载中心](https://cloud.021209.xyz/download) |
 | 玩家客户端 | 按游戏服的入服版本要求，从 ArcartX 版本表选择可用的 Minecraft 版本与加载器组合，再核对客户端构建与 ArcartX 服务端的兼容性。 | 将对应的 ArcartX 客户端 Mod 及该构建要求的前置 Mod 放入所用游戏实例的 `mods/`。 [ArcartX 版本表](https://wiki.arcartx.com/docs/arcartx_v2) |
 
 使用地图或物品提示时，按对应模块页的要求选择作者发放的客户端扩展。 [地图客户端](/docs/map/client-mod) · [物品提示客户端](/docs/tooltip/client-mod)
@@ -89,7 +89,7 @@ cloud:
 3. 在控制台确认绑定成功。打开后台「我的服务器」，按已写入 `cloud.server-code` 的值确认对应服务器，然后在「装备模块」选中该服务器并装备 Announcer。
 4. 在控制台执行 `axs sync`，同步完成后执行 `axs status`。确认 `announcer` 已启用，且已生成 `plugins/ArcartX-Suite/data/announcer/config.yml`。缺少模块时，先分别核对「装备模块」的服务器选择和本地 `enabled` 值。
 
-后台装备与本地开关都需要正确设置：只把 `enabled` 改为 `true`，不会获得尚未装备的模块。已有服务器不要通过清空 `server-code` 来刷新模块。
+正式云端模块可免费装备。先在后台为目标服务器装备模块，再通过本地 `enabled` 开关允许加载。已有服务器保留 `server-code`，通过 `axs sync` 刷新装备。客户水印分发的安装与授权见[云端模块与客户分发](/docs/guide/module-delivery)。
 
 ## 模块启用开关
 

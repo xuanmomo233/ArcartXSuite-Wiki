@@ -7,6 +7,8 @@ description: "构建一个通过命令打开 Suite 菜单的最小 Bukkit 插件
 
 将与目标 Suite 发行版配套的 `axs-api` JAR 保存为项目中的 `libs/axs-api.jar`。使用 `compileOnly`，运行时由游戏服中的 Suite 提供这些类。
 
+可从模块分发方取得配套的 API JAR。有 Suite 源码访问权限时，检出与服务器本体对应的发布提交，在仓库根目录执行 `./gradlew :axs-api:jar -PskipNativeCheck=true`（Windows 使用 `gradlew.bat`），产物位于 `axs-api/build/libs/`。
+
 在使用 Gradle 的插件项目中，将以下内容写入 `build.gradle.kts`。Bukkit API 依赖和 Java 工具链按目标游戏服选择，下方为一组编译示例。
 
 ```kotlin

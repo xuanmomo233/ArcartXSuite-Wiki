@@ -37,7 +37,7 @@ requirements:
   qq-binding: false
 ```
 
-Windows 运行 `.\start-mixed-auth.bat`，Linux 运行 `bash ./start-mixed-auth.sh`。脚本先启动网关，再带着指向该网关的 `-javaagent` 参数启动游戏服。使用面板时，将实际启动命令指向这个脚本。然后[验证账号来源](#验证身份与准入)。
+Windows 运行 `.\start-mixed-auth.bat`，Linux 运行 `bash ./start-mixed-auth.sh`。脚本先启动网关，再带着指向该网关的 `-javaagent` 参数启动游戏服。接到面板前，检查脚本里的 Java、游戏服 JAR 和内存参数，按原来的开服设置调整，并保留网关启动命令和 `-javaagent`。面板的实际启动命令应运行此脚本。然后[验证账号来源](#验证身份与准入)。
 
 ## 代理转发认证
 
@@ -89,7 +89,7 @@ auth-forwarding:
       audience: lobby-node
 ```
 
-在代理目录运行 `.\start-mixed-auth.bat` 或 `bash ./start-mixed-auth.sh`。从代理的 `[AuthForwarding]` 启动日志复制 `public-key=` 后的完整公钥。Velocity 的玩家信息转发密钥和这把 Suite 公钥分别填在各自的配置位置。
+核对生成的脚本里使用的 Java、代理 JAR 和内存参数。在代理目录运行 `.\start-mixed-auth.bat` 或 `bash ./start-mixed-auth.sh`。从代理的 `[AuthForwarding]` 启动日志复制 `public-key=` 后的完整公钥。Velocity 的玩家信息转发密钥和这把 Suite 公钥分别填在各自的配置位置。
 
 ### 配置子服信任项
 
@@ -117,20 +117,22 @@ requirements:
 
 当玩家要用官网账号**启动游戏**时，在现有混合网关增加这个来源。
 
-1. 在[认证中心登记启动器](/docs/loginview/center#登记启动器)，开启 `external.minecraftSessions`，让中心的 `/v1/external/` 路径可通过 HTTPS 访问。
-2. 在**启动网关的进程**中设置 `AXS_MIXED_CENTER_ORIGIN`，填写中心的 HTTPS 根地址。下例在 Windows 的游戏服目录或代理目录运行。
+1. 按[认证中心教程](/docs/loginview/center#获取认证中心)部署中心并[登记启动器](/docs/loginview/center#登记启动器)。开启 `external.minecraftSessions`，让中心的 `/v1/external/` 路径可通过 HTTPS 访问。
+2. 在**启动网关的进程**中设置 `AXS_MIXED_CENTER_ORIGIN`。填中心的 HTTPS 根地址，省略末尾斜线、路径和查询串。下例在 Windows 的游戏服目录或代理目录运行。
 
    ```powershell
    $env:AXS_MIXED_CENTER_ORIGIN = 'https://auth.example.net'
    & .\start-mixed-auth.bat
    ```
 
-3. 单服维持 `local-mixed`。代理路线在每个接收中心账号的子服将 `trusted-proxies[].providers` 改为 `[microsoft, littleskin, center]` 并重启。
+   Linux 使用 `AXS_MIXED_CENTER_ORIGIN=https://auth.example.net bash ./start-mixed-auth.sh`。用面板或系统服务管理进程时，把这个变量设置在实际运行脚本的服务环境里。
+
+3. 单服沿用 `backend: standalone` 和 `ingress.type: local-mixed`。代理子服沿用 `backend: standalone` 和 `ingress.type: signed-proxy`，在每个接收中心账号的子服将 `trusted-proxies[].providers` 改为 `[microsoft, littleskin, center]` 并重启。混合入口的条款和绑定由游戏服的 `authentication.yml` 配置。
 4. 启动器经官网授权，按[兑换 Minecraft 会话](/docs/loginview/external-api#兑换-minecraft-会话)取得中心档案，使用返回的档案和凭据启动客户端。中心为账号分配独立的 `AXS_` 档案，进服后可查到来源 `center`。
 
 ### 加入独立认证服务
 
-自有 Yggdrasil 服务提供 HTTPS `hasJoined` 时，让客户端先用该服务登录，在网关进程把 `AXS_MIXED_CENTER_HAS_JOINED` 设为它完整的 `hasJoined` 接口地址。此变量与 `AXS_MIXED_CENTER_ORIGIN` 二选一，重启网关生效。通过代理接入时，子服也要允许来源 `center`。
+自有 Yggdrasil 服务提供 HTTPS `hasJoined` 时，让客户端先用该服务登录，在网关进程把 `AXS_MIXED_CENTER_HAS_JOINED` 设为它完整的 `hasJoined` 接口地址，省略查询串和片段。此变量与 `AXS_MIXED_CENTER_ORIGIN` 二选一，重启网关生效。通过代理接入时，子服也要允许来源 `center`。
 
 ## 验证身份与准入
 

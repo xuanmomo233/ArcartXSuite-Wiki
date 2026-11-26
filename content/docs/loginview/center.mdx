@@ -7,9 +7,31 @@ description: "部署 Suite AuthCenter 独立认证中心，用官网 OIDC 完成
 
 ## 部署条件
 
-- 准备 Suite AuthCenter 独立发行包和 Java 17 或以上版本。示例使用同机游戏节点 `lobby`，账号和策略所属的 Realm 名为 `network`。
+- 准备 Java 17 或更高版本。示例使用同机游戏节点 `lobby`，账号和策略所属的 Realm 名为 `network`。
 - 准备一个 HTTPS 域名给玩家访问中心，以及一个支持 OpenID Connect（OIDC）的官网身份系统。向网站管理员取得发行者地址 `issuer`、授权端点 `authorize`、换码端点 `token`、应用 ID 及密钥、签名公钥编号和公钥。
 - 在网站的 OIDC 应用中登记完整回调 `https://auth.example.net/v1/external/callback`。将示例域名换为自己的域名。提供方需要支持授权码、S256、`client_secret_basic` 和 RS256，身份令牌含 `nonce`、`auth_time`。公钥使用 2048 至 4096 位 RSA 的 X.509 SubjectPublicKeyInfo DER，以 Base64 填入。
+
+## 获取认证中心
+
+认证中心作为独立 Java 进程运行。向发行方或服务器管理员取得与游戏服 Suite 版本对应的认证中心发行包。已有发行包时，解压后直接[编写中心配置](#编写中心配置)。
+
+### 从源码构建
+
+有 Suite 源码仓库访问权限时，检出与游戏服相同的版本，在项目根目录执行当前系统对应的命令。下例使用 Suite 3.3.7。[Suite 3.3.7 源码](https://github.com/xuanmomo233/ArcartXSuite/tree/cffb964936ba2ef59dde499200298e4962d88012)
+
+Windows PowerShell
+
+```powershell
+.\gradlew.bat :auth-center:distZip -PskipNativeCheck=true
+```
+
+Linux
+
+```bash
+./gradlew :auth-center:distZip -PskipNativeCheck=true
+```
+
+解压 `auth-center/build/distributions/auth-center-3.3.7.zip`，在解压后的目录保留 `bin/` 和 `lib/`，并按下一节创建配置文件。
 
 ## 编写中心配置
 
@@ -134,6 +156,6 @@ center:
 | 玩家要做什么 | 服主接下来设置什么 |
 | --- | --- |
 | 玩家已在游戏里，用启动器代替网页完成授权 | `minecraftSessions` 保持 `false`。重启中心，启动器按[游戏连接配对](/docs/loginview/external-api#游戏连接配对)提交游戏授权码，玩家回到游戏确认 |
-| 玩家用官网账号启动游戏，直接完成 Minecraft 握手 | 在 `external` 内设置 `minecraftSessions: true` 并重启中心。按[加入 Suite AuthCenter](/docs/loginview/mixed-login#加入-suite-authcenter)把中心接入游戏服或代理的混合网关 |
+| 玩家用官网账号启动游戏，直接完成 Minecraft 握手 | 在 `external` 内设置 `minecraftSessions: true` 并重启中心。按[加入 Suite AuthCenter](/docs/loginview/mixed-login#加入-suite-authcenter)设置游戏服的混合入口和准入要求 |
 
 启动器回调必须与登记的 `http://127.0.0.1:端口/路径` 完全一致。官网回调仍指向中心的 HTTPS 地址。两者各自接收对应的授权结果。

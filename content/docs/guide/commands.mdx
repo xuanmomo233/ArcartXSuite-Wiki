@@ -26,8 +26,11 @@ description: "开始使用可用命令、参数填写方式和权限要求。"
 | `/axs config status` | 查看当前会话的诊断结果概况 |
 | `/axs config preview <模块ID或all>` | 查看诊断发现的问题和建议值 |
 | `/axs config apply <模块ID>` | 将该模块已确认的修复建议写入配置 |
+| `/axs config apply all` | 批量应用已确认的配置修复建议。需要客户水印版和当前服务器上的有效客户模块席位 |
 
 在控制台先执行 `axs config diagnose`，再执行 `axs config preview all` 核对报告。确有建议需要应用时，将 `<模块ID>` 换成报告中的 ID，应用后按模块文档重载并重新诊断。
+
+客户水印包的安装与席位要求见[模块装备与客户水印包](/docs/guide/module-delivery)。
 
 ## 查找某个功能的命令
 

@@ -58,13 +58,15 @@ UI 统一配置节，管理所有界面的 ID 与覆盖策略。
 
 ### 工作台和普通熔炉配置片段
 
+下面的示例只列出要查看或修改的字段。将对应字段填入现有 `config.yml` 的同名配置节，保留文件中已生成的配置版本和其余工作区。
+
 ```yaml
 # ArcartXSuite Vanilla - 原版界面替换模块配置
 # 替换原版工作台和熔炉界面为 ArcartX UI 纯色块风格界面。
 # 重载: /axs reload vanilla
 
 # 配置版本号（请勿手动修改）
-config-version: 2
+config-version: 3
 
 # UI 配置（统一管理所有界面的 id 与覆盖策略）
 ui:
@@ -91,31 +93,13 @@ furnace:
 ### 关闭普通熔炉替换
 
 ```yaml
-config-version: 2
-
-ui:
-  crafting-ui-id: "AXS:vanilla_crafting"
-  furnace-ui-id: "AXS:vanilla_furnace"
-  overwrite-ui-files: false
-
-crafting:
-  enabled: true
-
 furnace:
   enabled: false
-  push-interval-ticks: 2
 ```
 
 ### 仅启用熔炉（降低推送频率）
 
 ```yaml
-config-version: 2
-
-ui:
-  crafting-ui-id: "AXS:vanilla_crafting"
-  furnace-ui-id: "AXS:vanilla_furnace"
-  overwrite-ui-files: false
-
 crafting:
   enabled: false
 
@@ -128,20 +112,8 @@ furnace:
 ### 强制覆盖 UI 文件
 
 ```yaml
-config-version: 2
-
 ui:
-  crafting-ui-id: "AXS:vanilla_crafting"
-  furnace-ui-id: "AXS:vanilla_furnace"
-  # 每次 reload 都用 Jar 内置 UI 文件覆盖用户修改
   overwrite-ui-files: true
-
-crafting:
-  enabled: true
-
-furnace:
-  enabled: true
-  push-interval-ticks: 2
 ```
 
 > `overwrite-ui-files: true` 适用于排查 UI 问题时恢复默认配置。日常使用建议设为 `false`，以保留自定义修改。

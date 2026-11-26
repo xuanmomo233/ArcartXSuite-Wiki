@@ -13,7 +13,7 @@ description: "服主进行账号管理与故障排查时，可在这里查询命
 | `/axs loginview status` | 检查模块指令是否已注册 | 返回 LoginView 负责界面、宿主负责认证的说明 |
 | `/axs loginview account <玩家>` | 查询本服在线玩家的账号 | 显示账号 ID、登记状态、身份来源、验证结果、游戏准入及当前阶段 |
 | `/axs loginview open <玩家>` | 为在线玩家重新打开当前步骤 | 待登录或待准入的玩家看到相应界面，已放行的本服密码玩家可修改密码 |
-| `/axs reload loginview` | 修改界面或打开延迟后 | 模块重新读取界面配置。修改 `authentication.yml` 需要重启游戏服 |
+| `/axs reload loginview` | 修改界面打开延迟后 | 模块重新读取延迟并注册内置界面。修改 `authentication.yml` 需要重启游戏服 |
 | `/axs unload loginview` | 管理员主动停止使用该模块 | Suite 解除 LoginView 的限制，其他插件继续管理自己的进服规则 |
 
 ## 账号管理界面
@@ -28,7 +28,7 @@ description: "服主进行账号管理与故障排查时，可在这里查询命
 
 ### 使用占位符查询
 
-已安装 PlaceholderAPI 的服务器也可以在控制台执行 `papi parse Alex %axsauth_stage%`。仍使用只有 `status` 和 `open` 两个子命令的 LoginView 构建时，可通过这些占位符核对状态。玩家有 PlaceholderAPI 查询权限时，可以用 `/papi parse me %axsauth_admitted%` 查看自己。
+已安装 PlaceholderAPI 的服务器也可以在控制台执行 `papi parse Alex %axsauth_stage%`。玩家有 PlaceholderAPI 查询权限时，可以用 `/papi parse me %axsauth_admitted%` 查看自己。
 
 | 占位符 | 怎样解读 |
 | --- | --- |
