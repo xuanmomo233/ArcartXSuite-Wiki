@@ -34,7 +34,7 @@ Pickup 模块的主配置位于 `data/pickup/config.yml`，消息文件为 `mess
 | `notification.max-visible` | int | `4` | 范围 1~16 | 同时最多显示的提示条数，超出后旧提示向上挤出 |
 | `notification.entry-ttl-ms` | long | `3000` | 范围 500~30000 | 每条提示在 HUD 上存活时间（毫秒），超时自动隐藏 |
 
-> `notification.max-visible` 与 `notification.entry-ttl-ms` 决定 `pickup_hud.yml` 的生成参数。修改后需开启 `ui.overwrite-ui-files` 或删除 `ui/pickup_hud.yml` 以重新生成。
+> `notification.max-visible` 与 `notification.entry-ttl-ms` 决定 `pickup_hud.yml` 的生成参数。修改后需开启 `ui.overwrite-ui-files` 或删除 `ui/pickup/pickup_hud.yml` 以重新生成。
 
 ### scanner 节（扫描模式配置）
 

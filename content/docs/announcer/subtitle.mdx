@@ -5,7 +5,7 @@ description: "编写多段字幕的文字、打字速度与停留时间，并为
 
 ## 播放行为
 
-每个玩家同一时间只有一个字幕序列在播放，新的播放请求会终止旧序列。字幕 HUD 文件为 `ui/subtitle_hud.yml`，可自定义样式。
+每个玩家同一时间只有一个字幕序列在播放，新的播放请求会终止旧序列。字幕 HUD 文件为 `ui/announcer/subtitle_hud.yml`，可自定义样式。
 
 ## 字幕组文件格式
 
@@ -144,7 +144,7 @@ Subtitle close -> Steve | ui=[AXS:subtitle_hud]
 
 ## UI 自定义
 
-字幕 HUD 支持自定义，修改 `ui/subtitle_hud.yml` 即可调整布局与样式。自定义时需注意：
+字幕 HUD 支持自定义，修改 `ui/announcer/subtitle_hud.yml` 即可调整布局与样式。自定义时需注意：
 
 - `Lerp` 插值器的参数顺序为 `Lerp(start, end, durationMs)`
 - Text 控件的 `limit` 属性必须绑定到 `var.subtitleAnimation`

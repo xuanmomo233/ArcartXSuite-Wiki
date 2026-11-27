@@ -17,7 +17,7 @@ backpack:
 | --- | --- |
 | `backpack.enabled` | 开启随身背包，默认关闭 |
 | `backpack.ui.register-ui-on-enable` | 启用时注册背包界面 |
-| `backpack.ui.overwrite-ui-files` | 重载时用内置模板覆盖 `ui/vanilla_backpack.yml` |
+| `backpack.ui.overwrite-ui-files` | 重载时用内置模板覆盖 `ui/vanilla/vanilla_backpack.yml` |
 
 Warehouse 为可选模块。没有 Warehouse 时，随身背包仍可使用玩家背包、装备栏、整理功能和随身工作台；启用 Warehouse 后显示个人仓库区域。
 
@@ -79,7 +79,7 @@ actions:
 
 打开背包时播放一次入场动作，再进入待机并开始随机动作计时。随机动作结束后回到待机，有其他可选动作时避免连续重复。动作仅对开包玩家显示，关闭背包后结束。
 
-动作名与客户端动作包完全一致。待机动作设为循环，入场和随机动作填写实际时长。自定义 `ui/vanilla_backpack.yml` 时保留转场初始化、控件表达式和 `var.backpackTransitionMs`。
+动作名与客户端动作包完全一致。待机动作设为循环，入场和随机动作填写实际时长。自定义 `ui/vanilla/vanilla_backpack.yml` 时保留转场初始化、控件表达式和 `var.backpackTransitionMs`。
 
 ## 个人仓库存取
 

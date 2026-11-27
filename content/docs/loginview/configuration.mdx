@@ -49,6 +49,6 @@ config-version: 1
 open-delay-ticks: 20
 ```
 
-`open-delay-ticks` 的取值为 0 至 600 tick，默认 20 tick。Suite 3.3.7 会在 LoginView 启动或重载时重新导出 `plugins/ArcartX-Suite/ui/auth_v1.yml`，界面 ID 是 `AXS:auth_v1`。排查界面加载时可检查该文件和服务端的注册日志。
+`open-delay-ticks` 的取值为 0 至 600 tick，默认 20 tick。Suite 3.3.7 会在 LoginView 启动或重载时重新导出 `plugins/ArcartX-Suite/ui/loginview/auth.yml`，界面 ID 是 `AXS:auth`。排查界面加载时可检查该文件和服务端的注册日志。
 
 修改打开延迟后，在游戏服控制台执行 `axs reload loginview`。用仍有待完成要求的测试账号进服查看变化。已经放行且无需操作的玩家会正常进入游戏。

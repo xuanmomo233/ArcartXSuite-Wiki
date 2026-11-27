@@ -35,16 +35,16 @@ Redis 启用后缓存玩家各自的拍卖和玩家商店列表页，保存时�
 | `ui.shop-file` | string | `arcartx/ui/market_shop.yml` | 系统商店 UI 文件路径 |
 | `ui.auction-file` | string | `arcartx/ui/market_auction.yml` | 拍卖行 UI 文件路径 |
 | `ui.auction-room-ui-id` | string | `AXS:market_auction_room` | 单件拍品竞价厅 ID，须与其他市场 UI 区分 |
-| `ui.auction-room-file` | string | `arcartx/ui/market_auction_room.yml` | 竞价厅资源路径，导出为模块 `ui/market_auction_room.yml` |
+| `ui.auction-room-file` | string | `arcartx/ui/market_auction_room.yml` | 竞价厅资源路径，导出为模块 `ui/market/market_auction_room.yml` |
 | `ui.recycle-file` | string | `arcartx/ui/market_recycle.yml` | 回收商店 UI 文件路径 |
 | `ui.history-file` | string | `arcartx/ui/market_history.yml` | 交易历史 UI 文件路径 |
 | `ui.sell-file` | string | `arcartx/ui/market_sell.yml` | 统一上架 UI 文件路径 |
 | `ui.player-shop-file` | string | `arcartx/ui/market_player_shop.yml` | 玩家商店 UI 文件路径 |
-| `ui.player-shops-ui-id` | string | `AXS:market_player_shops` | 店铺目录，导出 `ui/market_player_shops.yml` |
-| `ui.player-store-ui-id` | string | `AXS:market_player_store` | 独立店铺，导出 `ui/market_player_store.yml` |
-| `ui.player-store-edit-ui-id` | string | `AXS:market_player_store_edit` | 店主资料编辑，导出 `ui/market_player_store_edit.yml` |
-| `ui.recycle-protection-ui-id` | string | `AXS:market_recycle_protection` | 个人回收保护，导出 `ui/market_recycle_protection.yml` |
-| `ui.admin-trades-ui-id` | string | `AXS:market_admin_trades` | 管理员交易管理，导出 `ui/market_admin_trades.yml` |
+| `ui.player-shops-ui-id` | string | `AXS:market_player_shops` | 店铺目录，导出 `ui/market/market_player_shops.yml` |
+| `ui.player-store-ui-id` | string | `AXS:market_player_store` | 独立店铺，导出 `ui/market/market_player_store.yml` |
+| `ui.player-store-edit-ui-id` | string | `AXS:market_player_store_edit` | 店主资料编辑，导出 `ui/market/market_player_store_edit.yml` |
+| `ui.recycle-protection-ui-id` | string | `AXS:market_recycle_protection` | 个人回收保护，导出 `ui/market/market_recycle_protection.yml` |
+| `ui.admin-trades-ui-id` | string | `AXS:market_admin_trades` | 管理员交易管理，导出 `ui/market/market_admin_trades.yml` |
 | `ui.register-ui-on-enable` | boolean | `true` | 模块启动时自动注册 UI 到 ArcartX 桥接层 |
 | `ui.overwrite-ui-files` | boolean | `false` | 是否覆盖已导出的 UI 文件（`true` 会覆盖自定义修改） |
 
