@@ -52,3 +52,9 @@ result-message: "&a已清理 {count} 个实体。"
 `worlds` 留空时检查所有已加载世界。可以在 `entity-types` 添加指定 Bukkit 实体类型，并用 `excluded-types` 保留指定类型。玩家始终保留，`skip-named` 默认保护有自定义名称的实体。`work-per-tick` 取 1 至 512，限制每 tick 处理的实体、区块和世界步骤数量。上一轮处理完毕后开始计算下一轮间隔。预告设为 0 秒或留空对应消息即可静默处理。
 
 启用清理后，管理员可执行 `/axs eventpacket cleanup`，由下一 tick 开始按相同的世界范围、实体过滤和工作量限制执行。手动清理跳过定时预告，结束后向执行者报告处理数量。已有清理排队或正在执行时，命令会提示当前状态，计时间隔从该轮结束后重新开始。
+
+### 用测试世界验收清理范围
+
+1. 把 `worlds` 改为只含一个测试世界，保留 `items: true`，关闭 `monsters` 和 `animals`，保持两个实体类型列表为空。`warning-seconds` 必须小于 `interval-seconds`。执行 `/axs reload eventpacket`。
+2. 在测试世界的已加载区块内丢出一件普通物品，旁边留一只动物。在另一个世界放一件对照物品。执行 `/axs eventpacket cleanup` 并等待完成提示。
+3. 测试世界的掉落物应消失，动物及另一个世界的掉落物应保留。再按实际需求调整命名实体保护和 `excluded-types`。排除列表优先于显式包含的 `entity-types`。

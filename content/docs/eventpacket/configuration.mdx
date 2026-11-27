@@ -1,6 +1,6 @@
 ---
 title: "事件规则配置"
-description: "在主配置中创建一条信号规则，并了解规则字段和每 tick 的处理限制。"
+description: "按规则目录选择配置文件，创建第一条信号规则并调整每 tick 的处理量。"
 ---
 
 EventPacket 的配置位于 `plugins/ArcartX-Suite/data/eventpacket/`。
@@ -44,7 +44,7 @@ rules:
 | `checks` | 在线玩家实时规则可设置最多 8 个条件，例如 `"js: player.getHealth() > 5"`、`"aria: global.player.getHealth() > 5"` 或 `"%player_level% >= 10"`。一条规则执行前只评估一次。 |
 | `actions` | 按顺序执行的动作列表，每条规则可填写 1 至 8 个动作。 |
 
-规则 ID 和信号名使用小写字母、数字、连字符或下划线，以字母或数字开头，最多 64 个字符。主配置最多可填写 256 条规则。
+规则 ID 和信号名使用小写字母、数字、连字符或下划线，以字母或数字开头，最多 64 个字符。规则 ID 在各规则文件之间也须唯一。最多可加载 256 条规则。
 
 ## 实时规则处理上限
 

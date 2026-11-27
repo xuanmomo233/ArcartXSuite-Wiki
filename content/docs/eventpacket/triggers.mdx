@@ -28,14 +28,14 @@ description: "按实时消息、信号、定时或确认的业务结果选择触
 
 ```yaml
 rules:
-  player-level-ten:
+  trial-level-threshold:
     trigger: placeholder-change
     placeholder: "%player_level%"
     match: reach
     threshold: 10
     actions:
       - { type: message, text: "等级已达到 {new_value}。" }
-  low-health:
+  trial-low-health:
     trigger: script-check
     engine: js
     script: "player.getHealth() < 6"
@@ -43,20 +43,31 @@ rules:
       - { type: message, text: "你的生命值过低。" }
 ```
 
-脚本可将 `engine` 设为 `aria`，此时用 `global.player` 访问玩家。在 `rules/events.yml` 配置击杀规则。
+把两条测试规则加到已有的 `rules` 下，保留文件里原有的 `config-version`，再执行 `/axs reload eventpacket`。
+
+1. 测 PAPI 规则前，在控制台运行 `papi parse Alex %player_level%`，把 `Alex` 换成已准入的在线测试玩家。先确认得到数字。如果原样返回占位符，确认 PlaceholderAPI 已启用且已加载提供该占位符的扩展。
+2. 让玩家在等级小于 10 或生命值大于等于 6 时等过一轮采样，再提升等级到 10 或将生命值降到 6 以下。维持状态直至下一轮采样，单次跨过阈值只应提示一次。重新连接建立新基线，始终保持同一值也不会触发。
+3. 测脚本时也可选用 `engine: aria`，对应脚本改为 `global.player.getHealth() < 6`。采样间隔和单 tick 上限见[本服采样](/docs/eventpacket/configuration#本服采样)。
+
+### 按玩家累计击杀
+
+在 `rules/events.yml` 的 `rules` 内添加下例。将 `world` 改成测试场地实际所在的世界名。
 
 ```yaml
 rules:
-  zombie-twenty:
+  trial-zombie-kills:
     trigger: mob-kills
     entity-type: ZOMBIE
-    count: 20
+    count: 2
     repeat: true
+    worlds: [world]
     actions:
       - { type: message, text: "你击杀了 {kill_count} 只僵尸。" }
 ```
 
 击杀计数跟随本服玩家存档保存，键由规则 ID 决定。设为 `repeat: true` 时每累计一轮就重新计数，默认只在首次达成时触发。事件提供 `kill_count`、`entity_type`、`mythic_mob` 和 `world`。
+
+让普通玩家亲手击杀两只僵尸，第一次没有提示，第二次应收到计数为 2 的消息。再杀两只应再次提示。换到未列出的世界，或让环境独立击杀怪物，计数应保持不变。需要统计自定义怪物时，用 `mythic-mob` 填 MythicMobs 内部 ID。若同时指定 `entity-type`，两项均须匹配。
 
 ## 客户端包触发规则
 
@@ -79,7 +90,7 @@ Packet.send('AXS_EventPacketAction', 'client-packet', 'panel-confirm')
 
 ```yaml
 rules:
-  legendary-fishing:
+  trial-legendary-message:
     trigger: event-bus
     topic: axs.fishing.success
     when:

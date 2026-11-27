@@ -5,7 +5,7 @@ description: "设置坐标范围、读条、抽取权重和探索结果。"
 
 ## 配置示例
 
-下面是一个林间遗迹的完整区域。把 `world` 和两个角点改为自己地图上的位置。此例每次完成约有 70% 的概率采到甜浆果、30% 的概率发现宝箱。
+在 `plugins/ArcartX-Suite/data/exploration/config.yml` 中填写下面的采集示例。已有区域时，将 `forest_ruins` 加在已有的 `regions` 下，并替换示例世界与坐标。该区域每次读满固定发放 3 个甜浆果，只需要本体、Exploration 和配套的 ArcartX 环境。
 
 ```yaml
 config-version: 1
@@ -20,36 +20,47 @@ regions:
     corner-a: [100, 60, 100]
     corner-b: [112, 74, 116]
     duration-ticks: 60
-    cooldown-seconds: 120
+    cooldown-seconds: 0
     outcomes:
       berries:
         type: gather
-        weight: 70
+        weight: 1
         items:
-          - { source: minecraft, id: SWEET_BERRIES, amount: 3 }
-      cache:
-        type: chest
-        weight: 30
-        title: 遗落的行囊
-        model: exploration_chest
-        scale: 1.0
-        items:
-          - { source: minecraft, id: IRON_INGOT, amount: 2 }
-          - { source: minecraft, id: EMERALD, amount: 1 }
+          - source: minecraft
+            id: SWEET_BERRIES
+            amount: 3
 ```
 
 | 字段 | 用途 |
 | --- | --- |
-| `corner-a`、`corner-b` | 两个角都包含在区域内，填写 `[x, y, z]` 整数坐标。重叠时按配置顺序选第一个可用区域。 |
+| `regions.<区域 ID>` | 已启用区域的 ID 使用 1～64 位小写字母、数字、下划线或连字符。`enabled: false` 暂停此区域。 |
+| `corner-a`、`corner-b` | 两个角都包含在区域内，填写 `[x, y, z]` 整数坐标。重叠时按配置顺序选中第一个包含玩家且当前可探索的区域，冷却中的区域会跳过。 |
 | `duration-ticks` | 读条时长。服务器 20 TPS 时，60 tick 约为 3 秒。 |
 | `movement-tolerance` | 读条期间允许离开起点的距离，范围 0 到 1 格。转动视角可以继续读条。 |
 | `cooldown-seconds` | 每位玩家在该区域的冷却时间，`0` 允许连续探索。 |
-| `weight` | 每次完成抽取一个结果，正权重越大越容易抽中。配置至少一个正权重。 |
-| `items` | 每项填写 `source`、`id` 和 `amount`，数量要符合单组堆叠上限。支持原版及已接入 Suite 的物品来源。 |
+| `weight` | 非负整数。每次只抽一个结果，概率为该项权重占正权重总和的比例。设为 `0` 关闭此项，每个启用区域至少有一个正权重。 |
+| `items` | 采集和宝箱填 1～54 条。`amount` 为 1～64 的整数，同时受物品自身的堆叠上限约束。先确认 `source` 和 `id` 可在本服生成物品。[物品来源](/docs/guide/item-sources) |
+
+冷却按每名玩家和区域 ID 记录，重连后继续生效。走动取消读条不会开始冷却。区域提示也会在玩家处于旁观模式、未通过准入、打开容器或有待领取宝箱时隐藏。
 
 ## 配置宝箱模型
 
-`chest` 使用 Adyeshach 私有 NPC。安装 Adyeshach 后，把模块导出的 `data/exploration/client/ArcartX/resource/model/exploration_chest.bbmodel` 随 ArcartX 客户端资源包下发到 `ArcartX/resource/model/`。客户端加载模型后，发现者可右键宝箱打开战利品界面，点 **领取全部** 发放物品。自带模型可以通过 `model` 换成自定义模型 ID，`scale` 调整大小。
+启用 Adyeshach，将模块导出的 `plugins/ArcartX-Suite/data/exploration/client/ArcartX/resource/model/exploration_chest.bbmodel` 发给测试玩家，放入其游戏实例的 `resourcepacks/ArcartX/resource/model/`，再重载客户端资源。在上一例的 `outcomes` 下加入这一项，并暂时把 `berries.weight` 设为 `0`。
+
+```yaml
+cache:
+  type: chest
+  weight: 1
+  title: 遗落的行囊
+  model: exploration_chest
+  scale: 1.0
+  items:
+    - source: minecraft
+      id: IRON_INGOT
+      amount: 2
+```
+
+在平坦且无遮挡的位置重载并探索。让两个玩家站在附近，只有发现者应看到模型。发现者走到距离宝箱 4 格内，右键打开战利品。先关窗并重新打开一次，再点 **领取全部**。背包应收到 2 个铁锭，模型消失。`model` 可替换为已下发的模型 ID，`scale` 大于 0 且最多为 4。
 
 关窗后还能右键重新打开。玩家离开原发现位置 32 格以上、换世界、死亡、下线或模块重载，都会清除未领取的宝箱。
 
@@ -68,3 +79,11 @@ hidden_gate: { type: abyss, weight: 5, dungeon: example }
 | `quest` | 填写 [QuestGPS](/docs/questgps) 中可接取的任务 ID。探索打开推荐界面，玩家自行接取。 |
 | `conversation` | 填写已绑定 Chemdah 会话的 [Adyeshach NPC](/docs/conversation/npc-interaction) ID。 |
 | `abyss` | 填写本服可单人进入的 [Abyss](/docs/abyss) 副本 ID。可选填 `plan`，并保留副本自己的准入、费用和冷却检查。 |
+
+逐项验收时，只给正在测试的结果保留正权重。其余结果设为 `0`。目标不可用时，玩家会收到失败提示，本次不会补抽别的结果。
+
+| 测试结果 | 操作和预期 |
+| --- | --- |
+| 任务推荐 | 先确认任务出现在测试玩家的 QuestGPS 可接取分页。完成探索后应打开该任务，玩家再点击接取。已完成、正在进行、分类被锁或未满足所设主线前置的任务不会被推荐。 |
+| NPC 奇遇 | 先用测试玩家与目标 NPC 完成一次正常对话，确认其 Adyeshach ID 和 Chemdah 绑定。探索读满后应直接打开同一段对话。 |
+| 秘境申请 | 先用一个可单人进入的本服副本验收。符合准入条件时等待 Abyss 完成入场。再用缺少前置条件的账号重测，确认仍显示拒绝原因。 |

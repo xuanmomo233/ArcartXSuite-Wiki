@@ -5,18 +5,13 @@ description: "配置附近 NPC 的交互距离、选择器操作及 NPC 外观�
 
 ## 前置条件
 
-交互增强功能需要以下条件全部满足，否则功能降级（选择器仍可用鼠标点击，快捷键不可用）：
+先确认 Chemdah、Adyeshach 和 Conversation 已启用。给一个现有 NPC 绑定 Chemdah 对话，再用普通玩家右键该 NPC，确认能打开 `ArcartXConversation` 主题。完整配置见[绑定 NPC](/docs/questgps/chemdah-walkthrough#第二步npc-对话接取任务)。
 
-| 条件 | 缺失时表现 |
-| --- | --- |
-| `interaction.enabled: true` | 配置关闭时功能停用 |
-| 选择器 UI 已注册 | `selector UI` 未就绪时降级 |
-| Adyeshach 插件可用 | NPC 桥接不可用时降级 |
-| Chemdah 插件已安装 | 对话打开器不可用时降级 |
+右键基线通过后，在 `plugins/ArcartX-Suite/data/conversation/config.yml` 检查 `interaction.enabled: true` 和 `ui.selector-ui-id`。使用自定义界面时，确认该 ID 能实际注册。选择器需要 ArcartX 客户端和注册成功的选择器 UI。
 
 ## 附近 NPC 扫描
 
-模块周期性扫描每个在线玩家附近的 Adyeshach NPC（周期由 `interaction.scan-period-ticks` 控制，默认 10 tick），筛选出有 Chemdah 对话可触发的 NPC 加入选择器候选列表。
+模块默认每 10 tick 扫描玩家附近 6 格。扫描周期和范围分别由 `interaction.scan-period-ticks`、`interaction.scan-range` 控制。列表显示玩家附近可见、且在当前世界有适用对话绑定的 Adyeshach NPC。对话另设玩家条件时，用符合条件的账号测试打开。
 
 - 玩家正在对话中选择器自动关闭
 - NPC 离开范围后选择器保持一小段时间再关闭（`interaction.selector-sticky-ms`，默认 1500ms），防止短暂越界时频繁闪烁
@@ -30,6 +25,12 @@ description: "配置附近 NPC 的交互距离、选择器操作及 NPC 外观�
 | 向上导航 | `AXS_NAVIGATE_PREV` 按键或滚轮 |
 | 向下导航 | `AXS_NAVIGATE_NEXT` 按键或滚轮 |
 | 确认打开对话 | `AXS_INTERACT` 按键或点击 |
+
+### 验收同名 NPC 与世界范围
+
+1. 用两个 Adyeshach NPC 测试。给它们相同的显示名、不同的实体 ID，只把其中一个 ID 绑定到 Chemdah 对话。重载对话后走进扫描范围，选择器应只列出有绑定的 NPC。
+2. 使用带世界限制的对话绑定时，用同一个账号分别在允许世界和对照世界测试选择器。NPC 必须在该世界真实存在且对该玩家可见。超出扫描范围后等待选择器关闭，回到范围内再测试确认键。
+3. 右键对话正常而选择器为空时，依次检查 `interaction.enabled`、界面注册、`scan-range`、NPC 的实际 ID 和世界限制。若绑定仍不显示，检查游戏服上的 Chemdah 是否支持该绑定写法，并在 Chemdah 重载后复测。
 
 ## 防抖与冷却
 
