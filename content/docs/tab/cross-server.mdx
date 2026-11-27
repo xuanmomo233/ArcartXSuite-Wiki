@@ -7,7 +7,7 @@ description: "在 Velocity 代理中汇总参与子服的玩家，验证准入�
 
 通过 Suite Velocity 汇总多个子服的名单适用于付费客户水印版。 [版本区别](/docs/guide#版本区别)
 
-1. 从客户分发渠道取得 Suite Velocity，在连接这些子服的代理上安装。子服启用 Tab，在各自的 `plugins/ArcartX-Suite/data/tab/config.yml` 中设置 `settings.proxy-roster: true`，再执行 `axs reload tab`。
+1. 从客户分发渠道取得 Suite Velocity，在连接这些子服的代理上安装。子服启用 Tab，在各自的 `plugins/ArcartX-Suite/data/tab/config.yml` 中设置 `settings.cross-server-list: true`，再执行 `/axs reload tab`。
 2. 在 Velocity 的 Suite 插件目录中编辑已生成的 `proxy-config.yml`，合并以下设置后重启代理。
 
 ```yaml
@@ -18,8 +18,22 @@ tab-list:
 
 `max-remote-entries` 限制远端名单人数，可设为 1～80，默认 80。名单只显示已通过进服验证且可见的远端玩家。跨服隐身要求各子服启用 Paper 的 Velocity modern forwarding，以及 Suite Essentials 和 Tab。
 
+## 跨服自定义名单
+
+更新各子服的 Tab 和 Suite Velocity，并在参与自定义名单的子服设置 `player-list.enabled: true`。各子服须引用相同的一组权限组，包括包含组、排除组、分组和置顶规则里引用的组名，合计最多 256 个；各服也须使用相同的 `player-list.sort.placeholder`。
+
+代理确认可见并已注入原版名单的跨服玩家，在来源子服提供完整的权限组和排序数据后进入自定义名单。查看者所在的子服对本服和跨服玩家一起执行筛选、排序、分组和置顶。整个名单最多 80 行，分组标题也计入。 [名单规则](/docs/tab/configuration#本服自定义名单)
+
+开启付费跨服自定义名单后，`player-list.presentation: auto` 也会使用 Suite 生成的名单，让各子服的玩家共用一套规则。简略布局和头像布局均可使用。 [版本与界面选择](/docs/tab/configuration#不同版本怎么选)
+
+自定义跨服名单中的玩家显示名由各自的来源子服生成。各子服可以使用不同的 `display.name-format`，并在本服启用相应的 PAPI 占位符。远端显示名超过 112 个 UTF-8 字节时显示账号名。 [名称与称号格式](/docs/tab/configuration#名称与称号格式)
+
+关闭 `player-list.enabled` 时，客户端显示代理汇总的原版名单，代理补入的远端玩家使用账号名。
+
 在启用跨服名单的子服，`/vanish` 经代理确认后生效。请等隐身状态更新再切服，在切服完成后再开启隐身。
 
 ## 检查显示与隐身
 
 用两个已准入的测试账号分别进入子服 A 和 B，按 Tab 确认双方都能看到对方。再用有权限的账号开启隐身，先确认另一人的名单中已消失，然后切服并重新查看名单。关闭隐身后，确认可见玩家重新出现。
+
+开启跨服自定义名单后重复上述检查。给两台子服的测试玩家配置同一分组和不同的 PAPI 值，确认他们在同一分组内按配置排序，再把远端测试账号加进排除组或置顶规则，检查本服看到的变化。

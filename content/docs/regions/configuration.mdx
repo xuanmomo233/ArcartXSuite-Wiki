@@ -38,6 +38,9 @@ defaults:
 notifications:
   show-actionbar: true
   display-mode: actionbar
+  flight-denied:
+    default: "&c此世界禁止飞行。"
+    worlds: {}
 ```
 
 | 字段 | 默认值 | 说明 |
@@ -51,8 +54,12 @@ notifications:
 | `defaults.global-region-id` | `__global__` | 每个世界默认记录使用的 ID，与 `type: global` 的记录保持一致 |
 | `notifications.show-actionbar` | `true` | 没有自定义进出文字时，是否显示默认进出提示 |
 | `notifications.display-mode` | `actionbar` | 进出提示位置，可用 `actionbar`、`chat`、`title` |
+| `notifications.flight-denied.default` | `&c此世界禁止飞行。` | 世界默认旗标拒绝飞行时发送的聊天提示，支持 `{world}` |
+| `notifications.flight-denied.worlds` | `{}` | 按世界名称覆盖禁飞提示，填空字符串可关闭对应世界的提示 |
 
 `display-mode` 同时用于默认提示和自定义的 `greeting`、`farewell`。关闭 `show-actionbar` 后，显式配置的自定义文字仍按选择的位置显示。
+
+世界禁飞提示固定显示在聊天栏。按世界配置的例子见[禁飞世界中的局部飞行区](/docs/regions/world-rules#禁飞世界中的局部飞行区)。
 
 ## 区域与世界数据
 

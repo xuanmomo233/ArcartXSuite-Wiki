@@ -1,18 +1,19 @@
 ---
 title: "在线列表"
-description: "按 Tab 查看玩家名单，可显示头像、延迟和其他 Velocity 子服的玩家。"
+description: "按 Tab 查看在线名单，支持筛选、排序、分组和置顶。"
 ---
 
 ## 第一次使用
 
-启用 Tab 后，用 ArcartX 客户端进服按住 Tab。要测试头像和延迟，按[切换布局](/docs/tab/configuration#切换与验证布局)启用头像名单。
+启用 Tab 后，用 ArcartX 客户端进服按住 Tab。默认显示原版名单。开启 `player-list.enabled` 后，可以按权限组筛选玩家，配置 PAPI 排序、分组和置顶。免费版和付费版都支持自定义本服名单。原版排序接口可用时，单服的排序与置顶可直接作用于原版名单。 [版本与界面选择](/docs/tab/configuration#不同版本怎么选)
 
 ## 检查是否配置成功
 
-用两名在线玩家核对名单。`avatar` 模式还显示头像和延迟。界面缺失时，用 `/axs status` 检查模块状态并核对布局名称。
+用两名在线玩家核对名单。`avatar` 模式还显示头像和五格延迟信号。界面缺失时，用 `/axs status` 检查模块状态并核对布局名称。
 
 ## 继续配置
 
-- [布局配置](/docs/tab/configuration)说明各字段及界面文件位置。
+- [在线列表配置](/docs/tab/configuration)说明各版本的名单方式、规则及界面文件位置。
+- [名称与称号格式](/docs/tab/configuration#名称与称号格式)说明如何把 PAPI 称号前后缀显示在 Tab 名单中。
 - [操作与命令](/docs/tab/commands)列出玩家操作和管理员命令。
 - [Velocity 跨服名单](/docs/tab/cross-server)说明子服设置、隐身和双服验证。

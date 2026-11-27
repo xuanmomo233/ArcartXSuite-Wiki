@@ -3,11 +3,23 @@ title: "事件规则配置"
 description: "在主配置中创建一条信号规则，并了解规则字段和每 tick 的处理限制。"
 ---
 
-编辑 `plugins/ArcartX-Suite/data/eventpacket/config.yml`，在 `rules` 中为每条规则设置一个独立的 ID。
+EventPacket 的配置位于 `plugins/ArcartX-Suite/data/eventpacket/`。
+
+| 文件 | 内容 |
+| --- | --- |
+| `config.yml` | 实时队列、每 tick 预算和采样频率。 |
+| `cleanup.yml` | 实体清理的时间、世界、实体类型和提示。 |
+| `rules/events.yml` | Suite 事件、信号、退出、击杀和 Chemdah。 |
+| `rules/sampling.yml` | PAPI 变化、阈值和 JS/Aria 脚本采样。 |
+| `rules/client.yml` | 客户端包触发的规则。 |
+| `rules/mail.yml` | 副本结算、首次准入和拍卖持久邮件。 |
+| `rules/schedule.yml` | 定时控制台命令。 |
+
+可在 `rules/` 下增加同格式的 `.yml` 或 `.yaml` 文件。所有文件中的规则 ID 必须全局唯一，最多加载 32 个规则文件。保存后执行 `axs reload eventpacket`。重载失败时继续使用上一次成功加载的规则。
 
 ## 测试一条信号规则
 
-将 `trial-open-message` 合并到现有的 `rules` 段。
+将 `trial-open-message` 合并到 `rules/events.yml` 的 `rules` 段。
 
 ```yaml
 rules:
@@ -29,6 +41,7 @@ rules:
 | `enabled` | 是否启用规则，默认 `true`。 |
 | `trigger` | 何时执行，见[触发器](/docs/eventpacket/triggers)。 |
 | `when` | 按事件字段精确匹配，填写的条件须全部满足。值可以填字符串、数字或布尔值。 |
+| `checks` | 在线玩家实时规则可设置最多 8 个条件，例如 `"js: player.getHealth() > 5"`、`"aria: global.player.getHealth() > 5"` 或 `"%player_level% >= 10"`。一条规则执行前只评估一次。 |
 | `actions` | 按顺序执行的动作列表，每条规则可填写 1 至 8 个动作。 |
 
 规则 ID 和信号名使用小写字母、数字、连字符或下划线，以字母或数字开头，最多 64 个字符。主配置最多可填写 256 条规则。
@@ -42,3 +55,14 @@ rules:
 | `runtime.budget-micros` | `750` | 每 tick 处理预算，单位为微秒，取值 100 至 5000。 |
 
 `/axs eventpacket status` 中，`unmatched` 表示同主题事件未匹配 `when`，`dropped` 表示队列满或调度失败。
+
+## 本服采样
+
+占位符和脚本触发器共用一个本服采样任务。相同占位符或脚本每轮对每名玩家只评估一次。默认最快每 100 tick 开始新一轮，每 tick 最多执行 16 次采样。上一轮尚未完成时先继续处理，实际间隔会随人数、配置和占位符耗时增长。
+
+| 字段 | 默认 | 范围 |
+| --- | --- | --- |
+| `sampling.interval-ticks` | `100` | 20 至 12000 |
+| `sampling.work-per-tick` | `16` | 1 至 128 |
+
+脚本使用宿主已启用的 JS 或 Aria 运行时，在服务器线程读取玩家状态。请使用简短的判断表达式，避免循环和阻塞操作。采样预算只能限制何时开始下一次评估。重载会重新建立采样基线。

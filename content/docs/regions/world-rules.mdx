@@ -19,6 +19,19 @@ description: "配置整个世界的默认旗标，并为局部区域设置飞行
 
 开启飞行、进入禁飞位置或保存影响飞行的规则后，模块会检查飞行状态。具有 `axs.regions.bypass` 的玩家可绕过飞行限制。
 
+在模块的 `config.yml` 中设置世界禁飞提示。只有实际命中世界默认禁飞、尝试飞行或正在飞行的玩家会收到提示。支持 `&` 颜色代码和 `{world}` 占位符。
+
+```yaml
+notifications:
+  flight-denied:
+    default: "&c此世界禁止飞行。"
+    worlds:
+      world_pvp: "&c{world} 是对战世界，禁止飞行。"
+      world_event: ""
+```
+
+这个例子会为 `world_pvp` 显示专用提示，为 `world_event` 关闭提示。各世界是否禁飞仍由对应的 `fly` 旗标决定。保存配置后执行 `/axs reload regions`。
+
 ## 活塞与爆炸保护
 
 ```text

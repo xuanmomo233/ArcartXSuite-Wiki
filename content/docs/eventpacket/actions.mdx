@@ -10,14 +10,31 @@ description: "设置字幕、任务、消息、命令和持久邮件的参数。
 | `subtitle` | 播放 Announcer 字幕组。 | `group: welcome_demo` |
 | `quest.offer` | 通过 QuestGPS 向玩家展示可接取任务。 | `quest: chapter_two`、`open-menu: true` |
 | `quest.track` | 通过 QuestGPS 追踪已接取任务。 | `quest: chapter_two` |
+| `quest.accept` | 通过 QuestGPS 接取指定任务。 | `quest: chapter_two` |
+| `quest.open` | 打开 QuestGPS 任务菜单。 | `- { type: quest.open }` |
 | `message` | 向玩家发送聊天栏提示。 | `text: "已解锁下一阶段"` |
 | `command` | 以控制台或玩家身份执行固定命令。 | `executor: console`、`command: save-all` |
+| `ui.packet` | 给本服符合接收范围的玩家发送 ArcartX 界面数据。 | `ui: "AXS:example"`、`handler: update`、`audience: self`、`data: { stage: "{quest_id}" }` |
+| `chat.card` | 给触发者发送已定义的聊天卡片。 | `card: welcome`、`data: { message: "欢迎" }` |
+| `title.give` | 通过 Title 授予称号。 | `title: veteran`、`duration: 7d` |
+| `combat-effect.play` | 通过 CombatEffect 播放已注册的效果包。 | `effect: kill-effect`、`data: { caption: "已完成" }` |
+| `qq.message` | 通过 QQBot 向已配置的群发送文本。 | `group: 123456` 或 `group: all`，以及 `text: "活动已开启"` |
+| `mail.send` | 用 Mail 异步发送一封实时通知。 | `title: "提示"`、`content: "已完成 {quest_id}"` |
+| `mail.preset` | 用 Mail 异步发送已配置的邮件预设，预设可带附件。 | `preset: chapter_reward` |
 
 字幕动作需要 Announcer，任务动作需要 QuestGPS。消息、字幕组和任务 ID 可引用 `{quest_id}` 等事件字段。命令使用固定参数，`executor` 可设为 `console` 或 `player`。以玩家身份执行时，该玩家须在线并完成进服验证。
+
+发 UI 包、聊天卡片和战斗特效时，`data` 可配置至多 16 个字符串字段，字段值支持事件模板。客户端只提交选中的规则 ID，动作、目标和命令由服务端配置决定。
+
+`ui.packet` 的 `audience` 可设为 `self`、`all-online` 或 `others`。`self` 是默认值，直接发送给触发者。`all-online` 包含触发者及本服其他已通过准入的在线玩家，`others` 排除触发者。后两种范围在开始分发时记录在线会话，按 tick 小批发送，离线或已更换会话的玩家会被跳过。触发者会话失效、规则重载或模块停用时，取消该波尚未发送的包。
+
+实时邮件进入 Mail 的异步提交，EventPacket 同时最多提交 64 封尚未完成的实时邮件。重启可恢复的发奖继续使用副本、首次准入或拍卖成交持久规则。
 
 ## 副本通关邮件
 
 单服可用 SQLite 处理本服副本通关结果。通过共享 MySQL 处理跨服副本结果时，EventPacket 需要当前服务器的有效客户水印席位，EventPacket、Abyss 和 Mail 须使用同一套宿主共享 MySQL。
+
+在 `rules/mail.yml` 中配置副本通关邮件。
 
 ```yaml
 rules:
@@ -41,7 +58,7 @@ rules:
 
 ## 用信号播放字幕
 
-先在 Announcer 配置[字幕组](/docs/announcer/subtitle#字幕组文件格式) `welcome_demo`，再将规则合并到 EventPacket 主配置的 `rules`。
+先在 Announcer 配置[字幕组](/docs/announcer/subtitle#字幕组文件格式) `welcome_demo`，再将规则合并到 `rules/events.yml`。
 
 ```yaml
 rules:
@@ -57,7 +74,7 @@ rules:
 
 ## 首次准入邮件
 
-启用 LoginView、Mail 和 EventPacket，将规则合并到 `rules`。
+启用 LoginView、Mail 和 EventPacket，将规则合并到 `rules/mail.yml`。
 
 ```yaml
 rules:

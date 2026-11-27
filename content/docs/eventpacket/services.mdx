@@ -1,9 +1,9 @@
 ---
-title: "定时命令"
-description: "按整点、指定时间或固定间隔运行游戏服控制台命令。"
+title: "定时命令与实体清理"
+description: "使用游戏服定时命令，并按预算分批清理已加载区块中的实体。"
 ---
 
-定时规则在配置了该规则的游戏服执行。先将下例加到 `plugins/ArcartX-Suite/data/eventpacket/config.yml` 的 `rules` 段，并执行 `axs reload eventpacket`。
+定时规则在配置了该规则的游戏服执行。先将下例加到 `plugins/ArcartX-Suite/data/eventpacket/rules/schedule.yml` 的 `rules` 段，并执行 `axs reload eventpacket`。
 
 ```yaml
 rules:
@@ -28,3 +28,27 @@ rules:
 | `interval` | 按固定间隔触发。 | 在 `interval-minutes`、`interval-seconds`、`interval-ticks` 中填写一项。 |
 
 `time` 使用游戏服时区和 24 小时制。定时规则执行控制台命令，可省略 `when`。未触发时检查命令能否在控制台执行及触发时间。
+
+## 定时与手动实体清理
+
+实体清理在免费版和付费版都可开启。配置写在 `plugins/ArcartX-Suite/data/eventpacket/cleanup.yml`，每次只检查本服已加载实体的区块，并在多个 tick 中继续同一轮扫描。
+
+```yaml
+enabled: true
+interval-seconds: 300
+warning-seconds: 30
+work-per-tick: 48
+worlds: [world, world_nether]
+items: true
+monsters: false
+animals: false
+skip-named: true
+entity-types: []
+excluded-types: []
+warning-message: "&e将在 {seconds} 秒后清理实体。"
+result-message: "&a已清理 {count} 个实体。"
+```
+
+`worlds` 留空时检查所有已加载世界。可以在 `entity-types` 添加指定 Bukkit 实体类型，并用 `excluded-types` 保留指定类型。玩家始终保留，`skip-named` 默认保护有自定义名称的实体。`work-per-tick` 取 1 至 512，限制每 tick 处理的实体、区块和世界步骤数量。上一轮处理完毕后开始计算下一轮间隔。预告设为 0 秒或留空对应消息即可静默处理。
+
+启用清理后，管理员可执行 `/axs eventpacket cleanup`，由下一 tick 开始按相同的世界范围、实体过滤和工作量限制执行。手动清理跳过定时预告，结束后向执行者报告处理数量。已有清理排队或正在执行时，命令会提示当前状态，计时间隔从该轮结束后重新开始。

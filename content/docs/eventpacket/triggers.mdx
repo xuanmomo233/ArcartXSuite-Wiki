@@ -8,6 +8,12 @@ description: "按实时消息、信号、定时或确认的业务结果选择触
 | `event-bus` | `topic` | 接收 Suite 事件。例如 `axs.fishing.success` 或 `axs.questgps.quest_completed`。 |
 | `signal` | `signal` | 接收管理员命令、菜单或其他模块发送的同名信号。 |
 | `schedule` | `schedule` | 按周期运行控制台命令，见[定时命令](/docs/eventpacket/services)。 |
+| `player-quit` | — | 已通过准入的玩家退出。事件包含 `player_name`、`player_uuid` 和 `world`。只可运行固定控制台命令或发送实时邮件。 |
+| `mob-kills` | `count` 与 `entity-type` 或 `mythic-mob` | 每名玩家按规则累计击杀。在达到指定次数时触发，可用 `worlds` 限定世界。 |
+| `placeholder-change` | `placeholder`、`match` | 对 PAPI 值比较相邻两次有效采样。 |
+| `script-check` | `engine`、`script` | 按批次评估 JS 或 Aria，结果从假变真时触发。 |
+| `client-packet` | `permission` | 已准入且明确授予相应权限的玩家可从 ArcartX 界面触发该规则。 |
+| `chemdah` | `event` | 收集本服 Chemdah 的任务、目标和等级事件。 |
 | `abyss-result` | `when.dungeon` | 用已结算的副本结果发邮件。可用 `when.difficulty` 限定难度，`owner` 默认 `abyss`。 [副本通关邮件的单服与跨服条件](/docs/eventpacket/actions#副本通关邮件) |
 | `first-admitted` | — | 玩家第一次通过准入时发邮件。 |
 | `auction-purchased` | — | 拍卖到期成交后向买家发邮件。 |
@@ -15,6 +21,59 @@ description: "按实时消息、信号、定时或确认的业务结果选择触
 已安装并启用 EventPacket 的服务器会保留模块启动或暂时停止期间的拍卖成交事件，模块恢复后继续按配置处理。
 
 付费客户水印版共用 Market 拍卖库时，所有结算服须启用 EventPacket，并使用相同成交规则和同一套 EventPacket、Mail 存储。
+
+## PAPI、脚本和击杀
+
+在 `rules/sampling.yml` 配置 PAPI 和脚本规则。PAPI 的 `match` 可设为 `changed`（文本变化）、`increase`、`decrease`、`reach`（从低于阈值变为等于或高于阈值）、`fall-below`（降到阈值以下）。后两项需要数值 `threshold`。初次采样建立基线，未解析占位符和空值不会触发。事件提供 `old_value`、`new_value` 和 `placeholder`。
+
+```yaml
+rules:
+  player-level-ten:
+    trigger: placeholder-change
+    placeholder: "%player_level%"
+    match: reach
+    threshold: 10
+    actions:
+      - { type: message, text: "等级已达到 {new_value}。" }
+  low-health:
+    trigger: script-check
+    engine: js
+    script: "player.getHealth() < 6"
+    actions:
+      - { type: message, text: "你的生命值过低。" }
+```
+
+脚本可将 `engine` 设为 `aria`，此时用 `global.player` 访问玩家。在 `rules/events.yml` 配置击杀规则。
+
+```yaml
+rules:
+  zombie-twenty:
+    trigger: mob-kills
+    entity-type: ZOMBIE
+    count: 20
+    repeat: true
+    actions:
+      - { type: message, text: "你击杀了 {kill_count} 只僵尸。" }
+```
+
+击杀计数跟随本服玩家存档保存，键由规则 ID 决定。设为 `repeat: true` 时每累计一轮就重新计数，默认只在首次达成时触发。事件提供 `kill_count`、`entity_type`、`mythic_mob` 和 `world`。
+
+## 客户端包触发规则
+
+在 `rules/client.yml` 设置规则和服务端权限，再从自己的 ArcartX 界面发送包。服务端只接收固定通道上的规则 ID，并通过包守卫限制重复触发。
+
+```yaml
+rules:
+  panel-confirm:
+    trigger: client-packet
+    permission: suite.eventpacket.panel-confirm
+    actions:
+      - { type: message, text: "已确认操作。" }
+```
+
+```aria
+Packet.send('AXS_EventPacketAction', 'client-packet', 'panel-confirm')
+```
 
 ## 钓到传奇鱼时提示
 
@@ -30,4 +89,30 @@ rules:
         text: "你钓到了一条传奇鱼！"
 ```
 
-把规则加入 `rules` 并重载。用具备对应钓鱼条件的玩家完成一次传奇鱼捕获，核对提示。
+把规则加入 `rules/events.yml` 并重载。用具备对应钓鱼条件的玩家完成一次传奇鱼捕获，核对提示。
+
+## Chemdah 任务与等级
+
+在同一台后端安装并启用 Chemdah。在 `rules/events.yml` 使用 `trigger: chemdah`，在 `event` 选择要监听的事件，也可以用 `when` 精确匹配下表中的字段。
+
+| `event` | 触发时机 | 可匹配的字段 |
+| --- | --- | --- |
+| `quest-accept`、`quest-complete`、`quest-fail` | 接取、完成或失败处理结束后 | `quest_id` |
+| `objective-complete`、`objective-continue`、`objective-restart` | 完成、继续或重启目标处理结束后 | `quest_id`、`task_id`、`objective_type`、`objective_name` |
+| `level-change` | Chemdah 等级或经验变化事件 | `level_option`、`old_level`、`new_level`、`level_delta`、`old_experience`、`new_experience` |
+
+`level_option` 是 Chemdah 等级方案 ID，`level_delta` 是新等级减去旧等级的差值。目标事件中的 `objective_type` 是目标类名，`objective_name` 是 Chemdah 提供的目标名称。
+
+```yaml
+rules:
+  tutorial-completed:
+    trigger: chemdah
+    event: quest-complete
+    when:
+      quest_id: tutorial
+    actions:
+      - type: message
+        text: "新手任务已完成。"
+```
+
+把 `tutorial` 换成实际任务 ID，保存后执行 `/axs reload eventpacket`。使用已通过准入的玩家完成该任务，核对提示是否出现。

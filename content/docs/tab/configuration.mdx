@@ -1,6 +1,6 @@
 ---
 title: "在线列表配置"
-description: "选择精简名单或头像名单，设置是否向 Velocity 汇报名单状态。"
+description: "配置 Tab 名称、称号和布局，按版本选择名单来源，设置筛选、排序、分组和置顶。"
 ---
 
 主配置文件位于 `plugins/ArcartX-Suite/data/tab/config.yml`。保存后执行 `/axs reload tab`。
@@ -8,16 +8,117 @@ description: "选择精简名单或头像名单，设置是否向 Velocity 汇�
 ```yaml
 settings:
   layout: simple
-  proxy-roster: false
+  cross-server-list: false
+display:
+  name-format: ''
+player-list:
+  enabled: false
+  presentation: auto
 ```
 
 | 字段 | 用途 |
 | --- | --- |
-| `settings.layout` | `simple` 显示玩家名，`avatar` 额外显示头像和延迟。 |
-| `settings.proxy-roster` | 启用时向 Suite Velocity 上报当前连接的准入和隐身状态。单服使用默认值 `false`。 |
+| `settings.layout` | `simple` 使用简略布局，`avatar` 额外显示头像和五格延迟信号。各版本均可选择这两种布局。 |
+| `settings.cross-server-list` | 付费客户水印版的 Velocity 跨服名单开关。单服使用默认值 `false`。 |
+| `display.name-format` | 原版 Tab 显示名的格式。默认空字符串，保留玩家现有的显示名。开启格式不依赖名单规则。 |
+| `player-list.enabled` | 默认 `false`，客户端直接读取原版 Tab 名单。设为 `true` 后启用下方的名单规则。 |
+| `player-list.presentation` | 默认 `auto`，按服务端接口和启用的规则选择数据来源。设为 `hud` 时始终使用 Suite 生成的自定义名单。仅在 `player-list.enabled: true` 时生效。 |
+
+## 名称与称号格式
+
+`display.name-format` 在旧版和新版服务端都可使用。设置后，Suite 只在名称变化时写入原版 Tab 的显示名。将格式清空并重载，或停用模块时，Suite 会恢复仍由自己设置的名称。即使保留 `player-list.enabled: false`，格式也会生效。
+
+用 `%player_name%` 保留玩家的账号名。这个占位符由 Tab 提供，独立于 PlaceholderAPI。使用其他 PAPI 占位符时，请安装 PlaceholderAPI 并启用对应模块或扩展。未解析的占位符会被省略，格式字符串可使用 `&` 颜色码。
+
+如果已经启用 Title 并装备称号，可以将总展示称号为 Tab 配置的前后缀拼到账号名两侧。
+
+```yaml
+display:
+  name-format: '%axstitle_display_tab_prefix%&f%player_name%%axstitle_display_tab_suffix%'
+```
+
+| 占位符 | 显示内容 |
+| --- | --- |
+| `%axstitle_display_tab_prefix%`、`%axstitle_display_tab_suffix%` | 总展示称号的 Tab 前缀、后缀。 |
+| `%axstitle_tab_main_prefix%`、`%axstitle_tab_main_suffix%` | `main` 分组已装备称号的 Tab 前缀、后缀。可把 `main` 替换为其他称号分组 ID。 |
+| `%axstitle_display_name%` | 总展示称号的名称本身。可和 `%player_name%` 组合显示。 |
+
+自定义界面使用原版数据时，ArcartX 的 `Player.getTabPlayers()` 返回纯文本显示名。要让 ArcartX 界面同时显示配置的颜色，请设置 `player-list.enabled: true` 和 `player-list.presentation: hud`。两份布局都支持这种方式，原版 Tab 的显示名仍按格式更新。
+
+## 不同版本怎么选
+
+布局决定界面外观。简略布局用 `tab-simple.yml`，头像布局用 `tab-avatar.yml`，两份文件均位于 `plugins/ArcartX-Suite/ui/tab/`。两种布局都支持原版数据和 Suite 自定义数据，升级 Minecraft 版本时可继续使用原布局文件。
+
+| 服务端与客户端 | 需要的功能 | 配置与界面 |
+| --- | --- | --- |
+| 任意受支持版本 | 显示原版名单 | `player-list.enabled: false`。两份布局都直接用 `Player.getTabPlayers()` 读取原版名单。 |
+| 含排序修复的 Paper 1.21.3，或提供同等接口的更新服务端。客户端为 Minecraft Java 1.21.2 或更高版本 | 本服按玩家名或 PAPI 排序、置顶 | `player-list.enabled: true` 和 `presentation: auto`。Suite 写入原版 Tab 的相对顺序，两份布局通过 `Player.getTabPlayers()` 读取调整后的名单。 |
+| Minecraft 1.20.1 等未提供原版排序接口的服务端 | 本服自定义排序或置顶 | `player-list.enabled: true` 和 `presentation: auto`。两份布局均显示 Suite 生成的名单。 |
+| 客户端低于 Minecraft Java 1.21.2，或服务端无法识别客户端协议 | 本服自定义排序或置顶 | `player-list.enabled: true` 和 `presentation: auto`。这些客户端显示 Suite 生成的名单。 |
+| 跨版本代理只向后端提供转换后的协议版本 | 为所有客户端统一名单方式 | `player-list.enabled: true` 和 `presentation: hud`。两份布局均显示 Suite 生成的名单。 |
+| 任意受支持版本 | 按权限组筛选、显示组内标题，或使用付费跨服自定义名单 | `player-list.enabled: true` 和 `presentation: auto`。按所需规则选择 Suite 生成的名单，两份布局均可用。 |
+
+原版排序要求服务端能读取和设置玩家的列表顺序，并能报告查看者的客户端协议版本。若查看者能看到仍未通过准入的玩家，界面会切换到 Suite 生成的名单，以继续应用准入检查。 [Paper 1.21.3 玩家接口](https://jd.papermc.io/paper/1.21.3/org/bukkit/entity/Player.html#setPlayerListOrder(int)) · [客户端协议接口](https://jd.papermc.io/paper/1.21.3/com/destroystokyo/paper/network/NetworkClient.html#getProtocolVersion()) · [Minecraft 1.21.2 协议说明](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-2#network-protocol)
+
+Suite 在顺序变化时才更新原版顺序，停用或重载模块时会恢复仍由 Suite 控制的顺序。部分早期 Paper 1.21.3 构建已提供顺序接口但不会发送更新。使用该版本时请采用包含修复的构建。 [Paper 排序修复记录](https://github.com/PaperMC/Paper/issues/11727)
+
+## 本服自定义名单
+
+免费云端版和付费客户水印版都支持自定义本服名单。权限组填写组名，例如 `vip` 匹配 Vault 或 LuckPerms 提供的 `vip` 主组，也匹配明确授予玩家的 `group.vip` 权限。原有的 `data/tab/tabs/*.yml` 配置请改写到主配置的 `player-list` 节。
+
+以下示例允许管理员、协管、VIP 和默认组进入名单，排除 `hidden` 组。组内按玩家自己的等级占位符从高到低排列，Alice 和管理员置顶。请将组名、玩家名和占位符替换为本服已配置的值。
+
+```yaml
+settings:
+  layout: avatar
+  cross-server-list: false
+player-list:
+  enabled: true
+  presentation: auto
+  include-groups: [admin, moderator, vip, default]
+  exclude-groups: [hidden]
+  sort:
+    placeholder: "%player_level%"
+    numeric: true
+    order: desc
+  groups:
+    staff:
+      label: "管理组"
+      permission-groups: [admin, moderator]
+    vip:
+      label: "VIP"
+      permission-groups: [vip]
+  ungrouped-label: "其他玩家"
+  pinned:
+    names: [Alice]
+    permission-groups: [admin]
+```
+
+| 字段 | 规则 |
+| --- | --- |
+| `player-list.include-groups` | 包含组列表。命中任意一组即可，留空时包含所有可见的候选玩家。 |
+| `player-list.exclude-groups` | 排除组列表。命中任意一组即隐藏，排除规则优先。 |
+| `player-list.sort.placeholder` | 用名单中每名玩家自己的 PlaceholderAPI 值排序。留空或 PlaceholderAPI 不可用时按玩家名排序。每个值最长 128 个 UTF-8 字节，超出按空值处理。 |
+| `player-list.sort.numeric` | 默认 `true`，按数值排序，支持 `1,200` 这类带千位分隔符的值。设为 `false` 后按文本排序，忽略大小写。 |
+| `player-list.sort.order` | `asc` 升序，`desc` 降序。空值、未解析的占位符及无法转换的数值排在有效值之后，同值时按玩家名排列。 |
+| `player-list.groups.<id>` | 按 YAML 声明顺序显示。用 `label` 设置标题，用非空的 `permission-groups` 列表匹配权限组。玩家归入第一个命中的分组。 |
+| `player-list.ungrouped-label` | 已启用分组时，未命中任何分组的玩家显示在此标题下，默认「其他玩家」。 |
+| `player-list.pinned.names`、`player-list.pinned.permission-groups` | 按玩家名或权限组置顶，命中任一项即可。置顶只作用于通过筛选的玩家。开启分组时，置顶玩家统一出现在最前面的「置顶」分组。 |
+
+## 检查筛选和顺序
+
+重载后用 ArcartX 客户端按住 Tab。用有明确权限组的本服测试账号核对以下结果。
+
+1. 同时属于包含组和排除组的账号从名单中消失。
+2. 置顶账号出现在所有普通分组之前，其余账号按声明顺序归入第一个匹配组。
+3. 在同一分组内用 PAPI 值为 `2` 和 `10` 的账号验证数字降序，`10` 应排在 `2` 前面。
 
 ## 切换与验证布局
 
-一次选择一个布局。保存 `settings.layout` 后执行 `axs reload tab`，用 ArcartX 客户端进服按住 Tab。选择 `avatar` 时，应在名单中看到头像和延迟。
+保存 `settings.layout` 后执行 `/axs reload tab`。保持在线，松开后再次按住 Tab 即可检查新布局。`avatar` 以五格信号显示延迟，亮格越多延迟越低，无法获取延迟时显示 ×。
 
-在 `plugins/ArcartX-Suite/ui/tab/` 编辑当前布局对应的 `tab-simple.yml` 或 `tab-avatar.yml`，保存后重载 Tab。界面从 ArcartX 客户端读取原版 Tab 名单。付费客户水印版的多子服名单同步见[跨服名单](/docs/tab/cross-server)。
+界面布局和名单来源的选择见[不同版本怎么选](/docs/tab/configuration#不同版本怎么选)。
+
+模块会更新内容仍与上一版默认模板一致的文件。若你改过其中一份，请把新版模板的 `tab-players` 数据包处理、刷新任务和分组样式合并到同名文件，再重载 Tab。
+
+自定义名单最多显示 80 行，分组标题也占一行。启用付费跨服名单后，符合条件的远端玩家和本服玩家一起筛选、排序、分组和置顶。 [Velocity 跨服名单](/docs/tab/cross-server)
